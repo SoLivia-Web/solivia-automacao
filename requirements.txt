@@ -4,3 +4,4 @@ hubspot
 python-dotenv
 tenacity
 openpyxl
+simplejson
