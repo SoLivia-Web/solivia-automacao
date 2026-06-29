@@ -1,6 +1,6 @@
 pandas
 openai
-hubspot-client
+hubspot>=1.0.0
 python-dotenv
 tenacity
 openpyxl
