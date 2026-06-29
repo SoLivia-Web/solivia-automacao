@@ -1,0 +1,6 @@
+pandas
+openai
+hubspot
+python-dotenv
+tenacity
+openpyxl
