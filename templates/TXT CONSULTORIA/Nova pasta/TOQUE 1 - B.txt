@@ -1,0 +1,34 @@
+{{NomeFantasia}} – Perda silenciosa no seu sistema solar
+
+Queda de 10% na geração é comum. Veja quanto você pode estar perdendo.
+
+Olá {{NomTitularEmpreendimento}},
+
+Seu sistema fotovoltaico de {{MdaPotenciaInstalada}} kWp, instalado em {{NomMunicipio}} desde {{DatConexao}}, pode estar gerando menos energia do que você imagina.
+
+Detalhe do seu equipamento:
+
+Inversor {{NomFabricanteInversor}} {{NomModeloInversor}} com {{QtdModulos}} painéis {{NomFabricanteModulo}} eu tenho acesso remoto e conheço bem esse conjunto.
+
+A conta que poucos fazem: uma queda de apenas 10% na geração (muito comum por sujeira, sombras ou falhas silenciosas) representa uma perda estimada de R$ {{PerdaMensal}} por mês – mais de R$ {{PerdaAnual}} por ano.
+
+A maioria dos clientes só descobre que algo está errado quando a conta de luz chega alta e aí já perdeu meses de economia.
+
+Com acesso remoto aos dados do seu inversor, eu consigo analisar o histórico de geração, identificar quedas de performance e estimar exatamente quanto dinheiro você está perdendo.
+
+Por R$ 197 (valor único), eu entrego um laudo técnico completo com:
+
+Geração real vs. esperada (últimos 6 meses)
+
+Perda financeira acumulada e projeção anual
+
+Diagnóstico de anomalias (sujeira, falha em string, inversor offline)
+
+Recomendação prática para corrigir
+
+👉 Veja um exemplo de laudo: {{LINK_LAUDO}}
+👉 Solicitar seu diagnóstico agora: {{LINK_FORMULARIO}}
+
+Após responder 4 perguntas simples o laudo é entregue em até uma semana.
+
+Atenciosamente,

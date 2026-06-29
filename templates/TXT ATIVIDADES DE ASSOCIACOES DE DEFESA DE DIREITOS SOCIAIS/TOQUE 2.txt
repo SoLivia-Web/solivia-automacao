@@ -1,0 +1,58 @@
+Comando Mestre para Ativar o Toque 2 – ATIVIDADES DE ASSOCIAÇÕES DE DEFESA DE DIREITOS SOCIAIS
+
+Objetivo: enviar um case real de energia solar relacionado a **atividades de associações de defesa de direitos sociais**. Use preferencialmente um dos links já pré-selecionados abaixo. Se não houver case exato do segmento, use o mais próximo e justificável, sem inventar.
+
+Pesquisa obrigatória:
+1. Acesse um dos links da lista abaixo.
+2. Leia a página e extraia as informações reais: nome de nome da associação, APAE ou instituição semelhante, localização, potência instalada (se houver), porcentagem de economia ou valor mensal/anual economizado, e qualquer dado relevante.
+3. Caso o link não traga números exatos, use o que estiver disponível (ex: "reduziu a conta de luz em mais de 50%", "zerou quase toda a conta", "atende toda a demanda da instituição").
+4. Use APENAS dados reais do link. Nunca invente.
+
+Lista de links validados para consulta inicial:
+1. https://quantumengenharia.com.br/apae-do-parana-energia-solar/
+2. https://prefeitura.poa.br/sites/default/files/usu_doc/sites/smds/projetos%20Conselhos/23.0.000154282-6.pdf
+3. https://ciclovivo.com.br/planeta/desenvolvimento/apae-ganha-instalacao-de-energia-solar-e-deve-reduzir-conta-de-energia-em-ate-35/
+
+Segurança anti-spam: Nunca cole a URL nua. Use hiperlink com texto: "Você pode ver os detalhes [neste link]."
+
+Tom: Sucinto, direto, profissional. O lead já recebeu o T1.
+
+================================================
+ASSUNTO (escolha uma das 5 opções – personalize com o nome do lead ou cidade):
+1. {Primeiro Nome}, veja um exemplo real de economia em associações de defesa de direitos sociais | SoLivia
+2. Case real: como uma associação social reduziu a conta de luz
+3. {Cidade} também tem espaço para um projeto assim? Olha este exemplo.
+4. Energia solar em associações de defesa de direitos sociais: não é teoria, já funciona.
+5. {Primeiro Nome}, separei um case real que vale sua atenção.
+================================================
+
+ESTRUTURA DO E-MAIL (você deve preencher com os dados extraídos do link):
+
+Sr(a). {Sobrenome},
+
+Relembrando: a ideia é trocar a fatura pelo financiamento. Depois do sistema pago, só margem.
+
+Espero que esta mensagem o(a) encontre bem.
+
+Como falamos sobre o potencial de economia para a {Nome da Empresa}, separei um exemplo real que pode interessar.
+
+👉 **Case real:** Uma associação social **{nome do case}**, localizada em **{cidade}**, instalou um sistema de energia solar e alcançou **{economia em % ou R$}**. A conta de luz, que antes era **{valor aproximado ou descrição}**, caiu para **{novo valor ou resultado observado}**. Você pode conferir os detalhes [neste link].
+
+Aplicando uma solução similar na sua operação, o resultado seria compatível – ou até melhor, dependendo do seu consumo.
+
+Se quiser, eu posso fazer uma simulação gratuita com base na sua última conta de luz. Basta responder este e-mail com o anexo.
+
+Atenciosamente,
+Nicolas
+Consultor de Soluções | SoLivia Engenharia
+
+================================================
+INSTRUÇÕES PARA VOCÊ (IA):
+- Após escolher o link válido, leia a página e identifique as informações principais.
+- Se a página não mencionar um valor numérico exato, use frases como "redução significativa", "economia relevante" ou "atende quase toda a demanda", sempre baseadas no texto-fonte.
+- Se o case não for exatamente de **atividades de associações de defesa de direitos sociais**, mas for de um contexto muito próximo, isso é aceitável – desde que a similaridade fique clara e o dado seja real.
+- Personalize o assunto com o nome do lead ou cidade sempre que possível.
+- A frase de relembrança ("Relembrando...") deve vir exatamente como está, imediatamente após a saudação.
+- Não use mais de um link no mesmo e-mail. Apenas um case por mensagem.
+- O CTA final deve ser sempre o mesmo: enviar a conta de luz para simulação.
+================================================

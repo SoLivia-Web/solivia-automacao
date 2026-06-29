@@ -1,0 +1,60 @@
+Comando Mestre para Ativar o Toque 2
+
+Vamos iniciar o Toque 2 (T2 - Prova Social/Case) para o lead atual. Consulte o histórico da nossa conversa para identificar os dados da empresa e execute a redação seguindo estas diretrizes:
+
+Pesquisa de Case Real:
+
+Acesse a lista de links fornecida abaixo. Ela contém notícias e cases reais de energia solar em indústrias metalmecânicas e fabris com perfil semelhante ao consumo de produtos metálicos diversos.
+
+Selecione aleatoriamente um link desta lista.
+
+Valide o link acessando-o. Certifique-se de que a página está acessível e contém as informações do case (Problema/Solução/Resultado).
+
+Caso o link selecionado esteja quebrado ou inacessível (ex: erro 404, 502, bloqueio, página removida), escolha outro link da lista aleatoriamente até encontrar um que funcione.
+
+Use exclusivamente o case deste link válido. A sua redação deve ser baseada nas informações reais encontradas (nome da empresa, local, problema enfrentado, solução implementada e resultado numérico como economia em R$ ou %).
+
+É fundamental que o exemplo seja muito similar ao cenário do lead. Se houver múltiplos links válidos, prefira aquele cujo case mais se aproxime do perfil do lead atual e do seu perfil de consumo.
+
+Lembre-se: Você não deve inventar links. Use exclusivamente a lista abaixo.
+
+Lista de Links Confiáveis para Consulta (NÃO USAR O MESMO LINK MUITAS VEZES):
+
+https://engegrid.com.br/instalacao-de-usina-fotovoltaica-para-a-industria-bomax/
+
+https://avozdaindustria.com.br/esg/implantacao-de-paineis-solares-em-industrias-metalmecanicas/
+
+
+https://www.cimm.com.br/portal/noticia/exibir_noticia/25343-industria-metalmecanica-sustentabilidade-eficiencia-energetica-sao-urgencias-futuro
+
+Segurança Anti-Spam (Hiperlink): IMPORTANTE: Nunca cole a URL completa (link "nu") no corpo do e-mail. Você deve obrigatoriamente formatar o link como um hiperlink curto inserido em uma frase.
+
+Exemplo correto: "Você pode conferir os detalhes desse projeto [neste link]."
+
+Tom de Voz: Seja extremamente sucinto, direto e seguro.
+
+Saudação: "Sr(a). [nome e sobrenome]" se o gênero não estiver confirmado.
+
+Estrutura do E-mail:
+
+Assunto: faça um assunto de impacto | SoLivia
+
+Corpo: Saudação breve + [RELEMBRE O CONCEITO COM UMA FRASE CURTA] + Gancho sobre a dor do lead -> Bloco de Case...
+
+[INSTRUÇÃO DE RELEMBRANÇO - USAR APENAS UMA FRASE, NÃO REPETIR O PARÁGRAFO INTEIRO]:
+
+Imediatamente após a saudação breve, adicione uma frase curta que relembre o conceito explicado no primeiro e-mail. Use algo como:
+"Como mencionamos, a ideia é trocar a fatura de energia pelo financiamento do sistema solar. Depois de quitado, só lucro."
+Ou, de forma ainda mais sucinta:
+"Relembrando: trocar a fatura pelo financiamento. Depois do sistema pago, o resto é margem."
+Não escreva mais do que uma linha. O objetivo é só ativar a memória do lead, não reexplicar.
+
+Destaque Visual: Coloque a frase com o link em uma linha isolada usando o emoji 👉.
+
+Pode redigir agora. Após gerar o texto, permaneça em prontidão para o Toque 3 (Bump) caso não tenhamos retorno.
+
+SE VOCÊ ACHAR NECESSÁRIO, PODE FAZER ALGUMA ALTERAÇÃO NO TEXTO, APENAS AVISE O MOTIVO.
+
+É DE EXTREMA IMPORTÂNCIA QUE O LINK DO CASE SEJA VÁLIDO PARA EVITAR RETRABALHOS.
+
+https://meetings.hubspot.com/nicolas-sa

@@ -1,0 +1,67 @@
+TOQUE T4 – HORTICULTURA, EXCETO MORANGO (Última tentativa)
+
+OBJETIVO: Executar o último toque da sequência ativa. Como você (operador) ainda não tem automação para escolher o módulo, a IA deve gerar **os dois módulos (B1 e B2)** claramente separados. Depois você copia e envia o que fizer mais sentido para aquele lead.
+
+MINHA AÇÃO ANTES DE ESCREVER:
+Consulto o histórico completo (T1, T2, T3) e extraio:
+- Nome do lead, nome da empresa.
+- Objetivo geral (ex: "redução da conta de energia").
+- Dor principal do T1.
+- Case compartilhado no T2.
+- Vantagem principal (ex: "economia potencial em torno de R$ 1.085/mês em uma operação hortícola típica").
+
+================================================
+ASSUNTO (escolha uma das 5 opções – personalize):
+1. {Primeiro Nome}, um último comentário sobre energia solar em horticultura, exceto morango | SoLivia
+2. {Nome da Empresa} – encerrando nossos contatos por aqui.
+3. Energia solar: minha última mensagem para você.
+4. {Primeiro Nome}, deixei uma porta aberta para o futuro.
+5. Sobre a simulação de energia solar – consideração final.
+
+================================================
+TEMPLATE – VOCÊ DEVE GERAR OS DOIS MÓDULOS ABAIXO (B1 e B2) E APRESENTÁ-LOS SEPARADAMENTE.
+PREENCHA OS CAMPOS { } COM AS INFORMAÇÕES DO HISTÓRICO.
+
+**E-mail base (comum a ambos os módulos):**
+
+Sr(a). {Sobrenome},
+
+Espero que esta mensagem o(a) encontre bem.
+
+Retorno para fazer um último comentário sobre o que apresentei para a {Nome da Empresa} em relação ao potencial de redução da conta de energia.
+
+Passamos por algumas etapas, desde a discussão inicial sobre {dor do T1} até o compartilhamento do case da {case do T2}. A {vantagem principal, ex: economia potencial em torno de R$ 1.085/mês em uma operação hortícola típica} continua sendo uma oportunidade relevante para o seu contexto.
+
+---
+
+**[MÓDULO B1 – Fechamento definitivo (para leads que nunca abriram nenhum e-mail ou não tiveram interação)]**
+
+Entendo que, pela falta de retorno, o momento atual não seja propício para seguir com essa discussão. Agradeço pelo tempo dispensado e encerro nossos contatos ativos por aqui. Desejo muito sucesso para você e para a {Nome da Empresa}.
+
+Caso mude de ideia no futuro, o canal segue aberto: basta responder este e-mail ou agendar uma conversa: https://meetings.hubspot.com/nicolas-sa
+
+---
+
+**[MÓDULO B2 – Porta aberta (para leads que abriram algum e-mail mas não responderam)]**
+
+Percebo que este pode não ser o momento ideal, e respeito isso. Como esse tema costuma ganhar relevância ao longo do tempo, vou mantê-lo no radar e retomar o contato em cerca de **45 dias** para um novo alinhamento.
+
+Caso prefira não receber mais contatos sobre este assunto, basta responder a este e-mail informando, que interrompo **IMEDIATAMENTE**.
+
+E se, antes disso, fizer sentido retomarmos a conversa, o canal segue aberto: responda este e-mail ou agende um horário rápido: https://meetings.hubspot.com/nicolas-sa
+
+---
+
+Atenciosamente,
+Nicolas | SoLivia Engenharia
+
+================================================
+INSTRUÇÕES PARA VOCÊ (IA):
+1. Você deve gerar **os dois módulos (B1 e B2)** completos, com todos os campos { } preenchidos conforme o histórico do lead.
+2. O operador (usuário) escolherá qual dos dois enviar manualmente. Você não precisa decidir.
+3. Use sempre "sobre o que apresentei" ou "sobre nossa interação" – nunca "nossa conversa".
+4. No módulo B2, o prazo é **45 dias** (não 90).
+5. A palavra **IMEDIATAMENTE** deve estar em negrito (`**IMEDIATAMENTE**`). O restante da formatação segue o padrão (negrito com `**`).
+6. Mantenha o link de agendamento exatamente como está: https://meetings.hubspot.com/nicolas-sa
+7. Se o lead não tiver histórico de interação (nenhum e-mail aberto), ainda assim gere os dois módulos – o operador decidirá.
+================================================

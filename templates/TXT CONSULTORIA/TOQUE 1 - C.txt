@@ -1,0 +1,27 @@
+{{NomeFantasia}} – **{{NomMunicipio}}: instalador te entregou o sistema, mas não a tranquilidade**
+
+Olá {{NomTitularEmpreendimento}},
+
+Instalador bom entrega equipamento, conexão e documentação.  
+
+**O que ele não entrega** é alguém olhando os dados do seu inversor todos os dias, comparando com a radiação local, e te avisando **antes de a conta de luz subir**.
+
+Isso sou eu.
+
+**Como funciona:**
+1. Você ativa por **R$197** (laudo completo + 30 dias de monitoramento)
+2. Recebe um relatório com **semáforo de saúde** do seu sistema de {{MdaPotenciaInstalada}}kWp
+3. Após o primeiro mês, escolhe o plano de assinatura (a partir de **R$49,90/mês**)
+
+**O que você ganha com a assinatura:**
+- Saber mensalmente se está perdendo dinheiro
+- Alertas proativos no Essencial e Premium
+- Suporte remoto para correção
+- Histórico completo (Premium)
+
+**Sem monitoramento, você está cegamente confiando que o sistema funciona 100% do tempo.** E eu sei que não funciona nem sistema novo.
+
+👉 **Ativar monitoramento:** {{LINK_FORMULARIO}}
+👉 **Ver planos completos:** {{LINK_PLANOS}}
+
+Atenciosamente,

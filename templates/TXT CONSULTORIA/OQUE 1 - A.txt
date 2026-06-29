@@ -1,0 +1,39 @@
+Alerta de desempenho solar – seu sistema pode estar perdendo eficiência
+
+Queda de 15% na geração é comum. Veja quanto você pode estar perdendo.
+
+Olá {{NomTitularEmpreendimento}},
+
+Tenho uma pergunta que pode valer alguns milhares de reais para você.
+
+Seu sistema de {{MdaPotenciaInstalada}} kWp, instalado em {{NomMunicipio}}/{{SigUF}} desde {{DatConexao}}, tem tudo para funcionar bem: inversor {{NomFabricanteInversor}} {{NomModeloInversor}}, {{QtdModulos}} painéis {{NomFabricanteModulo}}. Equipamento de qualidade.
+
+Mas eu monitoro dezenas de sistemas com essa mesma configuração e vejo um padrão: quase sempre há uma perda escondida.
+
+Às vezes é sujeira. Às vezes é uma string com problema. Às vezes o inversor ficou offline por alguns dias e ninguém notou. O resultado? O sistema gera, você acha que está economizando, mas o dinheiro que deveria estar abatendo a conta de luz simplesmente não chega lá.
+
+Quanto isso representa? Com base nos dados do seu projeto e na tarifa média de R$ 0,75/kWh, uma queda de 15% significa:
+
+• **R$ {{PerdaMensal}} a menos por mês**
+• **Mais de R$ {{PerdaAnual}} a menos por ano**
+• Desde a instalação, a perda pode ter atingido **R$ {{PerdaTotal}}**
+
+Esse valor não aparece na sua conta como uma cobrança. Ele aparece como **uma economia que você nunca teve**. Silencioso.
+
+Eu olho para dentro dos dados do inversor e mostro exatamente o que está acontecendo. Chama-se **diagnóstico de performance**. O investimento é **R$ 197, pagamento único**.
+
+Você recebe:
+- Comparação da geração real com a esperada nos últimos 6 meses
+- Perda financeira detalhada e projeção anual
+- Causa provável do problema
+- O que fazer para corrigir
+
+Não importa se seu sistema está 100% saudável ou com alguma falha: você terá **certeza**. E certeza vale mais do que R$ 197.
+
+👉 Aqui está um exemplo desse laudo: {{LINK_LAUDO}}
+
+👉 **Solicitar o seu diagnóstico agora:** {{LINK_FORMULARIO}}
+
+Após o formulário, você recebe o laudo em até uma semana. Se depois quiser que eu monitore seu sistema de forma contínua para isso nunca mais acontecer, explico como funciona.
+
+Atenciosamente,

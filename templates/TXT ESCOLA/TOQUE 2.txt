@@ -1,0 +1,113 @@
+Comando Mestre para Ativar o Toque 2 
+
+Vamos iniciar o Toque 2 (T2 - Prova Social/Case) para o lead atual. Consulte o histórico da nossa conversa para identificar os dados da empresa e execute a redação seguindo estas diretrizes:
+
+Pesquisa de Case Real:
+
+Acesse a lista de links fornecida abaixo. Ela contém notícias e cases reais de energia solar em instituições de ensino.
+
+Selecione aleatoriamente um link desta lista.
+
+Valide o link acessando-o. Certifique-se de que a página está acessível e contém as informações do case (Problema/Solução/Resultado).
+
+Caso o link selecionado esteja quebrado ou inacessível (ex: erro 404, 502), escolha outro link da lista aleatoriamente até encontrar um que funcione.
+
+Use exclusivamente o case deste link válido. A sua redação deve ser baseada nas informações reais encontradas (nome da escola, local, problema enfrentado, solução implementada, resultado numérico como economia em R$ ou %).
+
+É fundamental que o exemplo seja muito similar ao cenário do lead. Se houver múltiplos links válidos, prefira aquele cujo case (ex: escola municipal, escola estadual, projeto com parceria) mais se aproxime do perfil do lead atual.
+
+Lembre-se: Você não deve mais pesquisar ou inventar links. Use exclusivamente a lista abaixo.
+
+Lista de Links Confiáveis para Consulta (NÃO USAR O MESMO LINK MUITAS VEZES):
+
+https://www.portalsolar.com.br/noticias/materias/escolas-municipais-brasileiras-vao-utilizar-energia-solar
+
+https://clickpetroleoegas.com.br/escolas-sustentaveis-em-sao-paulo-18-unidades-terao-energia-solar-e-economia-na-conta-de-luz-phsn/
+
+https://www.weg.net/solar/blog/como-a-energia-solar-em-escolas-pode-reduzir-custos-e-promover-sustentabilidade/
+
+https://saocarlos.usp.br/projeto-conscientizacao-de-uso-de-energia-solar-fotovoltaica-em-escolas-promove-mais-uma-edicao/
+
+https://g1.globo.com/sc/santa-catarina/especial-publicitario/top-sun/top-sun-energia-solar/noticia/2023/08/31/escola-economiza-mais-de-r-480-mil-investindo-em-energia-limpa.ghtml
+
+https://rondonia.ro.gov.br/projeto-voltado-a-energia-solar-para-escolas-e-viabilizado-pelo-governo-de-rondonia/
+
+https://www.portalsolar.com.br/noticias/materias/escolas-municipais-brasileiras-vao-utilizar-energia-solar
+
+https://nrecuritiba.educacao.pr.gov.br/noticias/seed/368bfbeb-bb6b-46b8-8600-513cfbae76e2
+
+https://www.seduc.ce.gov.br/2023/07/05/projeto-de-energia-solar-nas-escolas-vence-premiacao-nacional-de-infraestrutura-e-logistica/
+
+https://noticias.cancaonova.com/brasil/cresce-a-utilizaccresce-a-utilizacao-de-energia-solar-em-equipamentos-publicoscresce-a-utilizacao-de-energia-solar-em-equipamentos-publicosao-de-energia-solar-em-aquipamentos-publicos/
+
+https://urbnews.com.br/2024/07/30/no-ceara-32-escolas-publicas-sao-exemplo-de-como-o-uso-da-energia-solar-pode-transformar-a-educacao-e-a-economia/
+
+https://g1.globo.com/df/distrito-federal/noticia/2023/06/14/escola-publica-do-df-produz-energia-limpa-e-reduz-conta-de-luz-de-r-4-mil-para-r-300.ghtml
+
+https://g1.globo.com/sc/santa-catarina/especial-publicitario/topsun/noticia/2021/03/31/energia-solar-em-escolas-ajuda-a-criar-maior-consciencia-ambiental.ghtml
+
+https://www.guarabira.pb.gov.br/public/noticia/guarabira-investe-em-energia-solar-nas-escolas-e-economia-sera-de-mais-de-r-500-mil-por-ano-aos-cofres-publicos
+
+https://www.gazetadopovo.com.br/parana/usinas-fotovoltaicas-escolas-pr/
+
+https://ciclovivo.com.br/planeta/energia/com-energia-solar-escola-publica-economiza-mais-de-r-3-mil/
+
+https://www.uol.com.br/ecoa/ultimas-noticias/2022/05/04/pesquisador-do-pi-leva-energia-solar-para-escola-da-zona-rural.htm
+
+https://portal1.iff.edu.br/nossos-campi/reitoria/noticias/unidades-do-iff-comecam-a-receber-modulos-de-energia-solar
+
+https://www2.ifal.edu.br/campus/satuba/noticias/usina-solar-do-ifal-satuba-entra-em-funcionamento
+
+https://noticias.concordia.ifc.edu.br/2022/05/23/ao-57-anos-campus-inaugura-primeira-usina-fotovoltaica-do-ifc/#conteudo
+
+https://ciclovivo.com.br/planeta/energia/escola-em-osasco-vai-economizar-r-18-mil-por-ano-com-energia-solar/
+
+https://www.esteio.rs.gov.br/noticia/24621/
+
+https://www.educacao.pr.gov.br/Noticia/Com-usinas-fotovoltaicas-economia-na-conta-de-luz-ja-chega-R-430-mil-nas-escolas
+
+https://urbnews.com.br/2024/07/30/no-ceara-32-escolas-publicas-sao-exemplo-de-como-o-uso-da-energia-solar-pode-transformar-a-educacao-e-a-economia/
+
+https://agenciadenoticias.ms.gov.br/placas-solares-e-producao-de-energia-limpa-levam-modernidade-e-economia-de-gastos-as-escolas-estaduais/
+
+https://www.portalsolar.com.br/noticias/politica/escolas-publicas-na-bahia-recebem-sistema-de-energia-solar
+
+https://g1.globo.com/pb/paraiba/noticia/2018/12/28/energia-solar-faz-escola-publica-no-sertao-da-pb-economizar-50-na-conta-de-luz.ghtml
+
+https://www.gazetadopovo.com.br/parana/usinas-fotovoltaicas-escolas-pr/
+
+https://canalsolar.com.br/enel-edp-energia-solar-escolas-organizacoes-sociais/
+
+https://www.pv-magazine-brasil.com/2026/01/20/energia-solar-chega-a-18-escolas-estaduais-de-sp-com-investimento-de-r-38-milhoes/
+
+
+Segurança Anti-Spam (Hiperlink): IMPORTANTE: Nunca cole a URL completa (link "nu") no corpo do e-mail. Você deve obrigatoriamente formatar o link como um hiperlink curto inserido em uma frase. (o link tem nao pode ser de concorrente, o link tem que ser real)
+
+Exemplo correto: "Você pode conferir os detalhes desse projeto [neste link]."
+
+Tom de Voz: Seja extremamente sucinto e direto.
+
+Saudação:  "Sr(a). [nome e sobrenome]" se o gênero não estiver confirmado.
+
+Estrutura do E-mail:
+
+Assunto: faça um assunto de impacto| SoLivia
+
+Corpo: Saudação breve + [RELEMBRE O CONCEITO COM UMA FRASE CURTA] + Gancho sobre a dor do lead -> Bloco de Case...
+
+[INSTRUÇÃO DE RELEMBRANÇO - USAR APENAS UMA FRASE, NÃO REPETIR O PARÁGRAFO INTEIRO]:
+
+Imediatamente após a saudação breve, adicione uma frase curta que relembre o conceito explicado no primeiro e-mail. Use algo como:
+"Como mencionamos, a ideia é trocar a fatura de energia pelo financiamento do sistema solar. Depois de quitado, só lucro."
+Ou, de forma ainda mais sucinta:
+"Relembrando: trocar a fatura pelo financiamento. Depois do sistema pago, o resto é lucro."
+Não escreva mais do que uma linha. O objetivo é só ativar a memória do lead, não reexplicar.
+Destaque Visual: Coloque a frase com o link em uma linha isolada usando o emoji 👉.
+
+Pode redigir agora. Após gerar o texto, permaneça em prontidão para o Toque 3 (Bump) caso não tenhamos retorno.
+
+SE VOCÊ ACHAR NECESSARIO PODE FAZER ALGUMA ALTERAÇÃO NO TEXTO, APENAS AVISE O MOTIVO DE TER FEITO;
+
+É DE EXTREMA IMPORTÂNCIA QUE O LINK DO CASE SEJA VALIDO PARA EVITAR RETRABALHOS; 
+
+https://meetings.hubspot.com/nicolas-sa

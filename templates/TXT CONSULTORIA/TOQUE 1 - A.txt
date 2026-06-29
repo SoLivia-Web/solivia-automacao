@@ -1,0 +1,25 @@
+{{NomeFantasia}} – **Seu sistema de {{MdaPotenciaInstalada}}kWp está sem vigilância**
+
+Olá {{NomTitularEmpreendimento}},
+
+Seu sistema solar foi instalado em {{DatConexao}} por um profissional. Mas agora que ele foi embora, **quem vai olhar os dados do inversor todos os dias?**
+
+Queda de string, sujeira acumulada, inversor offline nada disso aparece no painel da distribuidora. Você só descobre 3 meses depois, pela conta de luz mais alta.
+
+**O que eu ofereço:** Planos de monitoramento contínuo.
+
+Você começa com um **laudo completo (R$197)** que já inclui:
+- Diagnóstico de performance atual (geração real vs esperada)
+- **30 dias de monitoramento ativo**
+- Relatório com semáforo de saúde do sistema
+
+Após o primeiro mês, você escolhe o plano:
+- **Básico R$49,90/mês** (relatório mensal + indicador de saúde + perda financeira)
+- **Essencial R$79,90/mês** (alertas proativos e suporte remoto)
+- **Premium R$129,90/mês** (relatório semanal + alertas WhatsApp + histórico completo)
+
+👉 **Ativar monitoramento agora:** {{LINK_FORMULARIO}}
+
+Seu sistema ainda é novo. **É exatamente agora que vale a pena criar a linha de base de performance.**
+
+Atenciosamente,

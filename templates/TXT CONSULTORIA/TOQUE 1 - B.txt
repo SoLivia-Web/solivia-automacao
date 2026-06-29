@@ -1,0 +1,23 @@
+{{NomeFantasia}} – **O primeiro mês do seu sistema solar {{MdaPotenciaInstalada}}kWp quer ver o relatório?**
+
+Olá {{NomTitularEmpreendimento}},
+
+O primeiro mês de operação de um sistema solar é o mais importante. **É quando se define o baseline de performance** a referência para comparar tudo o que vier depois.
+
+Sem esse baseline documentado, você nunca vai saber se o sistema caiu 5% ou 15% daqui a um ano.
+
+**Por R$ 197 (taxa de ativação), eu:**
+- Analiso os dados reais do seu inversor {{NomFabricanteInversor}} desde a conexão
+- Entrego um laudo comparando geração real vs. esperada para {{NomMunicipio}}
+- Mostro perda financeira (se houver) e causa provável
+- **Ativo seu monitoramento contínuo por 30 dias** – você recebe relatório e indicador de saúde
+
+Depois, você decide se mantém:
+- **Básico R$ 49,90/mês**
+- **Essencial R$ 79,90/mês** (com alertas)
+- **Premium R$ 129,90/mês** (com histórico completo)
+
+👉 **Exemplo de laudo:** {{LINK_LAUDO}}
+👉 **Solicitar ativação:** {{LINK_FORMULARIO}}
+
+Atenciosamente,

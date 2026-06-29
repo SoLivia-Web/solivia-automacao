@@ -1,0 +1,26 @@
+Assunto: {{NomeFantasia}} – Perda silenciosa no seu sistema solar
+
+Olá {{NomTitularEmpreendimento}},
+
+Seu sistema fotovoltaico de **{{MdaPotenciaInstalada}} kWp**, instalado em **{{NomMunicipio}}** desde **{{DatConexao}}**, está gerando toda a energia que deveria?
+
+A maioria dos clientes só descobre que algo está errado quando a conta de luz chega alta e já perdeu meses de economia.
+
+Com acesso remoto aos dados do inversor, eu consigo analisar o histórico de geração, identificar quedas de performance e estimar exatamente quanto dinheiro você pode estar perdendo.
+
+Por **R$ 197** (valor único), eu entrego um laudo técnico completo com:
+
+- Geração real vs. esperada (últimos 6 meses)
+- Perda financeira acumulada e projeção anual
+- Diagnóstico de anomalias (sujeira, falha em string, inversor offline)
+- Recomendação prática para corrigir
+
+Veja um exemplo de laudo: <a href="{{LINK_LAUDO}}">clique aqui</a>
+
+Para solicitar o diagnóstico, preencha este rápido formulário: <a href="https://u737g.share.hsforms.com/2kgPIh9gKRQ-UhQt6T1CXwQ">Formulário de solicitação</a>
+
+Após o preenchimento, você receberá o link de pagamento. O laudo é entregue em até 48h após a confirmação.
+
+Atenciosamente,
+Nicolas
+Consultor de desempenho solar

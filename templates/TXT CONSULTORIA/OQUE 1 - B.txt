@@ -1,0 +1,37 @@
+{{NomeFantasia}} – Seu sistema solar pode estar perdendo R$ {{PerdaMensal}} por mês
+
+Queda de 15% na geração é comum. Veja quanto você já pode ter perdido.
+
+Olá {{NomTitularEmpreendimento}},
+
+Quando um sistema de {{MdaPotenciaInstalada}} kWp é instalado em {{NomMunicipio}}, a expectativa é clara: gerar energia e reduzir a conta de luz. Seu sistema, com inversor {{NomFabricanteInversor}} {{NomModeloInversor}} e {{QtdModulos}} painéis {{NomFabricanteModulo}}, foi conectado em {{DatConexao}} com essa promessa.
+
+Mas aqui vai algo que quase ninguém te conta: **a partir do dia seguinte à instalação, o sistema já pode estar perdendo eficiência.** E sem monitoramento, você simplesmente não vê.
+
+Sujeira acumulada. Sombra de uma árvore que cresceu. Uma string que parou de responder. O inversor que ficou offline por três dias e voltou sozinho. Tudo isso é comum. E tudo isso tem o mesmo efeito: **o sistema gera, mas menos do que deveria.**
+
+Com base no seu projeto e na tarifa média de R$ 0,75/kWh, uma queda de 15% representa:
+
+• **Perda mensal: R$ {{PerdaMensal}}**
+• **Perda anual: R$ {{PerdaAnual}}**
+• **Perda acumulada desde {{DatConexao}}: R$ {{PerdaTotal}}**
+
+Dinheiro que você investiu para economizar e que **está indo embora sem você perceber.**
+
+Eu resolvo isso com um diagnóstico simples. Acesso os dados do inversor, comparo com o que seu sistema deveria gerar e mostro o resultado. Custa **R$ 197, valor único**.
+
+Você recebe:
+- Geração real vs. esperada (6 meses)
+- Quanto perdeu em reais
+- A causa da perda (se existir)
+- O que fazer para corrigir
+
+👉 Veja um exemplo de como esse laudo é apresentado: {{LINK_LAUDO}}
+
+👉 **Solicitar o diagnóstico agora:** {{LINK_FORMULARIO}}
+
+Após o envio, o laudo fica pronto em até uma semana.
+
+Se você quiser que eu mantenha esse olho técnico sobre o seu sistema de forma permanente, tenho planos de monitoramento a partir de **R$ 49,90/mês**. Mas isso é uma conversa para depois do diagnóstico.
+
+Atenciosamente,

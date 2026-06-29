@@ -1,0 +1,59 @@
+Comando Mestre para Ativar o Toque 2 – PECUÁRIA DE CORTE
+
+Objetivo: enviar um case real de energia solar em fazenda de pecuária (corte, leite ou confinamento). Use exclusivamente os links fornecidos pelo operador (você mesmo vai inserir a lista de links funcionais antes de rodar).
+
+Pesquisa obrigatória:
+1. Acesse um dos links da lista (o operador já terá verificado que funcionam).
+2. Leia a página e extraia as informações reais: nome da fazenda, localização, potência instalada (se houver), porcentagem de economia ou valor mensal economizado, e qualquer dado relevante.
+3. Caso o link não traga números exatos, use o que estiver disponível (ex: "reduziu a conta de luz em mais de 50%").
+4. Use APENAS dados reais do link. Nunca invente.
+
+Lista de links (o operador deve preencher com no mínimo 3 links válidos antes de executar):
+[OPERADOR: INSIRA AQUI OS LINKS DE CASES REAIS]
+https://girodoboi.canalrural.com.br/pecuaria/produtor-pode-reduzir-conta-de-luz-em-ate-98-com-energia-que-cai-do-ceu/
+https://www.solarcedro.com.br/energia-solar/noticias/4347/energia-solar-conquista-o-campo
+https://globorural.globo.com/infraestrutura-e-logistica/noticia/2025/06/fazenda-de-leite-economiza-r-50-mil-por-mes-com-energia-solar.ghtml
+https://girodoboi.canalrural.com.br/pecuaria/pecuarista-preserva-mais-do-que-manda-a-lei-e-ainda-produz-energia/
+https://realtime1.com.br/gado-de-corte-joias-e-placas-solares-os-extremos-da-suframa/
+
+Segurança anti-spam: Nunca cole a URL nua. Use hiperlink com texto: "Você pode ver os detalhes [neste link]."
+
+Tom: Sucinto, direto, profissional. O lead já recebeu o T1.
+
+================================================
+ASSUNTO (escolha uma das 5 opções – personalize com o nome do lead ou cidade):
+1. {Primeiro Nome}, veja um exemplo real de economia no campo | SoLivia
+2. Case real: como uma fazenda de corte reduziu a conta de luz em [X%]
+3. {Cidade} também tem cases de sucesso? Olha este exemplo.
+4. Energia solar na pecuária: não é teoria, já funciona.
+5. {Primeiro Nome}, você pediu um exemplo? Aqui está.
+================================================
+
+ESTRUTURA DO E-MAIL (você deve preencher com os dados extraídos do link):
+
+Sr(a). {Sobrenome},
+
+Relembrando: a ideia é trocar a fatura pelo financiamento. Depois do sistema pago, só margem.
+
+Espero que esta mensagem o(a) encontre bem.
+
+Como falamos sobre o potencial de economia para a {Nome da Empresa}, separei um exemplo real que pode interessar.
+
+👉 **Case real:** A fazenda {nome da fazenda}, localizada em {cidade}, instalou um sistema de energia solar e alcançou {economia em % ou R$}. A conta de luz, que antes era {valor aproximado ou descrição}, caiu para {novo valor}. Você pode conferir os detalhes [neste link].
+
+Aplicando uma solução similar na sua propriedade, o resultado seria compatível – ou até melhor, dependendo do seu consumo.
+
+Se quiser, eu posso fazer uma simulação gratuita com base na sua última conta de luz. Basta responder este e-mail com o anexo.
+
+Atenciosamente,
+
+================================================
+INSTRUÇÕES PARA VOCÊ (IA):
+- Após escolher o link válido, leia a página e identifique as informações principais.
+- Se a página não mencionar um valor numérico exato, use frases como "redução significativa" ou "economia de milhares de reais".
+- Se o case não for exatamente de pecuária de corte, mas de agropecuária em geral (leite, confinamento), é aceitável, desde que seja similar.
+- Personalize o assunto com o nome do lead ou cidade sempre que possível.
+- A frase de relembranço ("Relembrando...") deve vir exatamente como está, imediatamente após a saudação.
+- Não use mais de um link no mesmo e-mail. Apenas um case por mensagem.
+- O CTA final deve ser sempre o mesmo: enviar a conta de luz para simulação.
+================================================

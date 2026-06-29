@@ -1,0 +1,84 @@
+Comando Mestre para Ativar o Toque 2 
+
+Vamos iniciar o Toque 2 (T2 - Prova Social/Case) para o lead atual. Consulte o histórico da nossa conversa para identificar os dados da empresa e execute a redação seguindo estas diretrizes:
+
+Pesquisa de Case Real:
+
+Acesse a lista de links fornecida abaixo. Ela contém notícias e cases reais de energia solar em instituições de ensino.
+
+Selecione aleatoriamente um link desta lista.
+
+Valide o link acessando-o. Certifique-se de que a página está acessível e contém as informações do case (Problema/Solução/Resultado).
+
+Caso o link selecionado esteja quebrado ou inacessível (ex: erro 404, 502), escolha outro link da lista aleatoriamente até encontrar um que funcione.
+
+Use exclusivamente o case deste link válido. A sua redação deve ser baseada nas informações reais encontradas (nome da escola, local, problema enfrentado, solução implementada, resultado numérico como economia em R$ ou %).
+
+É fundamental que o exemplo seja muito similar ao cenário do lead. Se houver múltiplos links válidos, prefira aquele cujo case (ex: escola municipal, escola estadual, projeto com parceria) mais se aproxime do perfil do lead atual.
+
+Lembre-se: Você não deve mais pesquisar ou inventar links. Use exclusivamente a lista abaixo.
+
+Lista de Links Confiáveis para Consulta (NÃO USAR O MESMO LINK MUITAS VEZES):
+
+https://cenarioenergia.com.br/2025/07/15/selfit-acelera-transicao-energetica-com-foco-em-energia-limpa-e-economia-de-r-6-milhoes-ate-2025/#google_vignette
+
+https://www.solsticioenergia.com/2020/02/12/case-academia-golden
+
+https://canalsolar.com.br/climatech-ira-levar-energia-limpa-para-academias-parceiras-do-gympass/
+
+https://imperiosolar.com.br/energia-solar-para-academias-beneficios-desafios/
+
+https://ecosolartec.com.br/energia-solar-para-academias-corte-de-gastos-e-lucratividade/
+
+https://www.aquiagora.net/noticias/ver/160524/
+
+https://marechalnews.com.br/noticia/182180/energia-solar-e-solucao-inteligente-para-academias-born-x-em-cascavel-e-exemplo-de-inovacao-e-economia
+
+https://integrazione-local.enelx.com/br/pt/historias/-energia-solar-proporciona-sustentabilidade-e-economia-para-acad
+
+https://www.canalenergia.com.br/noticias/53142511/enel-x-implanta-usina-solar-em-telhado-de-academia?c=mais-lidas
+
+https://quantumengenharia.com.br/energia-limpa-para-quem-vive-de-energia-case-academia-formus/
+
+https://www.canalenergia.com.br/noticias/53161237/edp-entrega-usina-solar-para-smart-fit-em-mg?c=mais-lidas
+
+https://www.jornaldeblumenau.com.br/n.php?CATEGORIA=61&ID=13445&TITULO=iniciativa-facilita-aquisi-o-de-equipamentos-de-energia-fotovoltaica
+
+https://www.bfsengenharia.com.br/case-de-sucesso-solucoes-da-bfs-engenharia-para-a-rede-de-academias-bluefit
+
+https://elysia.com.br/academia-ginastica-energia-solar/
+
+https://bionovasolar.com.br/blog/energia-solar-e-solucao-inteligente-para-academias-born-x-em-cascavel-e-exemplo-de-inovacao-e-economia
+
+https://www.pv-magazine-brasil.com/2024/05/28/selfit-academias-pretende-economizar-r-43-milhoes-ate-2025-com-mercado-livre-e-usinas-fotovoltaicas/
+Segurança Anti-Spam (Hiperlink): IMPORTANTE: Nunca cole a URL completa (link "nu") no corpo do e-mail. Você deve obrigatoriamente formatar o link como um hiperlink curto inserido em uma frase. (o link tem nao pode ser de concorrente, o link tem que ser real)
+
+Exemplo correto: "Você pode conferir os detalhes desse projeto [neste link]."
+
+Tom de Voz: Seja extremamente sucinto e direto.
+
+Saudação:  "Sr(a). [nome e sobrenome]" se o gênero não estiver confirmado.
+
+Estrutura do E-mail:
+
+Assunto: faça um assunto de impacto| SoLivia
+
+Corpo: Saudação breve + [RELEMBRE O CONCEITO COM UMA FRASE CURTA] + Gancho sobre a dor do lead -> Bloco de Case...
+
+[INSTRUÇÃO DE RELEMBRANÇO - USAR APENAS UMA FRASE, NÃO REPETIR O PARÁGRAFO INTEIRO]:
+
+Imediatamente após a saudação breve, adicione uma frase curta que relembre o conceito explicado no primeiro e-mail. Use algo como:
+"Como mencionamos, a ideia é trocar a fatura de energia pelo financiamento do sistema solar. Depois de quitado, só lucro."
+Ou, de forma ainda mais sucinta:
+"Relembrando: trocar a fatura pelo financiamento. Depois do sistema pago, o resto é lucro."
+Não escreva mais do que uma linha. O objetivo é só ativar a memória do lead, não reexplicar.
+
+Destaque Visual: Coloque a frase com o link em uma linha isolada usando o emoji 👉.
+
+Pode redigir agora. Após gerar o texto, permaneça em prontidão para o Toque 3 (Bump) caso não tenhamos retorno.
+
+SE VOCÊ ACHAR NECESSARIO PODE FAZER ALGUMA ALTERAÇÃO NO TEXTO, APENAS AVISE O MOTIVO DE TER FEITO;
+
+É DE EXTREMA IMPORTÂNCIA QUE O LINK DO CASE SEJA VALIDO PARA EVITAR RETRABALHOS; 
+
+https://meetings.hubspot.com/nicolas-sa

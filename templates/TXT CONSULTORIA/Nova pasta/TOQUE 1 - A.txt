@@ -1,0 +1,39 @@
+Alerta de desempenho solar – seu sistema pode estar perdendo eficiência
+
+Queda de 10% na geração é comum. Veja quanto você pode estar jogando fora.
+
+Olá {{NomTitularEmpreendimento}},
+
+Seu sistema fotovoltaico de {{MdaPotenciaInstalada}} kWp, instalado em {{NomMunicipio}}/{{SigUF}} desde {{DatConexao}}, pode estar gerando menos energia do que você imagina.
+
+Seu sistema usa um inversor {{NomFabricanteInversor}} {{NomModeloInversor}} e {{QtdModulos}} painéis {{NomFabricanteModulo}} equipamentos que eu conheço bem e tenho acesso remoto aos dados. Se você me der a permissão, eu conecto diretamente no seu inversor e analiso o histórico real de geração.
+
+E o pior: você só descobre que algo está errado quando a conta de luz chega alta e aí já perdeu meses de economia.
+
+📉 Faça as contas comigo (dados reais do setor solar)
+Uma queda de apenas 10% na geração causada por sujeira nos painéis, sombras de novos prédios, falha silenciosa no inversor ou problema em uma string significa:
+
+Perda mensal estimada: R$ {{PerdaMensal}}
+
+Perda anual estimada: mais de R$ {{PerdaAnual}}
+
+Desde a instalação: você pode ter perdido R$ {{PerdaTotal}}
+
+*(Cálculo baseado na tarifa média de R$ 0,75/kWh e referência da ABSOLAR/Canal Solar)*
+
+A verdade é que a maioria dos sistemas fotovoltaicos no Brasil nunca recebe monitoramento. E sem monitoramento, você está perdendo dinheiro sem saber.
+
+Como eu posso ajudar
+Com acesso remoto aos dados do seu inversor, eu entrego um diagnóstico completo que responde:
+
+✅ Quanto você já perdeu nos últimos 6 meses
+✅ Se o problema é sujeira, inversor, string ou outra falha
+✅ O que fazer para corrigir
+✅ Quanto você vai economizar a partir de agora
+
+E o melhor: por R$ 197 você já leva o diagnóstico completo + o primeiro mês de monitoramento contínuo (planos a partir de R$ 49,90/mês depois).
+
+👉 Veja um exemplo de laudo: {{LINK_LAUDO}}
+👉 Solicitar seu diagnóstico agora: {{LINK_FORMULARIO}}
+
+Atenciosamente,

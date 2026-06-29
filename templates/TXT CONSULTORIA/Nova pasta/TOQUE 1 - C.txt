@@ -1,0 +1,34 @@
+{{NomeFantasia}} – Seu sistema solar pode estar perdendo R$ {{PerdaMensal}} por mês
+
+Queda de 10% na geração é comum. Veja quanto você já pode ter perdido.
+
+Olá {{NomTitularEmpreendimento}},
+
+Seu sistema fotovoltaico de {{MdaPotenciaInstalada}} kWp, instalado em {{NomMunicipio}} desde {{DatConexao}}, pode estar gerando menos energia do que você imagina.
+
+O que seu sistema tem:
+Inversor {{NomFabricanteInversor}} {{NomModeloInversor}} com {{QtdModulos}} painéis {{NomFabricanteModulo}} equipamentos que eu tenho acesso remoto e conheço bem.
+
+A conta que poucos fazem:
+Uma queda de apenas 10% na geração (sujeira, sombras, falha em string ou inversor offline) significa uma perda estimada de R$ {{PerdaMensal}} por mês mais de R$ {{PerdaAnual}} por ano. Desde a instalação, você pode ter perdido R$ {{PerdaTotal}}.
+
+A maioria dos clientes só descobre que algo está errado quando a conta de luz chega alta e aí já perdeu meses de economia.
+
+Com acesso remoto aos dados do seu inversor, eu consigo analisar o histórico de geração, identificar quedas de performance e estimar exatamente quanto dinheiro você está perdendo.
+
+Por R$ 197 (valor único), eu entrego um laudo técnico completo com:
+
+Geração real vs. esperada (últimos 6 meses)
+
+Perda financeira acumulada e projeção anual
+
+Diagnóstico de anomalias (sujeira, falha em string, inversor offline)
+
+Recomendação prática para corrigir
+
+👉 Veja um exemplo de laudo: {{LINK_LAUDO}}
+👉 Solicitar seu diagnóstico agora: {{LINK_FORMULARIO}}
+
+Após responder 4 perguntas simples o laudo é entregue em até uma semana.
+
+Atenciosamente,

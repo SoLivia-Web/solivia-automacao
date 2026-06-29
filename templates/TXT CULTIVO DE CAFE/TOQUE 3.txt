@@ -1,0 +1,59 @@
+TEMPLATE PARA TOQUE T3 – CULTIVO DE CAFÉ (BUMP DIRETO)
+
+OBJETIVO: Buscar uma decisão clara (avançar ou pausar). Respeitar o tempo do lead. Contextualizar com base no histórico (T1 e T2).
+
+MOMENTO: Após 3-4 dias úteis do envio do T2, sem resposta.
+
+TOM: Profissional, direto, baixa pressão. Nada de repetir o case inteiro – apenas referenciá-lo.
+
+================================================
+INFORMAÇÕES QUE VOCÊ DEVE EXTRAIR DO HISTÓRICO (obrigatório antes de escrever):
+- Nome do lead (primeiro nome e sobrenome)
+- Nome da empresa
+- Serviço discutido (ex: "simulação de energia solar")
+- Dor/oportunidade mencionada no T1 (ex: "custo com secagem, irrigação e beneficiamento no cultivo de café")
+- Case enviado no T2 (ex: nome do case + principal resultado)
+
+Se alguma informação não estiver clara no histórico, use o genérico, mas específico do segmento.
+================================================
+
+ASSUNTO (escolha uma das 5 opções – personalize com nome ou empresa):
+1. {Primeiro Nome}, vamos alinhar o próximo passo? | SoLivia
+2. {Nome da Empresa} – continuamos ou pausamos?
+3. Energia solar em cultivo de café: uma decisão simples.
+4. {Primeiro Nome}, você prefere avançar ou deixar para depois?
+5. Sobre a simulação de energia solar para {Nome da Empresa}
+
+================================================
+ESTRUTURA DO E-MAIL (preencha com os dados extraídos do histórico):
+
+Sr(a). {Sobrenome},
+
+Relembrando: trocar a fatura pelo financiamento. Depois do sistema pago, só margem.
+
+Espero que esta mensagem o(a) encontre bem.
+
+Retomo o contato para um breve alinhamento sobre a simulação de energia solar que propusemos para a {Nome da Empresa}.
+
+Como mencionamos inicialmente sobre {breve menção à dor/oportunidade do T1} e, na sequência, compartilhei o case da {referência ao case do T2}, meu objetivo agora é ser direto e respeitar o seu tempo. Para não seguirmos sem um norte claro, gostaria de saber qual a sua preferência:
+
+a) Pausarmos os contatos por agora? (Sem problema – podemos retomar no futuro que você achar melhor).
+
+b) Prosseguirmos e agendarmos o próximo passo? (Basta me enviar uma conta de luz recente para eu fazer a simulação ou responder com seus horários para uma conversa rápida).
+
+Fico no aguardo da sua indicação. Agradeço pela transparência.
+
+Atenciosamente,
+Nicolas
+Consultor de Soluções | SoLivia Engenharia
+
+================================================
+INSTRUÇÕES PARA VOCÊ (IA):
+1. Consulte o histórico dos toques anteriores (T1 e T2) antes de gerar este e-mail.
+2. A frase de relembrança ("Relembrando...") é obrigatória e deve vir imediatamente após a saudação.
+3. Preencha os campos { } com as informações reais do lead e da conversa.
+4. Se o lead não tiver interagido com nenhum e-mail (não abriu T1 nem T2), mesmo assim use o contexto padrão do segmento.
+5. Não invente novos cases ou dados. Apenas referencie o que já foi enviado.
+6. O CTA final são duas opções claras: pausar ou prosseguir (enviar conta ou agendar conversa). Não use link de calendário automático a menos que o lead peça.
+7. Se precisar de um dado genérico do segmento para reforçar a oportunidade, mantenha consistência com o T1: potência média de 17,2 kW e economia potencial em torno de R$ 1.393/mês.
+================================================

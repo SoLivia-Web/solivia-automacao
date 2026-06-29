@@ -1,0 +1,94 @@
+Comando Mestre para Ativar o Toque 2 
+
+Vamos iniciar o Toque 2 (T2 - Prova Social/Case) para o lead atual. Consulte o histórico da nossa conversa para identificar os dados da empresa e execute a redação seguindo estas diretrizes:
+
+Pesquisa de Case Real:
+
+Acesse a lista de links fornecida abaixo. Ela contém notícias e cases reais de energia solar em instituições de ensino.
+
+Selecione aleatoriamente um link desta lista.
+
+Valide o link acessando-o. Certifique-se de que a página está acessível e contém as informações do case (Problema/Solução/Resultado).
+
+Caso o link selecionado esteja quebrado ou inacessível (ex: erro 404, 502), escolha outro link da lista aleatoriamente até encontrar um que funcione.
+
+Use exclusivamente o case deste link válido. A sua redação deve ser baseada nas informações reais encontradas (nome da escola, local, problema enfrentado, solução implementada, resultado numérico como economia em R$ ou %).
+
+É fundamental que o exemplo seja muito similar ao cenário do lead. Se houver múltiplos links válidos, prefira aquele cujo case (ex: escola municipal, escola estadual, projeto com parceria) mais se aproxime do perfil do lead atual.
+
+Lembre-se: Você não deve mais pesquisar ou inventar links. Use exclusivamente a lista abaixo.
+
+Lista de Links Confiáveis para Consulta (NÃO USAR O MESMO LINK MUITAS VEZES):
+
+https://elysia.com.br/conheca-4-supermercados-gauchos-que-mudaram-de-patamar-com-geracao-de-energia-solar/
+
+https://origoenergia.com.br/blog/gestao-empresarial/energia-solar-supermercados/
+
+https://clickpetroleoegas.com.br/energia-solar-ganha-destaque-no-varejo-supermercadista-na-abras-2025/
+
+https://solledenergia.com.br/energia-solar-em-supermercados-como-funciona-beneficios
+
+https://www.confere.org.br/wordpress/energia-solar-nos-supermercados-corta-custos-atrai-clientes-e-ilumina-o-futuro-do-varejo/
+
+https://revistaconstrusul.com.br/no-brasil-mais-de-70-das-instalacoes-fotovoltaicas-comerciais-foram-realizadas-em-supermercados/
+
+https://www.pv-magazine-brasil.com/2025/05/02/instalacao-do-dia-rede-de-materiais-de-construcao-de-pernambuco-implementa-15-usinas-fotovoltaicas-e-gera-economia-de-r-300-mil-mensais/
+
+https://www.solavistaenergy.com.br/vantagens-da-energia-solar-para-rede-de-mercados
+
+https://canalsolar.com.br/carrefour-reduz-consumo-energia-solar-automacao-predial/
+
+https://www.pv-magazine-brasil.com/2025/06/11/grupo-carrefour-brasil-planeja-fechar-2025-com-25-usinas-solares-em-seus-telhados/
+
+https://canalsolar.com.br/varejista-energia-solar-abastecer-lojas/
+
+https://www.abras.com.br/clipping/sustentabilidade/73627/supermercados-lideram-uso-de-energia-limpa-no-varejo-brasileiro
+
+https://lasolar.com.br/por-que-apostar-em-energia-solar-no-seu-supermercado/
+
+https://www.portalsolar.com.br/noticias/mercado/geracao-distribuida/energia-solar-alivia-custos-de-supermercados-no-pais
+
+https://www.abras.com.br/clipping/sustentabilidade/73627/supermercados-lideram-uso-de-energia-limpa-no-varejo-brasileiro
+
+https://lasolar.com.br/por-que-apostar-em-energia-solar-no-seu-supermercado/
+
+https://imperiosolar.com.br/energia-solar-e-economia-em-supermercado-mercado-adega-emporio-quais-vantagens-e-beneficios/
+
+https://gencoenergia.com.br/blog/energia-solar-para-supermercado/
+
+
+
+
+Segurança Anti-Spam (Hiperlink): IMPORTANTE: Nunca cole a URL completa (link "nu") no corpo do e-mail. Você deve obrigatoriamente formatar o link como um hiperlink curto inserido em uma frase. (o link tem nao pode ser de concorrente, o link tem que ser real)
+
+Exemplo correto: "Você pode conferir os detalhes desse projeto [neste link]."
+
+Tom de Voz: Seja extremamente sucinto e direto.
+
+Saudação:  "Sr(a). [nome e sobrenome]" se o gênero não estiver confirmado.
+
+Estrutura do E-mail:
+
+Assunto: faça um assunto de impacto| SoLivia
+
+Corpo: Saudação breve + [RELEMBRE O CONCEITO COM UMA FRASE CURTA] + Gancho sobre a dor do lead -> Bloco de Case...
+
+[INSTRUÇÃO DE RELEMBRANÇO - USAR APENAS UMA FRASE, NÃO REPETIR O PARÁGRAFO INTEIRO]:
+
+Imediatamente após a saudação breve, adicione uma frase curta que relembre o conceito explicado no primeiro e-mail. Use algo como:
+"Como mencionamos, a ideia é trocar a fatura de energia pelo financiamento do sistema solar. Depois de quitado, só lucro."
+Ou, de forma ainda mais sucinta:
+"Relembrando: trocar a fatura pelo financiamento. Depois do sistema pago, o resto é lucro."
+Não escreva mais do que uma linha. O objetivo é só ativar a memória do lead, não reexplicar.
+Destaque Visual: Coloque a frase com o link em uma linha isolada usando o emoji 👉.
+
+Pode redigir agora. Após gerar o texto, permaneça em prontidão para o Toque 3 (Bump) caso não tenhamos retorno.
+
+SE VOCÊ ACHAR NECESSARIO PODE FAZER ALGUMA ALTERAÇÃO NO TEXTO, APENAS AVISE O MOTIVO DE TER FEITO;
+
+É DE EXTREMA IMPORTÂNCIA QUE O LINK DO CASE SEJA VALIDO PARA EVITAR RETRABALHOS; 
+
+É DE EXTREMA IMPORTÂNCIA QUE O LINK ESTEJA NO FIM DO EMAIL; 
+
+
+https://meetings.hubspot.com/nicolas-sa
