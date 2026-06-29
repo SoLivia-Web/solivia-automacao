@@ -88,22 +88,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ================= CLIENTES API =================
-# Verificação adicional antes de instanciar
-print(f"🔍 Instanciando HubSpot com token: {HUBSPOT_TOKEN[:10] + '...' if HUBSPOT_TOKEN else '❌ VAZIO'}")
+# Inicializa cliente DeepSeek
 client_ds = OpenAI(api_key=DEEPSEEK_KEY, base_url="https://api.deepseek.com")
 
-# Tenta com access_token (padrão)
+# Inicializa HubSpot com token de acesso pessoal (hubspot-client)
+print("🔍 Instanciando HubSpot com access_token...")
 try:
     hubspot = HubSpot(access_token=HUBSPOT_TOKEN)
-    logger.info("✅ HubSpot inicializado com access_token")
+    logger.info("✅ HubSpot inicializado com sucesso.")
 except Exception as e:
-    logger.warning(f"⚠️ Falha com access_token: {e}. Tentando com hapi_key...")
-    try:
-        hubspot = HubSpot(hapi_key=HUBSPOT_TOKEN)
-        logger.info("✅ HubSpot inicializado com hapi_key")
-    except Exception as e2:
-        logger.error(f"❌ Falha ao inicializar HubSpot: {e2}")
-        raise
+    logger.error(f"❌ Falha ao inicializar HubSpot: {e}")
+    raise
 
 # ================= FUNÇÕES DE BACKUP =================
 def fazer_backup_automatico(arquivo_json):
