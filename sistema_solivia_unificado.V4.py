@@ -23,6 +23,16 @@ HUBSPOT_TOKEN = os.getenv("HUBSPOT_TOKEN")
 MEU_OWNER_ID = os.getenv("MEU_OWNER_ID")
 PORTAL_ID = os.getenv("PORTAL_ID")
 
+# ================= DEPURAÇÃO =================
+print("=" * 60)
+print("🔍 DIAGNÓSTICO DE VARIÁVEIS DE AMBIENTE")
+print("=" * 60)
+print(f"🔑 DEEPSEEK_KEY: {DEEPSEEK_KEY[:10] + '...' if DEEPSEEK_KEY else '❌ VAZIO'}")
+print(f"🔑 HUBSPOT_TOKEN: {HUBSPOT_TOKEN[:10] + '...' if HUBSPOT_TOKEN else '❌ VAZIO'}")
+print(f"👤 MEU_OWNER_ID: {MEU_OWNER_ID if MEU_OWNER_ID else '❌ VAZIO'}")
+print(f"🏢 PORTAL_ID: {PORTAL_ID if PORTAL_ID else '❌ VAZIO'}")
+print("=" * 60)
+
 if not all([DEEPSEEK_KEY, HUBSPOT_TOKEN, MEU_OWNER_ID, PORTAL_ID]):
     raise ValueError("Variáveis de ambiente não configuradas. Crie um arquivo .env com as chaves.")
 
@@ -78,8 +88,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ================= CLIENTES API =================
+# Verificação adicional antes de instanciar
+print(f"🔍 Instanciando HubSpot com token: {HUBSPOT_TOKEN[:10] + '...' if HUBSPOT_TOKEN else '❌ VAZIO'}")
 client_ds = OpenAI(api_key=DEEPSEEK_KEY, base_url="https://api.deepseek.com")
-hubspot = HubSpot(access_token=HUBSPOT_TOKEN)
+
+# Tenta com access_token (padrão)
+try:
+    hubspot = HubSpot(access_token=HUBSPOT_TOKEN)
+    logger.info("✅ HubSpot inicializado com access_token")
+except Exception as e:
+    logger.warning(f"⚠️ Falha com access_token: {e}. Tentando com hapi_key...")
+    try:
+        hubspot = HubSpot(hapi_key=HUBSPOT_TOKEN)
+        logger.info("✅ HubSpot inicializado com hapi_key")
+    except Exception as e2:
+        logger.error(f"❌ Falha ao inicializar HubSpot: {e2}")
+        raise
 
 # ================= FUNÇÕES DE BACKUP =================
 def fazer_backup_automatico(arquivo_json):
