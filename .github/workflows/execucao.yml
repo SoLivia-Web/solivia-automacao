@@ -1,0 +1,40 @@
+name: Automação SoLivia
+
+on:
+  schedule:
+    - cron: '0 12 * * 1,3,5'   # Seg, Qua, Sex às 9h BRT
+  workflow_dispatch:
+
+jobs:
+  executar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set environment variables
+        run: |
+          echo "DEEPSEEK_KEY=${{ secrets.DEEPSEEK_KEY }}" >> $GITHUB_ENV
+          echo "HUBSPOT_TOKEN=${{ secrets.HUBSPOT_TOKEN }}" >> $GITHUB_ENV
+          echo "MEU_OWNER_ID=${{ secrets.MEU_OWNER_ID }}" >> $GITHUB_ENV
+          echo "PORTAL_ID=${{ secrets.PORTAL_ID }}" >> $GITHUB_ENV
+
+      - name: Run script (Instalação + Consultoria)
+        run: python sistema_solivia_unificado.V4.py --ambos
+
+      - name: Commit and push state files
+        run: |
+          git config user.email "bot@solivia.com"
+          git config user.name "Solivia Bot"
+          git add dados/*.csv estado/*.json logs/*.txt
+          git diff --staged --quiet || (git commit -m "Atualização automática [skip ci]" && git push)
+        continue-on-error: true
