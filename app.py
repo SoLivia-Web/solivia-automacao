@@ -1,4 +1,4 @@
-  from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from weasyprint import HTML
 import io
@@ -12,6 +12,8 @@ from datetime import date, datetime
 import warnings
 import json
 import os
+import hashlib
+
 
 warnings.filterwarnings("ignore")
 
@@ -716,6 +718,9 @@ def api_enviar_para_assinatura():
             return jsonify({'success': False, 'error': 'Dados não fornecidos'}), 400
 
         cliente_id = dados.get('cliente_id')
+        # ===== GERAR HASH =====
+hash_input = f"{cliente_id}{dados.get('data_visita', '')}{tipo}{datetime.now().isoformat()}"
+hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
         pdf_base64 = dados.get('pdf_base64')
         nome_documento = dados.get('nome_documento', 'Contrato.pdf')
         tipo_assinante = dados.get('tipo_assinante', 'empresa')
@@ -834,12 +839,12 @@ def gerar_relatorio_conformidade():
             'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
             'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
             'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
-            'URL_VALIDACAO': 'https://solivia.com.br/validar',
+            'URL_VALIDACAO': f"https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec?hash={hash_documento}",
             'NUM_RELATORIO': f"RT-{datetime.now().year}-{str(1).zfill(3)}",
             'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
             'HORA_EMISSAO': datetime.now().strftime('%H:%M'),
             'NUM_PROTOCOLO': f"VT-{datetime.now().strftime('%Y%m%d')}-{cliente_id or '000'}",
-            'HASH_DOCUMENTO': '8a7d3f9e2c1b5d4a6f8e7c9d0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0',
+            'HASH_DOCUMENTO': hash_documento,
             'ENGENHEIRO_RESPONSAVEL': dados.get('engenheiro', 'Nícolas Alves de Sá'),
             'CREA_NUMERO': dados.get('crea', '5071237870'),
             'NUM_PROPOSTA': dados.get('num_proposta', ''),
@@ -913,6 +918,7 @@ def gerar_relatorio_conformidade():
                 'pdf_base64': pdf_base64,
                 'tipo_documento': 'Visita_Tecnica',
                 'cliente_id': cliente_id,
+                'hash_documento': hash_documento,
             }
         }
 
