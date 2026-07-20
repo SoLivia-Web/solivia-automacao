@@ -1,0 +1,2971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Administrativo – SoLivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET E BASE ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      color: #1e2f3a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { text-decoration: none; }
+
+    /* ===== HEADER ADMIN ===== */
+.header-admin {
+  background: #0b2f5c;
+  padding: 0.6rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.header-admin .header-left,
+.header-admin .header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+.header-admin .header-center {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-admin .header-center .logo-header {
+  height: 40px;
+  width: auto;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.header-admin .logo {
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.header-admin .logo span {
+  color: #ffc400;
+}
+.header-admin .header-right {
+  justify-content: flex-end;
+}
+.header-admin .user {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.header-admin .user .avatar {
+  width: 32px;
+  height: 32px;
+  background: #ffc400;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #0b2f5c;
+  font-size: 0.8rem;
+}
+.header-admin .logout {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: white;
+  padding: 0.25rem 0.8rem;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.header-admin .logout:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+    /* ===== CONTEÚDO PRINCIPAL ===== */
+    .main-admin {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      flex: 1;
+    }
+    .main-admin h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0b2f5c;
+      margin-bottom: 0.3rem;
+    }
+    .main-admin .sub {
+      color: #5c7a6c;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    /* ===== FILTROS ===== */
+    .filtros-etapa {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .filtro-btn {
+      background: white;
+      border: 1px solid #e2edf2;
+      border-radius: 30px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #5c7a6c;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filtro-btn:hover {
+      background: #eef2f6;
+    }
+    .filtro-btn.active {
+      background: #0b2f5c;
+      color: white;
+      border-color: #0b2f5c;
+    }
+
+    /* ===== TOOLBAR ===== */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .toolbar .busca {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      background: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 50px;
+      border: 1px solid #dce3ea;
+    }
+    .toolbar .busca input {
+      border: none;
+      outline: none;
+      padding: 0.4rem 0.2rem;
+      font-size: 0.9rem;
+      background: transparent;
+      width: 200px;
+    }
+    .toolbar .busca button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #7a8a9a;
+    }
+    .toolbar .acoes {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .toolbar .btn-acao {
+      background: #0b2f5c;
+      color: white;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .toolbar .btn-acao:hover {
+      background: #1a4a7a;
+    }
+    .toolbar .btn-acao--secundario {
+      background: #ffc400;
+      color: #0b2f5c;
+    }
+    .toolbar .btn-acao--secundario:hover {
+      background: #e6b000;
+    }
+
+    /* ===== TABELA ===== */
+    .tabela-wrapper {
+      background: white;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+      border: 1px solid #e2edf2;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #f8fafc;
+      text-align: left;
+      padding: 1rem 1.2rem;
+      font-weight: 700;
+      color: #0b2f5c;
+      border-bottom: 1px solid #e2edf2;
+    }
+    td {
+      padding: 0.9rem 1.2rem;
+      border-bottom: 1px solid #eef2f6;
+      vertical-align: middle;
+    }
+    tr {
+      cursor: default;
+    }
+    tr:hover {
+      background: #fafcfe;
+    }
+    .nome-cliente {
+      color: #0b2f5c;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-color: rgba(11,47,92,0.2);
+      transition: color 0.2s, text-decoration-color 0.2s;
+    }
+    .nome-cliente:hover {
+      color: #1a4a7a;
+      text-decoration-color: #ffc400;
+    }
+    .status-etapa {
+      display: inline-block;
+      padding: 0.15rem 0.7rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-visita { background: #e0f2e6; color: #0a6b3b; }
+    .status-documentos { background: #fff3d6; color: #a45d00; }
+    .status-instalacao { background: #dbeafe; color: #1e4b8c; }
+    .status-homologacao { background: #fce4e4; color: #b33636; }
+    .status-posvenda { background: #e8d5f5; color: #6b2f8a; }
+
+    /* ===== MODAIS ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-edicao {
+      background: white;
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      border-radius: 2rem;
+      padding: 2rem;
+      overflow-y: auto;
+      box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+      animation: fadeSlide 0.3s ease;
+      position: relative;
+    }
+    .modal-edicao-grande {
+      max-width: 1100px;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-edicao .fechar {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #7a8a9a;
+      transition: color 0.2s;
+    }
+    .modal-edicao .fechar:hover {
+      color: #0b2f5c;
+    }
+    .modal-edicao .titulo-modal {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0b2f5c;
+      margin-bottom: 0.3rem;
+    }
+    .modal-edicao .subtitulo-modal {
+      color: #5c7a6c;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-calculadora {
+      background: white;
+      max-width: 1400px;
+      width: 100%;
+      max-height: 95vh;
+      border-radius: 2rem;
+      padding: 0.5rem;
+      box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+      animation: fadeSlide 0.3s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-calculadora .fechar {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #7a8a9a;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+    .modal-calculadora .fechar:hover {
+      color: #0b2f5c;
+    }
+    .modal-calculadora iframe {
+      width: 100%;
+      height: 85vh;
+      border: none;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #e2edf2;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #7a8a9a;
+      cursor: pointer;
+      border-radius: 30px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #0b2f5c;
+      color: white;
+    }
+    .tab-btn:hover:not(.active) {
+      background: #eef2f6;
+    }
+    .tab-content {
+      display: none;
+      animation: fadeSlide 0.3s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin: 1rem 0;
+    }
+    .form-grid .full {
+      grid-column: 1 / -1;
+    }
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .campo label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #0b2f5c;
+    }
+    .campo input, .campo select, .campo textarea {
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #dce3ea;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #fafcfe;
+      transition: border-color 0.2s;
+    }
+    .campo input:focus, .campo select:focus, .campo textarea:focus {
+      outline: none;
+      border-color: #ffc400;
+      box-shadow: 0 0 0 2px rgba(255,196,0,0.15);
+    }
+    .campo textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .campo .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .campo .checklist-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #0b2f5c;
+    }
+    .campo .checklist-item label {
+      font-weight: 400;
+      font-size: 0.9rem;
+    }
+    .campo .url-existente {
+      font-size: 0.8rem;
+      color: #0b2f5c;
+      background: #eef2f6;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    /* ===== BOTÕES ===== */
+    .btn-salvar {
+      background: #0b2f5c;
+      color: white;
+      border: none;
+      padding: 0.7rem 2.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-salvar:hover:not(:disabled) {
+      background: #1a4a7a;
+    }
+    .btn-salvar:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .btn-salvar--secundario {
+      background: transparent;
+      color: #0b2f5c;
+      border: 1px solid #dce3ea;
+      margin-left: 0.5rem;
+    }
+    .btn-salvar--secundario:hover {
+      background: #eef2f6;
+    }
+
+    .btn-acao-aba {
+      background: #ffc400;
+      color: #0b2f5c;
+      border: none;
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      margin-top: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-acao-aba:hover {
+      background: #e6b000;
+      transform: translateY(-2px);
+    }
+    .btn-acao-aba--secundario {
+      background: #0b2f5c;
+      color: white;
+    }
+    .btn-acao-aba--secundario:hover {
+      background: #1a4a7a;
+    }
+
+    .btn-excluir {
+      background: transparent;
+      color: #b91c1c;
+      border: 2px solid #b91c1c;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-excluir:hover {
+      background: #fee2e2;
+    }
+
+    /* ===== LOADING ===== */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #7a8a9a;
+    }
+    .spinner {
+      border: 4px solid #f3f4f6;
+      border-top: 4px solid #0b2f5c;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    .spinner--pequeno {
+      width: 24px;
+      height: 24px;
+      border-width: 3px;
+      margin: 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ===== RODAPÉ ===== */
+    .footer {
+      background: #0b2f5c;
+      color: rgba(255,255,255,0.7);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+
+    /* ===== RESPONSIVO ===== */
+    @media (max-width: 768px) {
+      .main-admin { padding: 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar .busca input { width: 100%; }
+      .modal-edicao { padding: 1.2rem; }
+      .modal-calculadora { padding: 0.2rem; }
+      .modal-calculadora iframe { height: 80vh; }
+      table { font-size: 0.75rem; }
+      th, td { padding: 0.6rem 0.8rem; }
+    }
+    @media (max-width: 480px) {
+      .header-admin .logo { font-size: 0.9rem; }
+      .header-admin .user span { display: none; }
+      .modal-calculadora iframe { height: 70vh; }
+    }
+
+    /* ===== LOGIN ===== */
+    .login-admin {
+      max-width: 400px;
+      margin: 4rem auto;
+      background: white;
+      border-radius: 2rem;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      border: 1px solid #e2edf2;
+      display: none;
+    }
+    .login-admin.ativo { display: block; }
+    .login-admin h2 { text-align: center; color: #0b2f5c; margin-bottom: 1.5rem; }
+    .login-admin .campo { margin-bottom: 1.2rem; }
+    .login-admin .campo label { display: block; font-weight: 600; font-size: 0.85rem; color: #0b2f5c; margin-bottom: 0.3rem; }
+    .login-admin .campo input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid #dce3ea;
+      border-radius: 1.5rem;
+      font-size: 1rem;
+      background: #f9fbfd;
+    }
+    .login-admin .campo input:focus {
+      outline: none;
+      border-color: #ffc400;
+      box-shadow: 0 0 0 3px rgba(255,196,0,0.2);
+      background: white;
+    }
+    .login-admin .btn-entrar {
+      width: 100%;
+      padding: 0.9rem;
+      background: #ffc400;
+      color: #0b2f5c;
+      border: none;
+      border-radius: 2rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-admin .btn-entrar:hover { background: #e6b000; }
+    .login-admin .erro {
+      color: #b91c1c;
+      background: #fee2e2;
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .dashboard-admin { display: none; }
+    .dashboard-admin.ativo { display: block; }
+
+    /* ===== MODAL DE SUCESSO ===== */
+    .modal-sucesso-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-sucesso-overlay.active {
+      display: flex;
+    }
+    .modal-sucesso {
+      background: white;
+      max-width: 420px;
+      width: 100%;
+      border-radius: 2rem;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: fadeInUp 0.3s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-sucesso .emoji {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .modal-sucesso h3 {
+      font-size: 1.5rem;
+      color: #0b2f5c;
+      margin-bottom: 0.5rem;
+    }
+    .modal-sucesso p {
+      color: #5c7a6c;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .modal-sucesso .btn-modal {
+      background: #0b2f5c;
+      color: white;
+      border: none;
+      padding: 0.6rem 2rem;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin: 0 0.3rem;
+    }
+    .modal-sucesso .btn-modal:hover {
+      background: #1a4a7a;
+    }
+    .modal-sucesso .btn-modal--secundario {
+      background: transparent;
+      color: #0b2f5c;
+      border: 1px solid #dce3ea;
+    }
+    .modal-sucesso .btn-modal--secundario:hover {
+      background: #eef2f6;
+    }
+
+    /* ===== VALIDAÇÃO DE DATA ===== */
+    .erro-validacao {
+      color: #b91c1c;
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+      display: none;
+    }
+    .erro-validacao.visivel {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ADMIN ===== -->
+<header class="header-admin">
+  <div class="header-left">
+    <div class="logo">SoLivia <span>Admin</span></div>
+  </div>
+  <div class="header-center">
+    <img src="assets/img/logo.png" alt="SoLivia" class="logo-header" />
+  </div>
+  <div class="header-right">
+    <div class="user">
+      <span id="adminNome">Administrador</span>
+      <div class="avatar">A</div>
+      <button class="logout" id="btnLogout">Sair</button>
+    </div>
+  </div>
+</header>
+
+  <!-- ===== CONTEÚDO ===== -->
+  <main class="main-admin">
+
+    <!-- TELA DE LOGIN -->
+    <div class="login-admin" id="loginAdmin">
+      <h2>🔐 Acesso Administrativo</h2>
+      <form id="formLoginAdmin" onsubmit="event.preventDefault(); adminLogin();">
+        <div class="campo">
+          <label for="senhaAdmin">Senha mestra</label>
+          <input type="password" id="senhaAdmin" placeholder="Digite a senha..." autocomplete="current-password" required />
+        </div>
+        <div id="loginErroAdmin" class="erro">Senha inválida.</div>
+        <button type="submit" class="btn-entrar">Entrar</button>
+      </form>
+    </div>
+
+    <!-- PAINEL ADMIN -->
+    <div class="dashboard-admin" id="dashboardAdmin">
+      <h1>👥 Gerenciar Clientes</h1>
+      <p class="sub">Visualize, edite e acompanhe todos os clientes da SoLivia.</p>
+
+      <!-- FILTROS -->
+      <div class="filtros-etapa" id="filtrosEtapa">
+        <button class="filtro-btn active" data-etapa="todos">Todos</button>
+        <button class="filtro-btn" data-etapa="visita">Visita Técnica</button>
+        <button class="filtro-btn" data-etapa="documentos">Documentos</button>
+        <button class="filtro-btn" data-etapa="instalacao">Instalação</button>
+        <button class="filtro-btn" data-etapa="homologacao">Homologação</button>
+        <button class="filtro-btn" data-etapa="posvenda">Pós-Venda</button>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="busca">
+          <input type="text" placeholder="Buscar cliente..." id="buscaInput" oninput="filtrarTabela()" />
+          <button>🔍</button>
+        </div>
+        <div class="acoes">
+          <button class="btn-acao btn-acao--secundario" onclick="abrirCalculadora()">📊 Gerar Pré-proposta</button>
+          <button class="btn-acao" onclick="abrirModalCriar()">+ Novo Cliente</button>
+        </div>
+      </div>
+
+      <!-- TABELA -->
+      <div class="tabela-wrapper">
+        <div id="loadingTabela" class="loading">
+          <div class="spinner"></div>
+          Carregando clientes...
+        </div>
+        <table style="display:none;" id="tabelaClientesAdmin">
+          <thead>
+            <tr><th>Cliente</th><th>E-mail</th><th>Etapa</th><th>Última atualização</th></tr>
+          </thead>
+          <tbody id="tbodyClientes"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== RODAPÉ ===== -->
+  <footer class="footer">
+    &copy; 2026 SoLivia Engenharia – Painel Administrativo
+  </footer>
+
+  <!-- ============================================================ -->
+  <!-- ===== MODAL DE EDIÇÃO ===== -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="modalEdicao">
+    <div class="modal-edicao">
+      <button class="fechar" onclick="fecharModalEdicao()">&times;</button>
+
+      <!-- LOADING -->
+      <div id="loadingModal" style="display:none; text-align:center; padding:2rem 0;">
+        <div class="spinner" style="margin:0 auto 1rem;"></div>
+        <p style="color:#0b2f5c; font-weight:600;">Carregando dados do cliente...</p>
+      </div>
+
+      <!-- CONTEÚDO -->
+      <div id="conteudoModal" style="display:none;">
+        <div class="titulo-modal" id="modalTitulo">Editar Cliente</div>
+        <div class="subtitulo-modal" id="modalSubtitulo">Carregando...</div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tabVisita" onclick="abrirTab(this)">🔍 Visita</button>
+          <button class="tab-btn" data-tab="tabDocumentos" onclick="abrirTab(this)">📄 Documentos</button>
+          <button class="tab-btn" data-tab="tabInstalacao" onclick="abrirTab(this)">🔧 Instalação</button>
+          <button class="tab-btn" data-tab="tabHomologacao" onclick="abrirTab(this)">🏷️ Homologação</button>
+          <button class="tab-btn" data-tab="tabPosVenda" onclick="abrirTab(this)">🛡️ Pós-Venda</button>
+        </div>
+
+        <!-- ===== ABA VISITA ===== -->
+        <div id="tabVisita" class="tab-content active">
+          <div class="form-grid">
+            <div class="campo">
+              <label for="visita_engenheiro">👨‍🔧 Técnico responsável</label>
+              <input type="text" id="visita_engenheiro" oninput="validarTecnico(this)" />
+            </div>
+            <div class="campo">
+              <label>📅 Data agendada</label>
+              <input type="text" id="visita_data_agendada" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)" onchange="sincronizarDataVisita()" />
+            </div>
+            <div class="campo">
+              <label>📌 Data da realização</label>
+              <input type="text" id="visita_data_realizacao" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)" onchange="validarDataRealizacao()" />
+              <span id="erroDataRealizacao" class="erro-validacao">
+                ⚠️ A data da realização não pode ser anterior à data agendada.
+              </span>
+            </div>
+            <div class="campo">
+              <label>📋 Resultado final</label>
+              <select id="visita_resultado">
+                <option value="">Selecione...</option>
+                <option value="Aprovado">✅ Aprovado</option>
+                <option value="Pendente de ajustes">⚠️ Pendente de ajustes</option>
+                <option value="Reprovado">❌ Reprovado</option>
+              </select>
+            </div>
+            <div class="campo full">
+              <label>📝 Observações</label>
+              <textarea rows="3" id="visita_observacoes" placeholder="Anotações internas (serão exibidas para o cliente)"></textarea>
+            </div>
+
+            <!-- Checklist com opções vazias -->
+            <div class="campo full">
+              <label>🔍 Checklist da visita</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:0.3rem;">
+                <div class="checklist-item" style="display:flex; align-items:center; gap:0.5rem;">
+                  <label style="font-weight:500; min-width:140px;">Telhado e estrutura</label>
+                  <select id="chk_telhado" style="flex:1;">
+                    <option value="">Selecione...</option>
+                    <option value="OK">✅ OK</option>
+                    <option value="Atencao">⚠️ Atenção</option>
+                    <option value="Reprovado">❌ Reprovado</option>
+                  </select>
+                </div>
+                <div class="checklist-item" style="display:flex; align-items:center; gap:0.5rem;">
+                  <label style="font-weight:500; min-width:140px;">Sombreamento</label>
+                  <select id="chk_sombreamento" style="flex:1;">
+                    <option value="">Selecione...</option>
+                    <option value="OK">✅ OK</option>
+                    <option value="Atencao">⚠️ Atenção</option>
+                    <option value="Reprovado">❌ Reprovado</option>
+                  </select>
+                </div>
+                <div class="checklist-item" style="display:flex; align-items:center; gap:0.5rem;">
+                  <label style="font-weight:500; min-width:140px;">Passagem de cabos</label>
+                  <select id="chk_cabos" style="flex:1;">
+                    <option value="">Selecione...</option>
+                    <option value="OK">✅ OK</option>
+                    <option value="Atencao">⚠️ Atenção</option>
+                    <option value="Reprovado">❌ Reprovado</option>
+                  </select>
+                </div>
+                <div class="checklist-item" style="display:flex; align-items:center; gap:0.5rem;">
+                  <label style="font-weight:500; min-width:140px;">Padrão de entrada</label>
+                  <select id="chk_padrao" style="flex:1;">
+                    <option value="">Selecione...</option>
+                    <option value="OK">✅ OK</option>
+                    <option value="Atencao">⚠️ Atenção</option>
+                    <option value="Reprovado">❌ Reprovado</option>
+                  </select>
+                </div>
+                <div class="checklist-item" style="display:flex; align-items:center; gap:0.5rem;">
+                  <label style="font-weight:500; min-width:140px;">Conectividade Wi-Fi</label>
+                  <select id="chk_wifi" style="flex:1;">
+                    <option value="">Selecione...</option>
+                    <option value="OK">✅ OK</option>
+                    <option value="Atencao">⚠️ Atenção</option>
+                    <option value="Reprovado">❌ Reprovado</option>
+                  </select>
+                </div>
+                <div class="checklist-item" style="display:flex; align-items:center; gap:0.5rem;">
+                  <label style="font-weight:500; min-width:140px;">Acesso e logística</label>
+                  <select id="chk_acesso" style="flex:1;">
+                    <option value="">Selecione...</option>
+                    <option value="OK">✅ OK</option>
+                    <option value="Atencao">⚠️ Atenção</option>
+                    <option value="Reprovado">❌ Reprovado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- RELATÓRIO PDF COM BOTÃO -->
+            <div class="campo full">
+              <label>📄 Relatório PDF</label>
+              <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                <input type="hidden" id="visita_relatorio_url" />
+                <button id="btnAbrirRelatorio" onclick="abrirRelatorio()" style="
+                  background: #eef2f6;
+                  color: #5c7a6c;
+                  border: none;
+                  padding: 0.4rem 1.2rem;
+                  border-radius: 50px;
+                  font-weight: 700;
+                  font-size: 0.85rem;
+                  cursor: default;
+                  transition: all 0.3s ease;
+                  opacity: 0.5;
+                  pointer-events: none;
+                  white-space: nowrap;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 0.4rem;
+                ">
+                  🔗 Abrir relatório
+                </button>
+              </div>
+              <small style="color:#5c7a6c;">Clique no botão para visualizar o relatório técnico.</small>
+            </div>
+
+            <!-- 2. VALIDAÇÃO PARA APROVAÇÃO DO CLIENTE (>= DATA REALIZAÇÃO) -->
+            <div class="campo full">
+              <label>✅ Aprovação do cliente (data)</label>
+              <input type="text" id="visita_aprovacao" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)" onchange="validarDataAprovacao()" />
+              <span id="erroDataAprovacao" class="erro-validacao">
+                ⚠️ A data de aprovação não pode ser anterior à data da realização.
+              </span>
+              <small style="color:#5c7a6c;">Preencha manualmente após aprovação verbal do cliente.</small>
+            </div>
+          </div>
+          <button class="btn-acao-aba" onclick="abrirModalRelatorioVT(clienteEditando.id)">📋 Gerar Relatório de Conformidade</button>
+        </div>
+
+        <!-- ===== ABA DOCUMENTOS ===== -->
+        <div id="tabDocumentos" class="tab-content">
+          <div class="form-grid">
+            <div class="campo full">
+              <label>Documentos (status e URLs)</label>
+              <div class="checklist-item"><input type="checkbox" id="doc_rg" /> <label>RG / CNH – URL:</label> <input type="text" id="doc_rg_url" placeholder="URL do documento" style="flex:1;" /></div>
+              <div class="checklist-item"><input type="checkbox" id="doc_cpf" /> <label>CPF – URL:</label> <input type="text" id="doc_cpf_url" placeholder="URL do documento" style="flex:1;" /></div>
+              <div class="checklist-item"><input type="checkbox" id="doc_comprovante" /> <label>Comprovante de residência – URL:</label> <input type="text" id="doc_comprovante_url" placeholder="URL do documento" style="flex:1;" /></div>
+              <div class="checklist-item"><input type="checkbox" id="doc_fatura" /> <label>Última fatura – URL:</label> <input type="text" id="doc_fatura_url" placeholder="URL do documento" style="flex:1;" /></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.5rem;">
+            <button class="btn-acao-aba" onclick="gerarPropostaFinal()">📄 Gerar Proposta Final</button>
+            <button class="btn-acao-aba btn-acao-aba--secundario" onclick="gerarContratoCliente()">📜 Gerar Contrato</button>
+            <button class="btn-acao-aba" onclick="abrirModalContratoPrestador()">📜 Contrato Prestador</button>
+          </div>
+        </div>
+
+        <!-- ===== ABA INSTALAÇÃO ===== -->
+        <div id="tabInstalacao" class="tab-content">
+          <div class="form-grid">
+            <div class="campo full"><label>Status da instalação</label><select id="instalacao_status"><option value="Concluído">Concluído</option><option value="Em andamento">Em andamento</option><option value="Aguardando material">Aguardando material</option><option value="Material em trânsito">Material em trânsito</option></select></div>
+            <div class="campo"><label>Equipamentos</label><input type="text" id="instalacao_equipamentos" /></div>
+            <div class="campo"><label>Data da compra</label><input type="date" id="instalacao_data_compra" /></div>
+            <div class="campo"><label>Previsão de entrega</label><input type="date" id="instalacao_previsao_entrega" /></div>
+            <div class="campo"><label>Código de rastreio</label><input type="text" id="instalacao_rastreio" /></div>
+            <div class="campo"><label>Equipe responsável</label><input type="text" id="instalacao_equipe" /></div>
+            <div class="campo full">
+              <label>Cronograma (itens)</label>
+              <div class="checklist-item"><input type="checkbox" id="crono_montagem" /> <label>Montagem estrutural</label></div>
+              <div class="checklist-item"><input type="checkbox" id="crono_cabos" /> <label>Passagem de cabos</label></div>
+              <div class="checklist-item"><input type="checkbox" id="crono_inversor" /> <label>Instalação do inversor</label></div>
+              <div class="checklist-item"><input type="checkbox" id="crono_conexao" /> <label>Conexão elétrica</label></div>
+              <div class="checklist-item"><input type="checkbox" id="crono_testes" /> <label>Testes e comissionamento</label></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== ABA HOMOLOGAÇÃO ===== -->
+        <div id="tabHomologacao" class="tab-content">
+          <div class="form-grid">
+            <div class="campo"><label>Concessionária</label><input type="text" id="homologacao_concessionaria" /></div>
+            <div class="campo"><label>Nº do protocolo</label><input type="text" id="homologacao_protocolo" /></div>
+            <div class="campo"><label>Data de envio</label><input type="date" id="homologacao_data_envio" /></div>
+            <div class="campo"><label>Data da vistoria</label><input type="date" id="homologacao_data_vistoria" /></div>
+            <div class="campo"><label>Resultado da vistoria</label><select id="homologacao_resultado"><option value="Aprovado">Aprovado</option><option value="Exigências">Exigências</option><option value="Reprovado">Reprovado</option></select></div>
+            <div class="campo"><label>Medidor bidirecional</label><select id="homologacao_medidor"><option value="Instalado e configurado">Instalado e configurado</option><option value="Aguardando instalação">Aguardando instalação</option><option value="Não instalado">Não instalado</option></select></div>
+            <div class="campo full"><label>Data de liberação para operação</label><input type="date" id="homologacao_data_liberacao" /></div>
+            <div class="campo full"><label>Laudo de vistoria (URL)</label><input type="text" id="homologacao_laudo_url" placeholder="https://drive.google.com/..." /></div>
+          </div>
+          <button class="btn-acao-aba" onclick="abrirModalComissionamento()">📋 Relatório de Comissionamento</button>
+        </div>
+
+        <!-- ===== ABA PÓS-VENDA ===== -->
+        <div id="tabPosVenda" class="tab-content">
+          <div class="form-grid">
+            <div class="campo"><label>Geração atual (kWh/mês)</label><input type="text" id="posvenda_geracao" /></div>
+            <div class="campo"><label>Economia mensal (R$)</label><input type="text" id="posvenda_economia" /></div>
+            <div class="campo"><label>Plataforma de monitoramento (URL)</label><input type="text" id="posvenda_plataforma" /></div>
+            <div class="campo"><label>Última manutenção</label><input type="date" id="posvenda_ultima_manutencao" /></div>
+            <div class="campo full"><label>Manuais (URLs)</label><input type="text" id="posvenda_manuais" placeholder="URLs separadas por vírgula" /></div>
+          </div>
+        </div>
+
+        <!-- BOTÕES DO MODAL -->
+        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.5rem; justify-content:space-between; align-items:center;">
+          <div>
+            <button class="btn-salvar" id="btnSalvarCliente" onclick="salvarCliente()">
+              <span id="salvarSpinner" class="spinner spinner--pequeno" style="display:none;"></span>
+              <span id="salvarTexto">💾 Salvar alterações</span>
+            </button>
+            <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalEdicao()">Cancelar</button>
+          </div>
+          <button class="btn-excluir" onclick="abrirModalExcluir()">🗑️ Excluir Cliente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DE CRIAÇÃO ===== -->
+  <div class="modal-overlay" id="modalCriar">
+    <div class="modal-edicao" style="max-width:500px;">
+      <button class="fechar" onclick="fecharModalCriar()">&times;</button>
+      <div class="titulo-modal">+ Novo Cliente</div>
+      <div class="subtitulo-modal">Preencha os dados para criar um novo cliente.</div>
+      <div class="form-grid" style="grid-template-columns:1fr;">
+        <div class="campo"><label>Nome *</label><input type="text" id="novo_nome" /></div>
+        <div class="campo"><label>E-mail *</label><input type="email" id="novo_email" /></div>
+        <div class="campo"><label>Senha *</label><input type="password" id="novo_senha" /></div>
+        <div class="campo"><label>Telefone</label><input type="text" id="novo_telefone" /></div>
+        <div class="campo"><label>Endereço</label><input type="text" id="novo_endereco" /></div>
+        <div class="campo"><label>CEP</label><input type="text" id="novo_cep" /></div>
+      </div>
+      <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+        <button class="btn-salvar" onclick="criarCliente()">Criar</button>
+        <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalCriar()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DA CALCULADORA ===== -->
+  <div class="modal-overlay" id="modalCalculadora">
+    <div class="modal-calculadora">
+      <button class="fechar" onclick="fecharCalculadora()">&times;</button>
+      <iframe id="iframeCalculadora" src="orcamento-solar.html"></iframe>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== MODAL RELATÓRIO VT ===== -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="modalRelatorioVT">
+    <div class="modal-edicao" style="max-width: 1000px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <button onclick="fecharModalRelatorioVT()" style="background:none; border:none; color:#0b2f5c; font-weight:600; font-size:0.95rem; cursor:pointer; padding:0.3rem 0.5rem; border-radius:30px; transition:background 0.2s;" onmouseover="this.style.background='#eef2f6'" onmouseout="this.style.background='transparent'">
+          ← Voltar
+        </button>
+        <button class="fechar" onclick="fecharModalRelatorioVT()" style="position:static; margin:0;">&times;</button>
+      </div>
+
+      <div class="titulo-modal">📋 Gerar Relatório de Conformidade</div>
+      <div class="subtitulo-modal">Preencha os dados da visita técnica para gerar o relatório.</div>
+
+      <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:12px; margin-bottom:1.2rem;">
+        <p><strong>Cliente:</strong> <span id="vtClienteNome">Carregando...</span></p>
+        <p><strong>E-mail:</strong> <span id="vtClienteEmail">-</span></p>
+        <p><strong>Endereço:</strong> <span id="vtClienteEndereco">-</span></p>
+        <p><strong>CEP:</strong> <span id="vtClienteCep">-</span></p>
+      </div>
+
+      <div class="campo full">
+        <label for="vtTipoRelatorio">Tipo de relatório *</label>
+        <select id="vtTipoRelatorio" onchange="vtAlterarTipo()">
+          <option value="">Selecione...</option>
+          <option value="sem_adequacao">✅ Sem adequação (layout aprovado)</option>
+          <option value="com_adequacao">⚠️ Com adequação (ajustes necessários)</option>
+          <option value="fast_track">⚡ Fast Track (&lt; 7,5 kWp)</option>
+        </select>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="campo">
+          <label for="vtDataVisita">Data da visita *</label>
+          <input type="text" id="vtDataVisita" readonly />
+        </div>
+        <div class="campo">
+          <label for="vtConcessionaria">Concessionária *</label>
+          <select id="vtConcessionaria"><option value="">Selecione...</option></select>
+        </div>
+        <div class="campo">
+          <label for="vtEngenheiro">Engenheiro responsável</label>
+          <input type="text" id="vtEngenheiro" value="Nícolas Alves de Sá" />
+        </div>
+        <div class="campo">
+          <label for="vtCrea">CREA</label>
+          <input type="text" id="vtCrea" value="5071237870" />
+        </div>
+      </div>
+
+      <!-- CAMPOS: SEM ADEQUAÇÃO -->
+      <div id="vtCamposSemAdequacao" style="display:none;">
+        <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+        <h4 style="color:#0b2f5c; margin-bottom:0.8rem;">✅ Relatório sem adequação</h4>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="campo"><label>Potência (kWp) *</label><input type="number" step="0.01" id="vtPotencia" /></div>
+          <div class="campo"><label>Módulos *</label><input type="number" id="vtQtdModulos" /></div>
+          <div class="campo">
+            <label>Inversor *</label>
+            <select id="vtInversor" style="padding:0.6rem 0.8rem; border-radius:12px; border:1px solid #dce3ea; width:100%;">
+              <option value="">Selecione...</option>
+              <option value="Microinversor">Microinversor</option>
+              <option value="Inversor Central">Inversor Central</option>
+              <option value="Inversor Híbrido">Inversor Híbrido</option>
+            </select>
+          </div>
+          <div class="campo"><label>Geração (kWh/mês) *</label><input type="number" step="0.1" id="vtGeracao" /></div>
+          <div class="campo full"><label>Investimento (R$) *</label><input type="number" step="0.01" id="vtInvestimento" /></div>
+          <div class="campo full"><label>Observações</label><textarea rows="2" id="vtObservacoes"></textarea></div>
+        </div>
+      </div>
+
+      <!-- ===== CAMPOS: COM ADEQUAÇÃO ===== -->
+      <div id="vtCamposComAdequacao" style="display:none;">
+        <!-- ===== SELEÇÃO DE ADEQUAÇÕES ===== -->
+        <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2edf2;">
+          <p style="font-weight: bold; color: #0b2f5c; margin-bottom: 10px;">
+            📋 Quais adequações são necessárias?
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+  <label><input type="checkbox" class="adeq-check" value="inversor" onchange="vtToggleAdequacao()"> Ajuste de potência do inversor</label>
+  <label><input type="checkbox" class="adeq-check" value="quadro" onchange="vtToggleAdequacao()"> Adequação do quadro elétrico</label>
+  <label><input type="checkbox" class="adeq-check" value="estrutura" onchange="vtToggleAdequacao()"> Reforço estrutural do telhado</label>
+  <label><input type="checkbox" class="adeq-check" value="homologacao" checked onchange="vtToggleAdequacao()"> Adequações para homologação</label>
+  <label><input type="checkbox" class="adeq-check" value="geracao" checked onchange="vtToggleAdequacao()"> Alteração na geração</label>
+</div>
+          <div style="margin-top: 8px; font-size: 12px; color: #888;">
+            ⚠️ Selecione pelo menos uma adequação. Os campos correspondentes aparecerão abaixo.
+          </div>
+        </div>
+        <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+
+        <h4 style="color:#0b2f5c; margin-bottom:0.8rem;">⚠️ Relatório com adequações</h4>
+
+        <!-- ===== SEÇÃO GERAÇÃO ===== -->
+        <div id="vtSecaoGeracao" style="display:none;">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="campo"><label>Geração original (kWh/mês) *</label><input type="number" step="0.1" id="vtGeracaoOriginal" /></div>
+            <div class="campo"><label>Geração otimizada (kWh/mês) *</label><input type="number" step="0.1" id="vtGeracaoOtimizada" /></div>
+          </div>
+          <div style="font-size: 12px; color: #666; margin-bottom: 15px;">
+            * A geração original é a proposta inicial; a otimizada é a nova estimativa após as adequações.
+          </div>
+          <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+        </div>
+
+        <!-- ===== SEÇÃO INVERSOR ===== -->
+        <div id="vtSecaoInversor" style="display:none;">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="campo full"><label>Desafio 1 *</label><input type="text" id="vtDesafio1" /></div>
+            <div class="campo full"><label>Desafio 2</label><input type="text" id="vtDesafio2" /></div>
+            <div class="campo full"><label>Desafio 3</label><input type="text" id="vtDesafio3" /></div>
+            <div class="campo full"><label>Layout 1 *</label><input type="text" id="vtAdequacaoLayout1" /></div>
+            <div class="campo full"><label>Layout 2</label><input type="text" id="vtAdequacaoLayout2" /></div>
+          </div>
+          <h5 style="color:#0b2f5c; margin:1rem 0 0.5rem;">Opção 1 *</h5>
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+            <div class="campo"><label>Módulos *</label><input type="number" id="vtModulosOp1" /></div>
+            <div class="campo"><label>Inversor *</label>
+              <select id="vtInversorOp1" style="padding:0.6rem 0.8rem; border-radius:12px; border:1px solid #dce3ea; width:100%;">
+                <option value="">Selecione...</option>
+                <option value="Microinversor">Microinversor</option>
+                <option value="Inversor String">Inversor String</option>
+                <option value="Inversor Central">Inversor Central</option>
+                <option value="Inversor Híbrido">Inversor Híbrido</option>
+              </select>
+            </div>
+            <div class="campo"><label>Valor (R$) *</label><input type="number" step="0.01" id="vtValorOp1" /></div>
+            <div class="campo"><label>Geração *</label><input type="number" step="0.1" id="vtGeracaoOp1" /></div>
+          </div>
+          <h5 style="color:#0b2f5c; margin:1rem 0 0.5rem;">Opção 2 (opcional)</h5>
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+            <div class="campo"><label>Módulos</label><input type="number" id="vtModulosOp2" /></div>
+            <div class="campo"><label>Inversor</label>
+              <select id="vtInversorOp2" style="padding:0.6rem 0.8rem; border-radius:12px; border:1px solid #dce3ea; width:100%;">
+                <option value="">Selecione...</option>
+                <option value="Microinversor">Microinversor</option>
+                <option value="Inversor String">Inversor String</option>
+                <option value="Inversor Central">Inversor Central</option>
+                <option value="Inversor Híbrido">Inversor Híbrido</option>
+              </select>
+            </div>
+            <div class="campo"><label>Valor (R$)</label><input type="number" step="0.01" id="vtValorOp2" /></div>
+            <div class="campo"><label>Geração</label><input type="number" step="0.1" id="vtGeracaoOp2" /></div>
+          </div>
+          <div class="campo full"><label>Recomendação *</label><textarea rows="2" id="vtRecomendacao"></textarea></div>
+          <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+        </div>
+
+        <!-- ===== SEÇÃO QUADRO ===== -->
+        <div id="vtSecaoQuadro" style="display:none;">
+          <div class="campo full"><label>Local do quadro *</label><input type="text" id="vtLocalQuadro" /></div>
+          <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+        </div>
+
+        <!-- ===== SEÇÃO ESTRUTURA ===== -->
+        <div id="vtSecaoEstrutura" style="display:none;">
+          <div class="campo full"><label>Reforço estrutural necessário *</label><textarea rows="2" id="vtReforcoEstrutural" placeholder="Descreva o reforço estrutural necessário para o telhado..."></textarea></div>
+          <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+        </div>
+
+        <!-- ===== SEÇÃO HOMOLOGAÇÃO ===== -->
+        <div id="vtSecaoHomologacao" style="display:none;">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="campo full"><label>Adequação técnica 1 *</label><input type="text" id="vtAdequacaoTec1" /></div>
+            <div class="campo full"><label>Adequação técnica 2</label><input type="text" id="vtAdequacaoTec2" /></div>
+            <div class="campo full"><label>Adequação técnica 3</label><input type="text" id="vtAdequacaoTec3" /></div>
+            <div class="campo full"><label>Valor das adequações (R$) *</label><input type="number" step="0.01" id="vtValorAdequacoes" /></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPOS: FAST TRACK -->
+      <div id="vtCamposFastTrack" style="display:none;">
+        <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+        <h4 style="color:#0b2f5c; margin-bottom:0.8rem;">⚡ Fast Track</h4>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="campo"><label>Geração original *</label><input type="number" step="0.1" id="vtGeracaoOriginal" /></div>
+          <div class="campo"><label>Geração otimizada *</label><input type="number" step="0.1" id="vtGeracaoOtimizada" /></div>
+          <div class="campo"><label>Módulos *</label><input type="number" id="vtQtdModulosFT" /></div>
+          <div class="campo"><label>Potência inversor *</label><input type="text" id="vtPotenciaInversorFT" placeholder="Ex: 5 kW" /></div>
+          <div class="campo full"><label>Local inversor *</label><input type="text" id="vtLocalInversorFT" /></div>
+          <div class="campo full"><label>Observações</label><textarea rows="2" id="vtObservacoesFT"></textarea></div>
+        </div>
+      </div>
+
+      <!-- IMAGENS -->
+      <hr style="margin:1.5rem 0; border-color:#e2edf2;" />
+      <h4 style="color:#0b2f5c; margin-bottom:1rem;">🖼️ Imagens da visita técnica</h4>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="campo full"><label>Croqui do layout * (obrigatório)</label><input type="file" accept="image/*" id="vtCroqui" onchange="previewImagem(this, 'previewCroqui')" /><div id="previewCroqui" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div></div>
+        <div class="campo full"><label>Foto panorâmica da casa</label><input type="file" accept="image/*" id="vtPanoramica" onchange="previewImagem(this, 'previewPanoramica')" /><div id="previewPanoramica" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div></div>
+        <div class="campo full"><label>Foto do telhado / local dos painéis</label><input type="file" accept="image/*" id="vtTelhado" onchange="previewImagem(this, 'previewTelhado')" /><div id="previewTelhado" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div></div>
+        <div class="campo full"><label>Foto do local do inversor</label><input type="file" accept="image/*" id="vtLocalInversorImg" onchange="previewImagem(this, 'previewLocalInversor')" /><div id="previewLocalInversor" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div></div>
+        <div class="campo full"><label>Foto do padrão de entrada (quadro elétrico)</label><input type="file" accept="image/*" id="vtPadraoEntrada" onchange="previewImagem(this, 'previewPadraoEntrada')" /><div id="previewPadraoEntrada" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div></div>
+        <div class="campo full"><label>Foto do quadro elétrico (adequações)</label><input type="file" accept="image/*" id="vtQuadroEletrico" onchange="previewImagem(this, 'previewQuadro')" /><div id="previewQuadro" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div></div>
+      </div>
+
+      <div class="campo full" style="margin-top:0.5rem;">
+        <label for="vtObservacoesGerais">Observações gerais (informações adicionais da visita)</label>
+        <textarea rows="4" id="vtObservacoesGerais" placeholder="Cole aqui quaisquer informações extras que não tenham um campo específico..."></textarea>
+      </div>
+
+      <div style="display:flex; gap:0.8rem; margin-top:1.8rem; flex-wrap:wrap;">
+        <button class="btn-salvar" id="btnGerarVT" onclick="gerarRelatorioVT()">📄 Gerar Relatório</button>
+        <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalRelatorioVT()">Cancelar</button>
+        <span id="vtStatus" style="margin-left:auto; font-size:0.9rem; color:#0b2f5c; align-self:center;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL CONTRATO PRESTADOR ===== -->
+  <div class="modal-overlay" id="modalContratoPrestador">
+    <!-- conteúdo já existente -->
+  </div>
+
+  <!-- ===== MODAL COMISSIONAMENTO ===== -->
+  <div class="modal-overlay" id="modalComissionamento">
+    <!-- conteúdo já existente -->
+  </div>
+
+  <!-- ===== MODAL EXCLUSÃO ===== -->
+  <div class="modal-overlay" id="modalExcluirCliente">
+    <div class="modal-edicao" style="max-width:440px; text-align:center;">
+      <button class="fechar" onclick="fecharModalExcluir()">&times;</button>
+      <div style="font-size:4rem; margin-bottom:0.5rem;">⚠️</div>
+      <div class="titulo-modal" style="font-size:1.4rem;">Excluir cliente</div>
+      <div class="subtitulo-modal" style="margin-bottom:2rem;">
+        Tem certeza que deseja excluir permanentemente o cliente<br>
+        <strong id="nomeClienteExcluir">—</strong>?
+      </div>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <button class="btn-salvar" onclick="fecharModalExcluir()" style="min-width:120px; background:#0b2f5c; color:white; border:none; padding:0.5rem 1,5rem; border-radius:50px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:background 0.2s;">
+          ✋ Não, cancelar
+        </button>
+        <button id="btnConfirmarExcluir" onclick="confirmarExcluir()" style="min-width:100px; background:#fee2e2; color:#b91c1c; border:2px solid #b91c1c; padding:0.8rem 2rem; border-radius:50px; font-weight:600; font-size:0.85rem; cursor:pointer; transition:all 0.2s; opacity:0.8;">
+          ⚠️ Sim, excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DE SUCESSO ===== -->
+  <div class="modal-sucesso-overlay" id="modalSucesso">
+    <div class="modal-sucesso">
+      <div class="emoji">✅</div>
+      <h3>Relatório gerado com sucesso!</h3>
+      <p id="modalSucessoMsg">Clique no botão abaixo para visualizar.</p>
+      <div>
+        <button class="btn-modal" id="modalSucessoAbrir">📄 Visualizar</button>
+        <button class="btn-modal btn-modal--secundario" id="modalSucessoFechar">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DE CRIAÇÃO DE CLIENTE (SUCESSO/ERRO) ===== -->
+  <div class="modal-overlay" id="modalCriarCliente">
+    <div class="modal-edicao" style="max-width:450px; text-align:center;">
+      <button class="fechar" onclick="fecharModalCriarCliente()">&times;</button>
+      <div id="modalCriarClienteIcon" style="font-size:3rem; margin-bottom:0.5rem;">✅</div>
+      <div class="titulo-modal" id="modalCriarClienteTitulo">Cliente criado com sucesso!</div>
+      <div class="subtitulo-modal" id="modalCriarClienteMsg" style="margin-bottom:1.5rem;">ID: 12345</div>
+      <button class="btn-salvar" onclick="fecharModalCriarCliente()" style="margin-top:0;">OK</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+  SCRIPTS
+  ============================================================ -->
+  <script>
+    const URL_API = 'https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec';
+
+    let adminToken = null;
+    let clientes = [];
+    let clienteEditando = null;
+    let filtroEtapaAtual = 'todos';
+
+    // ============================================================
+    // FUNÇÃO PARA ABRIR RELATÓRIO (BOTÃO)
+    // ============================================================
+    function abrirRelatorio() {
+      const urlField = document.getElementById('visita_relatorio_url');
+      const url = urlField ? urlField.value : '';
+      if (url && url.trim() !== '') {
+        window.open(url, '_blank');
+      } else {
+        alert('Nenhum relatório disponível para visualizar.');
+      }
+    }
+
+    // ============================================================
+    // MÁSCARAS PARA DATA, TELEFONE E CEP
+    // ============================================================
+    function mascaraData(input) {
+      let valor = input.value.replace(/\D/g, '');
+      if (valor.length > 2) {
+        valor = valor.substring(0,2) + '/' + valor.substring(2);
+      }
+      if (valor.length > 5) {
+        valor = valor.substring(0,5) + '/' + valor.substring(5,9);
+      }
+      input.value = valor;
+    }
+
+    function dataBRparaISO(dataBR) {
+      if (!dataBR) return '';
+      const partes = dataBR.split('/');
+      if (partes.length !== 3) return '';
+      return `${partes[2]}-${partes[1]}-${partes[0]}`;
+    }
+
+    function dataISOparaBR(data) {
+      if (!data) return '';
+      if (data.includes('/')) return data;
+      const partes = data.split('-');
+      if (partes.length !== 3) return '';
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function mascaraTelefone(input) {
+      let valor = input.value.replace(/\D/g, '');
+      if (valor.length <= 2) {
+        input.value = valor;
+        return;
+      }
+      if (valor.length <= 7) {
+        input.value = `(${valor.substring(0,2)}) ${valor.substring(2)}`;
+      } else if (valor.length <= 11) {
+        input.value = `(${valor.substring(0,2)}) ${valor.substring(2,3)} ${valor.substring(3,7)}-${valor.substring(7)}`;
+      } else {
+        input.value = `(${valor.substring(0,2)}) ${valor.substring(2,3)} ${valor.substring(3,7)}-${valor.substring(7,11)}`;
+      }
+    }
+
+    function mascaraCEP(input) {
+      let valor = input.value.replace(/\D/g, '');
+      if (valor.length > 5) {
+        input.value = `${valor.substring(0,5)}-${valor.substring(5,8)}`;
+      } else {
+        input.value = valor;
+      }
+    }
+
+    // ============================================================
+    // 1. VALIDAÇÃO PARA TÉCNICO (APENAS LETRAS)
+    // ============================================================
+    function validarTecnico(input) {
+      const regex = /^[a-zA-ZÀ-ÿ\s\-']*$/;
+      if (!regex.test(input.value)) {
+        input.value = input.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '');
+      }
+    }
+
+    // ============================================================
+    // VALIDAÇÃO DE DATA DE REALIZAÇÃO
+    // ============================================================
+    function dataBRparaTimestamp(dataBR) {
+      if (!dataBR) return null;
+      const partes = dataBR.split('/');
+      if (partes.length !== 3) return null;
+      const dia = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10) - 1;
+      const ano = parseInt(partes[2], 10);
+      if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null;
+      return new Date(ano, mes, dia).getTime();
+    }
+
+    function validarDataRealizacao() {
+      const dataAgendadaInput = document.getElementById('visita_data_agendada');
+      const dataRealizacaoInput = document.getElementById('visita_data_realizacao');
+      const erroEl = document.getElementById('erroDataRealizacao');
+
+      if (!dataAgendadaInput || !dataAgendadaInput.value || !dataRealizacaoInput || !dataRealizacaoInput.value) {
+        if (erroEl) erroEl.classList.remove('visivel');
+        return true;
+      }
+
+      const timestampAgendada = dataBRparaTimestamp(dataAgendadaInput.value);
+      const timestampRealizacao = dataBRparaTimestamp(dataRealizacaoInput.value);
+
+      if (timestampAgendada === null || timestampRealizacao === null) {
+        if (erroEl) erroEl.classList.remove('visivel');
+        return true;
+      }
+
+      if (timestampRealizacao < timestampAgendada) {
+        if (erroEl) erroEl.classList.add('visivel');
+        return false;
+      } else {
+        if (erroEl) erroEl.classList.remove('visivel');
+        return true;
+      }
+    }
+
+    function isDataRealizacaoValida() {
+      const dataAgendadaInput = document.getElementById('visita_data_agendada');
+      const dataRealizacaoInput = document.getElementById('visita_data_realizacao');
+
+      if (!dataAgendadaInput || !dataAgendadaInput.value || !dataRealizacaoInput || !dataRealizacaoInput.value) {
+        return true;
+      }
+
+      const timestampAgendada = dataBRparaTimestamp(dataAgendadaInput.value);
+      const timestampRealizacao = dataBRparaTimestamp(dataRealizacaoInput.value);
+
+      if (timestampAgendada === null || timestampRealizacao === null) {
+        return true;
+      }
+
+      return timestampRealizacao >= timestampAgendada;
+    }
+
+    // ============================================================
+    // 2. VALIDAÇÃO PARA APROVAÇÃO DO CLIENTE (>= DATA REALIZAÇÃO)
+    // ============================================================
+    function validarDataAprovacao() {
+      const dataRealizacaoInput = document.getElementById('visita_data_realizacao');
+      const aprovacaoInput = document.getElementById('visita_aprovacao');
+      const erroEl = document.getElementById('erroDataAprovacao');
+
+      if (!aprovacaoInput || !dataRealizacaoInput) return true;
+
+      const dataRealizacao = dataRealizacaoInput.value.trim();
+      const dataAprovacao = aprovacaoInput.value.trim();
+
+      if (!dataRealizacao || !dataAprovacao) {
+        if (erroEl) erroEl.classList.remove('visivel');
+        return true;
+      }
+
+      const timestampRealizacao = dataBRparaTimestamp(dataRealizacao);
+      const timestampAprovacao = dataBRparaTimestamp(dataAprovacao);
+
+      if (timestampRealizacao === null || timestampAprovacao === null) {
+        if (erroEl) erroEl.classList.remove('visivel');
+        return true;
+      }
+
+      if (timestampAprovacao < timestampRealizacao) {
+        if (erroEl) erroEl.classList.add('visivel');
+        return false;
+      } else {
+        if (erroEl) erroEl.classList.remove('visivel');
+        return true;
+      }
+    }
+
+    // ============================================================
+    // AUTENTICAÇÃO
+    // ============================================================
+    function adminLogin() {
+      const senha = document.getElementById('senhaAdmin').value.trim();
+      const erro = document.getElementById('loginErroAdmin');
+      erro.style.display = 'none';
+      if (!senha) {
+        erro.textContent = 'Digite a senha mestra.';
+        erro.style.display = 'block';
+        return;
+      }
+      adminToken = senha;
+      carregarClientes();
+    }
+
+    function logoutAdmin() {
+      adminToken = null;
+      localStorage.removeItem('adminToken');
+      document.getElementById('loginAdmin').classList.add('ativo');
+      document.getElementById('dashboardAdmin').classList.remove('ativo');
+      document.getElementById('tabelaClientesAdmin').style.display = 'none';
+      document.getElementById('loadingTabela').style.display = 'block';
+      document.getElementById('tbodyClientes').innerHTML = '';
+    }
+
+    // ============================================================
+    // CARREGAR CLIENTES
+    // ============================================================
+    async function carregarClientes() {
+      const loading = document.getElementById('loadingTabela');
+      const tabela = document.getElementById('tabelaClientesAdmin');
+      loading.style.display = 'block';
+      tabela.style.display = 'none';
+      try {
+        const resp = await fetch(URL_API, {
+          method: 'POST',
+          body: JSON.stringify({ acao: 'adminListarClientes', senhaAdmin: adminToken })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          clientes = resultado.clientes || [];
+          document.getElementById('loginAdmin').classList.remove('ativo');
+          document.getElementById('dashboardAdmin').classList.add('ativo');
+          localStorage.setItem('adminToken', adminToken);
+          renderizarTabela();
+        } else {
+          alert('Erro: ' + (resultado.error || 'Senha inválida.'));
+          logoutAdmin();
+        }
+      } catch (err) {
+        alert('Erro de conexão: ' + err.message);
+        logoutAdmin();
+      } finally {
+        loading.style.display = 'none';
+        tabela.style.display = 'table';
+      }
+    }
+
+    async function salvarRelatorioUrl(clienteId, url) {
+      try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/atualizar_relatorio_url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cliente_id: clienteId,
+            relatorio_url: url,
+            senhaAdmin: adminToken
+          })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          console.log('URL do relatório salva com sucesso!');
+          return true;
+        } else {
+          console.error('Erro ao salvar URL:', resultado.error);
+          return false;
+        }
+      } catch (err) {
+        console.error('Erro de conexão:', err);
+        return false;
+      }
+    }
+
+    // ============================================================
+    // RENDERIZAR TABELA
+    // ============================================================
+    function renderizarTabela(filtroTexto = '') {
+      const tbody = document.getElementById('tbodyClientes');
+      const filtroLower = filtroTexto.toLowerCase();
+      let filtrados = clientes;
+      if (filtroEtapaAtual !== 'todos') {
+        filtrados = filtrados.filter(c => c.etapa === filtroEtapaAtual);
+      }
+      if (filtroLower) {
+        filtrados = filtrados.filter(c =>
+          c.nome.toLowerCase().includes(filtroLower) ||
+          c.email.toLowerCase().includes(filtroLower)
+        );
+      }
+      const mapaEtapa = {
+        visita: { label: 'Visita Técnica', classe: 'status-visita' },
+        documentos: { label: 'Documentos', classe: 'status-documentos' },
+        instalacao: { label: 'Instalação', classe: 'status-instalacao' },
+        homologacao: { label: 'Homologação', classe: 'status-homologacao' },
+        posvenda: { label: 'Pós-Venda', classe: 'status-posvenda' },
+      };
+      tbody.innerHTML = '';
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem; color:#7a8a9a;">Nenhum cliente encontrado.</td></tr>`;
+        return;
+      }
+      filtrados.forEach(c => {
+        const etapa = mapaEtapa[c.etapa] || { label: c.etapa, classe: '' };
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="nome-cliente" onclick="editarCliente(${c.id})">${c.nome}</span></td>
+          <td>${c.email}</td>
+          <td><span class="status-etapa ${etapa.classe}">${etapa.label}</span></td>
+          <td>${c.atualizacao || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarTabela() {
+      renderizarTabela(document.getElementById('buscaInput').value);
+    }
+    document.getElementById('filtrosEtapa').addEventListener('click', function(e) {
+      const btn = e.target.closest('.filtro-btn');
+      if (!btn) return;
+      document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filtroEtapaAtual = btn.dataset.etapa;
+      renderizarTabela(document.getElementById('buscaInput').value);
+    });
+
+    // ============================================================
+    // CALCULADORA
+    // ============================================================
+    function abrirCalculadora() {
+      document.getElementById('modalCalculadora').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function fecharCalculadora() {
+      document.getElementById('modalCalculadora').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('modalCalculadora').addEventListener('click', function(e) {
+      if (e.target === this) fecharCalculadora();
+    });
+
+    // ============================================================
+    // EDITAR CLIENTE (com loading)
+    // ============================================================
+    async function editarCliente(id) {
+      const modal = document.getElementById('modalEdicao');
+      const loading = document.getElementById('loadingModal');
+      const conteudo = document.getElementById('conteudoModal');
+      loading.style.display = 'flex';
+      conteudo.style.display = 'none';
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        const resp = await fetch(URL_API, {
+          method: 'POST',
+          body: JSON.stringify({ acao: 'adminObterCliente', idCliente: id, senhaAdmin: adminToken })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          clienteEditando = resultado.cliente;
+          preencherModal(clienteEditando);
+          loading.style.display = 'none';
+          conteudo.style.display = 'block';
+          sincronizarDataVisita();
+          setTimeout(validarDataRealizacao, 100);
+          setTimeout(validarDataAprovacao, 100);
+        } else {
+          alert('Erro ao carregar cliente: ' + (resultado.error || ''));
+          fecharModalEdicao();
+        }
+      } catch (err) {
+        alert('Erro de conexão: ' + err.message);
+        fecharModalEdicao();
+      }
+    }
+
+    // ============================================================
+    // PREENCHER MODAL
+    // ============================================================
+    function preencherModal(cliente) {
+      document.getElementById('modalTitulo').textContent = `Editar Cliente – ${cliente.nome}`;
+      document.getElementById('modalSubtitulo').textContent = `${cliente.nome} — ${cliente.email}`;
+
+      const v = cliente.dados_visita || {};
+      document.getElementById('visita_engenheiro').value = v.engenheiro || '';
+      document.getElementById('visita_data_agendada').value = dataISOparaBR(v.data_agendada || '');
+      document.getElementById('visita_data_realizacao').value = dataISOparaBR(v.data_realizacao || '');
+      document.getElementById('visita_resultado').value = v.resultado || '';
+      document.getElementById('visita_observacoes').value = v.observacoes || '';
+      document.getElementById('visita_relatorio_url').value = v.relatorio_url || '';
+
+      const btnAbrir = document.getElementById('btnAbrirRelatorio');
+      if (btnAbrir) {
+        if (v.relatorio_url && v.relatorio_url.trim() !== '') {
+          btnAbrir.style.background = '#0b2f5c';
+          btnAbrir.style.color = 'white';
+          btnAbrir.style.borderColor = '#0b2f5c';
+          btnAbrir.style.opacity = '1';
+          btnAbrir.style.pointerEvents = 'auto';
+          btnAbrir.style.cursor = 'pointer';
+          btnAbrir.textContent = '📄 Abrir relatório';
+        } else {
+          btnAbrir.style.background = '#eef2f6';
+          btnAbrir.style.color = '#5c7a6c';
+          btnAbrir.style.borderColor = '#dce3ea';
+          btnAbrir.style.opacity = '0.6';
+          btnAbrir.style.pointerEvents = 'none';
+          btnAbrir.style.cursor = 'default';
+          btnAbrir.textContent = '🔗 Abrir relatório';
+        }
+      }
+
+      document.getElementById('visita_aprovacao').value = dataISOparaBR(v.assinatura_data || '');
+
+      const chk = v.checklist || {};
+      document.getElementById('chk_telhado').value = chk.telhado || '';
+      document.getElementById('chk_sombreamento').value = chk.sombreamento || '';
+      document.getElementById('chk_cabos').value = chk.cabos || '';
+      document.getElementById('chk_padrao').value = chk.padrao || '';
+      document.getElementById('chk_wifi').value = chk.wifi || '';
+      document.getElementById('chk_acesso').value = chk.acesso || '';
+
+      const d = cliente.documentos || {};
+      const docStatus = (tipo) => d[tipo] && d[tipo].status === 'enviado';
+      const docUrl = (tipo) => d[tipo] ? d[tipo].url : '';
+      document.getElementById('doc_rg').checked = docStatus('rg');
+      document.getElementById('doc_rg_url').value = docUrl('rg');
+      document.getElementById('doc_cpf').checked = docStatus('cpf');
+      document.getElementById('doc_cpf_url').value = docUrl('cpf');
+      document.getElementById('doc_comprovante').checked = docStatus('comprovante');
+      document.getElementById('doc_comprovante_url').value = docUrl('comprovante');
+      document.getElementById('doc_fatura').checked = docStatus('fatura');
+      document.getElementById('doc_fatura_url').value = docUrl('fatura');
+
+      const i = cliente.dados_instalacao || {};
+      document.getElementById('instalacao_status').value = i.status || 'Em andamento';
+      document.getElementById('instalacao_equipamentos').value = i.equipamentos || '';
+      document.getElementById('instalacao_data_compra').value = i.data_compra || '';
+      document.getElementById('instalacao_previsao_entrega').value = i.previsao_entrega || '';
+      document.getElementById('instalacao_rastreio').value = i.codigo_rastreio || '';
+      document.getElementById('instalacao_equipe').value = i.equipe || '';
+      const crono = i.cronograma || {};
+      document.getElementById('crono_montagem').checked = crono.montagem === 'Concluído';
+      document.getElementById('crono_cabos').checked = crono.cabos === 'Concluído';
+      document.getElementById('crono_inversor').checked = crono.inversor === 'Concluído';
+      document.getElementById('crono_conexao').checked = crono.conexao === 'Concluído';
+      document.getElementById('crono_testes').checked = crono.testes === 'Concluído';
+
+      const h = cliente.dados_homologacao || {};
+      document.getElementById('homologacao_concessionaria').value = h.concessionaria || '';
+      document.getElementById('homologacao_protocolo').value = h.protocolo || '';
+      document.getElementById('homologacao_data_envio').value = h.data_envio || '';
+      document.getElementById('homologacao_data_vistoria').value = h.data_vistoria || '';
+      document.getElementById('homologacao_resultado').value = h.resultado || 'Aprovado';
+      document.getElementById('homologacao_medidor').value = h.medidor || 'Não instalado';
+      document.getElementById('homologacao_data_liberacao').value = h.data_liberacao || '';
+      document.getElementById('homologacao_laudo_url').value = h.laudo_url || '';
+
+      const p = cliente.dados_posvenda || {};
+      document.getElementById('posvenda_geracao').value = p.geracao_atual || '';
+      document.getElementById('posvenda_economia').value = p.economia_mensal || '';
+      document.getElementById('posvenda_plataforma').value = p.plataforma_url || '';
+      document.getElementById('posvenda_ultima_manutencao').value = p.ultima_manutencao || '';
+      document.getElementById('posvenda_manuais').value = p.manuais_urls ? p.manuais_urls.join(', ') : '';
+
+      sincronizarDataVisita();
+      setTimeout(validarDataRealizacao, 100);
+      setTimeout(validarDataAprovacao, 100);
+
+      ativarAbaPorEtapa(cliente.etapa_atual || 'visita');
+    }
+
+    function ativarAbaPorEtapa(etapa) {
+      const mapa = {
+        'visita': 'tabVisita',
+        'documentos': 'tabDocumentos',
+        'instalacao': 'tabInstalacao',
+        'homologacao': 'tabHomologacao',
+        'posvenda': 'tabPosVenda'
+      };
+      const abaId = mapa[etapa] || 'tabVisita';
+      const aba = document.getElementById(abaId);
+      if (!aba) return;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      aba.classList.add('active');
+      const btnCorrespondente = document.querySelector(`.tab-btn[data-tab="${abaId}"]`);
+      if (btnCorrespondente) btnCorrespondente.classList.add('active');
+    }
+
+    // ============================================================
+    // SALVAR CLIENTE
+    // ============================================================
+    async function salvarCliente() {
+      if (!clienteEditando) return;
+
+      const btn = document.getElementById('btnSalvarCliente');
+      const spinner = document.getElementById('salvarSpinner');
+      const texto = document.getElementById('salvarTexto');
+      btn.disabled = true;
+      spinner.style.display = 'inline-block';
+      texto.textContent = ' Salvando...';
+
+      if (!isDataRealizacaoValida()) {
+        const erroEl = document.getElementById('erroDataRealizacao');
+        if (erroEl) erroEl.classList.add('visivel');
+        exibirModalComAcao(
+          '⚠️ Erro de validação',
+          'A data da realização não pode ser anterior à data agendada.',
+          '⚠️',
+          '#b91c1c',
+          null
+        );
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        texto.textContent = '💾 Salvar alterações';
+        return;
+      }
+
+      if (!validarDataAprovacao()) {
+        exibirModalComAcao(
+          '⚠️ Erro de validação',
+          'A data de aprovação não pode ser anterior à data da realização.',
+          '⚠️',
+          '#b91c1c',
+          null
+        );
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        texto.textContent = '💾 Salvar alterações';
+        return;
+      }
+
+      const resultadoVisita = document.getElementById('visita_resultado').value;
+      if (!resultadoVisita) {
+        exibirModalComAcao(
+          '⚠️ Campo obrigatório',
+          'Selecione o resultado final da visita.',
+          '⚠️',
+          '#b91c1c',
+          null
+        );
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        texto.textContent = '💾 Salvar alterações';
+        return;
+      }
+
+      const items = ['telhado', 'sombreamento', 'cabos', 'padrao', 'wifi', 'acesso'];
+      const vazio = items.some(item => !document.getElementById(`chk_${item}`).value);
+      if (vazio) {
+        exibirModalComAcao(
+          '⚠️ Checklist incompleto',
+          'Preencha todos os itens do checklist antes de salvar.',
+          '⚠️',
+          '#b91c1c',
+          null
+        );
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        texto.textContent = '💾 Salvar alterações';
+        return;
+      }
+
+      const checklist = {
+        telhado: document.getElementById('chk_telhado').value,
+        sombreamento: document.getElementById('chk_sombreamento').value,
+        cabos: document.getElementById('chk_cabos').value,
+        padrao: document.getElementById('chk_padrao').value,
+        wifi: document.getElementById('chk_wifi').value,
+        acesso: document.getElementById('chk_acesso').value
+      };
+
+      let novaEtapa = clienteEditando.etapa_atual;
+      if (resultadoVisita === 'Aprovado') {
+        novaEtapa = 'documentos';
+      } else if (resultadoVisita === 'Pendente de ajustes' || resultadoVisita === 'Reprovado') {
+        novaEtapa = 'visita';
+      }
+
+      const campos = {
+        nome: clienteEditando.nome,
+        email: clienteEditando.email,
+        telefone: clienteEditando.telefone,
+        endereco: clienteEditando.endereco,
+        cep: clienteEditando.cep,
+        etapa_atual: novaEtapa,
+        dados_visita: {
+          engenheiro: document.getElementById('visita_engenheiro').value,
+          data_agendada: document.getElementById('visita_data_agendada').value,
+          data_realizacao: document.getElementById('visita_data_realizacao').value,
+          resultado: resultadoVisita,
+          observacoes: document.getElementById('visita_observacoes').value,
+          relatorio_url: document.getElementById('visita_relatorio_url').value,
+          assinatura_data: document.getElementById('visita_aprovacao').value,
+          checklist: checklist
+        },
+        documentos: {
+          rg: { status: document.getElementById('doc_rg').checked ? 'enviado' : 'pendente', url: document.getElementById('doc_rg_url').value },
+          cpf: { status: document.getElementById('doc_cpf').checked ? 'enviado' : 'pendente', url: document.getElementById('doc_cpf_url').value },
+          comprovante: { status: document.getElementById('doc_comprovante').checked ? 'enviado' : 'pendente', url: document.getElementById('doc_comprovante_url').value },
+          fatura: { status: document.getElementById('doc_fatura').checked ? 'enviado' : 'pendente', url: document.getElementById('doc_fatura_url').value }
+        },
+        dados_instalacao: {
+          status: document.getElementById('instalacao_status').value,
+          equipamentos: document.getElementById('instalacao_equipamentos').value,
+          data_compra: document.getElementById('instalacao_data_compra').value,
+          previsao_entrega: document.getElementById('instalacao_previsao_entrega').value,
+          codigo_rastreio: document.getElementById('instalacao_rastreio').value,
+          equipe: document.getElementById('instalacao_equipe').value,
+          cronograma: {
+            montagem: document.getElementById('crono_montagem').checked ? 'Concluído' : 'Pendente',
+            cabos: document.getElementById('crono_cabos').checked ? 'Concluído' : 'Pendente',
+            inversor: document.getElementById('crono_inversor').checked ? 'Concluído' : 'Pendente',
+            conexao: document.getElementById('crono_conexao').checked ? 'Concluído' : 'Pendente',
+            testes: document.getElementById('crono_testes').checked ? 'Concluído' : 'Pendente',
+          }
+        },
+        dados_homologacao: {
+          concessionaria: document.getElementById('homologacao_concessionaria').value,
+          protocolo: document.getElementById('homologacao_protocolo').value,
+          data_envio: document.getElementById('homologacao_data_envio').value,
+          data_vistoria: document.getElementById('homologacao_data_vistoria').value,
+          resultado: document.getElementById('homologacao_resultado').value,
+          medidor: document.getElementById('homologacao_medidor').value,
+          data_liberacao: document.getElementById('homologacao_data_liberacao').value,
+          laudo_url: document.getElementById('homologacao_laudo_url').value,
+        },
+        dados_posvenda: {
+          geracao_atual: document.getElementById('posvenda_geracao').value,
+          economia_mensal: document.getElementById('posvenda_economia').value,
+          plataforma_url: document.getElementById('posvenda_plataforma').value,
+          ultima_manutencao: document.getElementById('posvenda_ultima_manutencao').value,
+          manuais_urls: document.getElementById('posvenda_manuais').value.split(',').map(s => s.trim()).filter(Boolean),
+        }
+      };
+
+      try {
+        const resp = await fetch(URL_API, {
+          method: 'POST',
+          body: JSON.stringify({
+            acao: 'adminAtualizarCliente',
+            idCliente: clienteEditando.id,
+            campos: campos,
+            senhaAdmin: adminToken
+          })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+          exibirModalComAcao(
+            'Cliente atualizado com sucesso!',
+            'As alterações foram salvas permanentemente.',
+            '✅',
+            '#0b2f5c',
+            function() {
+              fecharModalEdicao();
+              carregarClientes();
+            }
+          );
+        } else {
+          exibirModalComAcao(
+            '❌ Erro ao atualizar',
+            resultado.error || 'Erro desconhecido',
+            '❌',
+            '#b91c1c',
+            null
+          );
+        }
+      } catch (err) {
+        exibirModalComAcao(
+          '❌ Erro de conexão',
+          err.message,
+          '❌',
+          '#b91c1c',
+          null
+        );
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        texto.textContent = '💾 Salvar alterações';
+      }
+    }
+
+    // ============================================================
+    // EXIBIR MODAL COM AÇÃO (substitui alert)
+    // ============================================================
+    function exibirModalComAcao(titulo, mensagem, icone, cor, acaoAposFechar) {
+      abrirModalCriarCliente(titulo, mensagem, icone, cor);
+      const btnOk = document.querySelector('#modalCriarCliente .btn-salvar');
+      if (btnOk) {
+        const originalClick = btnOk.onclick;
+        btnOk.onclick = function() {
+          fecharModalCriarCliente();
+          if (typeof acaoAposFechar === 'function') acaoAposFechar();
+          btnOk.onclick = originalClick;
+        };
+      }
+    }
+
+    // ============================================================
+    // SINCRONIZAR DATA DA VISITA
+    // ============================================================
+    function sincronizarDataVisita() {
+      const dataAgendada = document.getElementById('visita_data_agendada');
+      const dataRelatorio = document.getElementById('vtDataVisita');
+      
+      if (dataAgendada && dataAgendada.value) {
+        dataRelatorio.value = dataAgendada.value;
+      } else if (dataRelatorio) {
+        dataRelatorio.value = '';
+      }
+    }
+
+    // ============================================================
+    // CRIAR CLIENTE
+    // ============================================================
+    function abrirModalCriar() {
+      document.getElementById('modalCriar').classList.add('active');
+      ['novo_nome', 'novo_email', 'novo_senha', 'novo_telefone', 'novo_endereco', 'novo_cep'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+    }
+    function fecharModalCriar() {
+      document.getElementById('modalCriar').classList.remove('active');
+    }
+
+    async function criarCliente() {
+      const nome = document.getElementById('novo_nome').value.trim();
+      const email = document.getElementById('novo_email').value.trim();
+      const senha = document.getElementById('novo_senha').value.trim();
+      const telefone = document.getElementById('novo_telefone').value.trim();
+      const endereco = document.getElementById('novo_endereco').value.trim();
+      const cep = document.getElementById('novo_cep').value.trim();
+
+      if (!nome || !email || !senha) {
+        abrirModalCriarCliente('⚠️ Campos obrigatórios', 'Preencha nome, e-mail e senha.', '⚠️', '#b91c1c');
+        return;
+      }
+
+      const btn = event.target;
+      const textoOriginal = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⏳ Criando...';
+
+      try {
+        const resp = await fetch(URL_API, {
+          method: 'POST',
+          body: JSON.stringify({
+            acao: 'adminCriarCliente',
+            dados: { nome, email, senha, telefone, endereco, cep },
+            senhaAdmin: adminToken
+          })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+          abrirModalCriarCliente(
+            'Cliente criado com sucesso!',
+            `ID: ${resultado.id}`,
+            '✅',
+            '#0b2f5c'
+          );
+          fecharModalCriar();
+          carregarClientes();
+        } else {
+          abrirModalCriarCliente(
+            '❌ Erro ao criar cliente',
+            resultado.error || 'Erro desconhecido',
+            '❌',
+            '#b91c1c'
+          );
+        }
+      } catch (err) {
+        abrirModalCriarCliente(
+          '❌ Erro de conexão',
+          err.message,
+          '❌',
+          '#b91c1c'
+        );
+      } finally {
+        btn.disabled = false;
+        btn.textContent = textoOriginal;
+      }
+    }
+
+    // ============================================================
+    // UTILITÁRIOS
+    // ============================================================
+    function fecharModalEdicao() {
+      document.getElementById('modalEdicao').classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('loadingModal').style.display = 'none';
+      document.getElementById('conteudoModal').style.display = 'none';
+    }
+
+    function abrirTab(btn) {
+      const tabId = btn.dataset.tab;
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    document.getElementById('modalEdicao').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalEdicao();
+    });
+    document.getElementById('modalCriar').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalCriar();
+    });
+
+    // ============================================================
+    // FUNÇÃO AUXILIAR DE LIMPEZA DOS CAMPOS DO RELATÓRIO
+    // (PRESERVA ENGENHEIRO E CREA)
+    // ============================================================
+    function limparCamposRelatorio() {
+      const modal = document.getElementById('modalRelatorioVT');
+      if (!modal) return;
+
+      const inputs = modal.querySelectorAll('input:not([readonly]), textarea, select');
+      inputs.forEach(el => {
+        if (el.id === 'vtEngenheiro' || el.id === 'vtCrea') return;
+
+        if (el.tagName === 'SELECT') {
+          el.selectedIndex = 0;
+        } else if (el.type === 'file') {
+          el.value = '';
+        } else {
+          el.value = '';
+        }
+      });
+
+      const previews = modal.querySelectorAll('[id^="preview"]');
+      previews.forEach(el => el.innerHTML = '');
+
+      const status = document.getElementById('vtStatus');
+      if (status) status.textContent = '';
+    }
+
+    // ============================================================
+    // RELATÓRIO VT
+    // ============================================================
+    function vtPreencherConcessionarias() {
+      const select = document.getElementById('vtConcessionaria');
+      const lista = [
+        'Enel SP','Enel RJ','Enel GO','CPFL Paulista','CPFL Piratininga','CPFL Sul Paulista',
+        'CEMIG','CELESC','COPEL','EDP São Paulo','EDP Espírito Santo','Light',
+        'Equatorial Maranhão','Equatorial Pará','Equatorial Piauí','Equatorial Alagoas',
+        'Neoenergia Coelba','Neoenergia Pernambuco','Neoenergia Cosern','Neoenergia Elektro',
+        'Energisa Mato Grosso','Energisa Mato Grosso do Sul','Energisa Paraíba',
+        'Energisa Rondônia','Energisa Sergipe','Energisa Tocantins','Energisa Acre',
+        'Energisa Minas Gerais','RGE Sul','RGE','CEEE','Celesc',
+        'Amazonas Energia','Boavista Energia','Cerrado','CFO','Coelce','Cemar',
+        'Cepisa','Certeja','CPEE','Eletroacre','Eletrobras Distribuição Amazonas',
+        'Eletrobras Distribuição Roraima','Enercan','Energia Borborema','Energisa',
+        'Engep','ESCELSA','Furnas','Hidropan','Iguacu','Jaguari','Luz e Força',
+        'Muxfeldt','Nacional','Norte Brasil','Pantanal','Paranapanema','Paulista',
+        'Piratininga','Rio Grande Energia','Santa Maria','Santo Antônio','Sulgipe',
+        'Sulmatogrossense'
+      ];
+      select.innerHTML = '<option value="">Selecione...</option>';
+      lista.forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome;
+        opt.textContent = nome;
+        select.appendChild(opt);
+      });
+    }
+
+    // ============================================================
+    // FUNÇÃO: MOSTRA/ESCONDE CAMPOS COM BASE NOS CHECKBOXES (COM DEPURAÇÃO)
+    // ============================================================
+    function vtToggleAdequacao() {
+  console.log('✅ vtToggleAdequacao foi chamada!');
+  
+  const checkboxes = document.querySelectorAll('.adeq-check');
+  console.log('🔍 Número de checkboxes encontrados:', checkboxes.length);
+  
+  const selecionadas = [];
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      selecionadas.push(cb.value);
+      console.log(`   ✅ Marcado: ${cb.value}`);
+    } else {
+      console.log(`   ❌ Desmarcado: ${cb.value}`);
+    }
+  });
+  console.log('📋 Categorias selecionadas:', selecionadas);
+
+  const mapa = {
+    'inversor': 'vtSecaoInversor',
+    'quadro': 'vtSecaoQuadro',
+    'estrutura': 'vtSecaoEstrutura',
+    'homologacao': 'vtSecaoHomologacao',
+    'geracao': 'vtSecaoGeracao'
+  };
+
+  for (const [categoria, divId] of Object.entries(mapa)) {
+    const div = document.getElementById(divId);
+    if (div) {
+      const deveExibir = selecionadas.includes(categoria);
+      div.style.display = deveExibir ? 'block' : 'none';
+      console.log(`🔘 ${divId} -> ${deveExibir ? 'EXIBIR' : 'OCULTAR'}`);
+      if (!deveExibir) {
+        const inputs = div.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+          if (input.type !== 'checkbox' && input.type !== 'radio') {
+            input.value = '';
+          }
+        });
+      }
+    } else {
+      console.warn(`⚠️ Div com ID "${divId}" não encontrada.`);
+    }
+  }
+}
+
+function vtResetarAdequacoes() {
+  console.log('🔄 vtResetarAdequacoes foi chamada!');
+  const checkboxes = document.querySelectorAll('.adeq-check');
+  console.log('🔍 Número de checkboxes para resetar:', checkboxes.length);
+  checkboxes.forEach(cb => {
+    if (cb.value === 'homologacao' || cb.value === 'geracao') {
+      cb.checked = true;
+      console.log(`   ✅ Marcado (padrão): ${cb.value}`);
+    } else {
+      cb.checked = false;
+      console.log(`   ❌ Desmarcado: ${cb.value}`);
+    }
+  });
+  vtToggleAdequacao();
+}
+
+    // ============================================================
+    // FUNÇÃO: RESETAR CHECKBOXES AO MUDAR O TIPO DE RELATÓRIO
+    // ============================================================
+    function vtResetarAdequacoes() {
+      console.log('🔄 vtResetarAdequacoes foi chamada!');
+      const checkboxes = document.querySelectorAll('.adeq-check');
+      checkboxes.forEach(cb => {
+        if (cb.value === 'homologacao' || cb.value === 'geracao') {
+          cb.checked = true;
+        } else {
+          cb.checked = false;
+        }
+      });
+      vtToggleAdequacao();
+    }
+
+    function vtAlterarTipo() {
+      const tipo = document.getElementById('vtTipoRelatorio').value;
+      console.log('📌 vtAlterarTipo chamada, tipo:', tipo);
+      
+      const semAdeq = document.getElementById('vtCamposSemAdequacao');
+      const comAdeq = document.getElementById('vtCamposComAdequacao');
+      const fastTrack = document.getElementById('vtCamposFastTrack');
+      
+      if (semAdeq) semAdeq.style.display = (tipo === 'sem_adequacao') ? 'block' : 'none';
+      if (comAdeq) comAdeq.style.display = (tipo === 'com_adequacao') ? 'block' : 'none';
+      if (fastTrack) fastTrack.style.display = (tipo === 'fast_track') ? 'block' : 'none';
+      
+      if (tipo === 'com_adequacao') {
+        vtResetarAdequacoes();
+      }
+    }
+
+    async function abrirModalRelatorioVT(clienteId) {
+      limparCamposRelatorio();
+
+      const engenheiro = document.getElementById('visita_engenheiro').value.trim();
+      const dataAgendada = document.getElementById('visita_data_agendada').value.trim();
+      const dataRealizacao = document.getElementById('visita_data_realizacao').value.trim();
+      const resultado = document.getElementById('visita_resultado').value;
+
+      const camposFaltando = [];
+      if (!engenheiro) camposFaltando.push('Técnico responsável');
+      if (!dataAgendada) camposFaltando.push('Data agendada');
+      if (!dataRealizacao) camposFaltando.push('Data realização');
+      if (!resultado) camposFaltando.push('Resultado final');
+
+      if (camposFaltando.length > 0) {
+        const mensagem = `Para abrir o relatório, preencha: ${camposFaltando.join(', ')}.`;
+        abrirModalCriarCliente('Campos obrigatórios', mensagem, '⚠️', '#b91c1c');
+        return;
+      }
+
+      document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+
+      const modal = document.getElementById('modalRelatorioVT');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      document.getElementById('vtTipoRelatorio').value = '';
+      vtAlterarTipo();
+      // Força a exibição inicial
+      vtResetarAdequacoes();
+      document.getElementById('vtStatus').textContent = '';
+
+      try {
+        const resp = await fetch(URL_API, {
+          method: 'POST',
+          body: JSON.stringify({ acao: 'adminObterCliente', idCliente: clienteId, senhaAdmin: adminToken })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          const c = resultado.cliente;
+          document.getElementById('vtClienteNome').textContent = c.nome || '—';
+          document.getElementById('vtClienteEmail').textContent = c.email || '—';
+          document.getElementById('vtClienteEndereco').textContent = c.endereco || '—';
+          document.getElementById('vtClienteCep').textContent = c.cep || '—';
+          modal.dataset.clienteId = clienteId;
+          modal.dataset.clienteNome = c.nome || '';
+          modal.dataset.clienteEmail = c.email || '';
+          modal.dataset.clienteEndereco = c.endereco || '';
+          modal.dataset.clienteCep = c.cep || '';
+          modal.dataset.clienteCpf = c.cpf_cnpj || '';
+          modal.dataset.pastaId = c.pasta_id || null;
+          const dataAgendada = document.getElementById('visita_data_agendada');
+          if (dataAgendada.value) {
+            document.getElementById('vtDataVisita').value = dataAgendada.value;
+          }
+          sincronizarDataVisita();
+        } else {
+          alert('❌ Erro ao carregar dados do cliente: ' + (resultado.error || ''));
+          fecharModalRelatorioVT();
+        }
+      } catch (err) {
+        alert('❌ Erro de conexão: ' + err.message);
+        fecharModalRelatorioVT();
+      }
+    }
+
+    function fecharModalRelatorioVT() {
+      document.getElementById('modalRelatorioVT').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('modalRelatorioVT').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalRelatorioVT();
+    });
+
+    // ============================================================
+    // PRÉ-VISUALIZAÇÃO DE IMAGENS
+    // ============================================================
+    function previewImagem(input, previewId) {
+      const preview = document.getElementById(previewId);
+      preview.innerHTML = '';
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '150px';
+          img.style.maxHeight = '150px';
+          img.style.borderRadius = '8px';
+          img.style.border = '1px solid #ddd';
+          img.style.padding = '4px';
+          img.style.background = 'white';
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // ============================================================
+    // CONVERTER ARQUIVO PARA BASE64
+    // ============================================================
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ============================================================
+    // GERAR RELATÓRIO VT (FLASK)
+    // ============================================================
+    async function gerarRelatorioVT() {
+      const modal = document.getElementById('modalRelatorioVT');
+      const tipo = document.getElementById('vtTipoRelatorio').value;
+      if (!tipo) {
+        alert('Selecione o tipo de relatório.');
+        return;
+      }
+      const dataVisita = document.getElementById('vtDataVisita').value;
+      const concessionaria = document.getElementById('vtConcessionaria').value;
+      if (!dataVisita || !concessionaria) {
+        alert('Preencha a data da visita e a concessionária.');
+        return;
+      }
+
+      const btn = document.getElementById('btnGerarVT');
+      const status = document.getElementById('vtStatus');
+      btn.disabled = true;
+      status.textContent = '⏳ Gerando...';
+
+      const dadosComuns = {
+        cliente_id: parseInt(modal.dataset.clienteId),
+        pasta_id: modal.dataset.pastaId || null,
+        nome_cliente: modal.dataset.clienteNome,
+        email_cliente: modal.dataset.clienteEmail,
+        endereco: modal.dataset.clienteEndereco,
+        cep: modal.dataset.clienteCep,
+        cpf_cnpj: modal.dataset.clienteCpf,
+        data_visita: dataVisita,
+        concessionaria: concessionaria,
+        engenheiro: document.getElementById('vtEngenheiro').value || 'Nícolas Alves de Sá',
+        crea: document.getElementById('vtCrea').value || '5071237870',
+        tipo: tipo,
+        observacoes_gerais: document.getElementById('vtObservacoesGerais').value || ''
+      };
+
+      let camposEspecificos = {};
+      if (tipo === 'sem_adequacao') {
+        camposEspecificos = {
+          potencia: document.getElementById('vtPotencia').value,
+          qtd_modulos: document.getElementById('vtQtdModulos').value,
+          inversor: document.getElementById('vtInversor').value,
+          geracao: document.getElementById('vtGeracao').value,
+          investimento: document.getElementById('vtInvestimento').value,
+          observacoes: document.getElementById('vtObservacoes').value
+        };
+        if (!camposEspecificos.potencia || !camposEspecificos.qtd_modulos || !camposEspecificos.inversor ||
+          !camposEspecificos.geracao || !camposEspecificos.investimento) {
+          alert('Preencha todos os campos do relatório sem adequação.');
+          btn.disabled = false; status.textContent = ''; return;
+        }
+      } else if (tipo === 'com_adequacao') {
+        camposEspecificos = {
+          desafio1: document.getElementById('vtDesafio1').value,
+          desafio2: document.getElementById('vtDesafio2').value,
+          desafio3: document.getElementById('vtDesafio3').value,
+          adequacao_layout1: document.getElementById('vtAdequacaoLayout1').value,
+          adequacao_layout2: document.getElementById('vtAdequacaoLayout2').value,
+          modulos_op1: document.getElementById('vtModulosOp1').value,
+          inversor_op1: document.getElementById('vtInversorOp1').value,
+          valor_op1: document.getElementById('vtValorOp1').value,
+          geracao_op1: document.getElementById('vtGeracaoOp1').value,
+          modulos_op2: document.getElementById('vtModulosOp2').value,
+          inversor_op2: document.getElementById('vtInversorOp2').value,
+          valor_op2: document.getElementById('vtValorOp2').value,
+          geracao_op2: document.getElementById('vtGeracaoOp2').value,
+          recomendacao: document.getElementById('vtRecomendacao').value,
+          local_quadro: document.getElementById('vtLocalQuadro').value,
+          adequacao_tec1: document.getElementById('vtAdequacaoTec1').value,
+          adequacao_tec2: document.getElementById('vtAdequacaoTec2').value,
+          adequacao_tec3: document.getElementById('vtAdequacaoTec3').value,
+          valor_adequacoes: document.getElementById('vtValorAdequacoes').value,
+          reforco_estrutural: document.getElementById('vtReforcoEstrutural').value
+        };
+        if (!camposEspecificos.desafio1 || !camposEspecificos.adequacao_layout1 ||
+          !camposEspecificos.modulos_op1 || !camposEspecificos.inversor_op1 ||
+          !camposEspecificos.valor_op1 || !camposEspecificos.geracao_op1 ||
+          !camposEspecificos.recomendacao || !camposEspecificos.local_quadro ||
+          !camposEspecificos.adequacao_tec1 || !camposEspecificos.valor_adequacoes) {
+          alert('Preencha todos os campos obrigatórios do relatório com adequação.');
+          btn.disabled = false; status.textContent = ''; return;
+        }
+      } else if (tipo === 'fast_track') {
+        camposEspecificos = {
+          geracao_original: document.getElementById('vtGeracaoOriginal').value,
+          geracao_otimizada: document.getElementById('vtGeracaoOtimizada').value,
+          qtd_modulos: document.getElementById('vtQtdModulosFT').value,
+          potencia_inversor: document.getElementById('vtPotenciaInversorFT').value,
+          local_inversor: document.getElementById('vtLocalInversorFT').value,
+          observacoes: document.getElementById('vtObservacoesFT').value
+        };
+        if (!camposEspecificos.geracao_original || !camposEspecificos.geracao_otimizada ||
+          !camposEspecificos.qtd_modulos || !camposEspecificos.potencia_inversor ||
+          !camposEspecificos.local_inversor) {
+          alert('Preencha todos os campos obrigatórios do Fast Track.');
+          btn.disabled = false; status.textContent = ''; return;
+        }
+      }
+
+      const imagens = {};
+      async function processarImagem(idInput, nomeCampo) {
+        const input = document.getElementById(idInput);
+        if (input && input.files && input.files[0]) {
+          try {
+            imagens[nomeCampo] = await fileToBase64(input.files[0]);
+          } catch (err) {
+            console.warn(`Erro ao ler ${nomeCampo}:`, err);
+          }
+        }
+      }
+      await processarImagem('vtCroqui', 'croqui_layout');
+      await processarImagem('vtPanoramica', 'foto_panoramica');
+      await processarImagem('vtTelhado', 'foto_telhado');
+      await processarImagem('vtLocalInversorImg', 'foto_local_inversor');
+      await processarImagem('vtPadraoEntrada', 'foto_padrao_entrada');
+      await processarImagem('vtQuadroEletrico', 'foto_quadro_eletrico');
+
+      if (!imagens.croqui_layout) {
+        alert('O croqui do layout é obrigatório. Por favor, anexe uma imagem.');
+        btn.disabled = false; status.textContent = ''; return;
+      }
+
+      const payload = { ...dadosComuns, ...camposEspecificos, imagens: imagens };
+
+      try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_conformidade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+          status.textContent = '✅ Relatório gerado!';
+
+          const modalSucesso = document.getElementById('modalSucesso');
+          const msg = document.getElementById('modalSucessoMsg');
+          const btnAbrir = document.getElementById('modalSucessoAbrir');
+          const btnFechar = document.getElementById('modalSucessoFechar');
+
+          if (modalSucesso) {
+            msg.textContent = 'Clique no botão abaixo para visualizar o relatório.';
+            btnAbrir.onclick = function() {
+              if (resultado.url) {
+                window.open(resultado.url, '_blank');
+              }
+              modalSucesso.classList.remove('active');
+            };
+            btnFechar.onclick = function() {
+              modalSucesso.classList.remove('active');
+            };
+            modalSucesso.classList.add('active');
+
+            modalSucesso.onclick = function(e) {
+              if (e.target === this) {
+                modalSucesso.classList.remove('active');
+              }
+            };
+          }
+
+          if (resultado.url) {
+            console.log('1. URL recebida:', resultado.url);
+
+            const urlField = document.getElementById('visita_relatorio_url');
+            if (urlField) {
+              urlField.value = resultado.url;
+              console.log('2. Campo URL atualizado');
+            }
+
+            const btnAbrirRelatorio = document.getElementById('btnAbrirRelatorio');
+            if (btnAbrirRelatorio) {
+              btnAbrirRelatorio.style.background = '#0b2f5c';
+              btnAbrirRelatorio.style.color = 'white';
+              btnAbrirRelatorio.style.borderColor = '#0b2f5c';
+              btnAbrirRelatorio.style.opacity = '1';
+              btnAbrirRelatorio.style.pointerEvents = 'auto';
+              btnAbrirRelatorio.style.cursor = 'pointer';
+              btnAbrirRelatorio.textContent = '📄 Abrir relatório';
+              console.log('3. Botão ativado (estilo azul)');
+            }
+
+            if (clienteEditando) {
+              if (!clienteEditando.dados_visita) clienteEditando.dados_visita = {};
+              clienteEditando.dados_visita.relatorio_url = resultado.url;
+              console.log('4. Objeto local atualizado');
+            }
+
+            const clienteId = modal.dataset.clienteId;
+            if (clienteId) {
+              await salvarRelatorioUrl(clienteId, resultado.url);
+              console.log('5. URL salva no servidor');
+            }
+
+            console.log('6. Atualização concluída');
+          }
+
+          fecharModalRelatorioVT();
+          limparCamposRelatorio();
+          carregarClientes();
+        } else {
+          status.textContent = '❌ Erro: ' + (resultado.error || '');
+          alert('❌ Erro ao gerar relatório: ' + (resultado.error || ''));
+        }
+      } catch (err) {
+        status.textContent = '❌ Erro de conexão';
+        alert('❌ Erro de conexão: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        setTimeout(() => { status.textContent = ''; }, 5000);
+      }
+    }
+
+    // ============================================================
+    // GERAR PROPOSTA FINAL
+    // ============================================================
+    async function gerarPropostaFinal() {
+      if (!clienteEditando) { alert('Nenhum cliente selecionado.'); return; }
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '⏳ Gerando...';
+      try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cliente_id: clienteEditando.id })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          alert('✅ Proposta final gerada com sucesso!');
+          if (resultado.url) window.open(resultado.url, '_blank');
+          carregarClientes();
+        } else {
+          alert('❌ Erro: ' + (resultado.error || 'Erro desconhecido'));
+        }
+      } catch (err) { alert('❌ Erro de conexão: ' + err.message); }
+      finally { btn.disabled = false; btn.textContent = '📄 Gerar Proposta Final'; }
+    }
+
+    // ============================================================
+    // GERAR CONTRATO CLIENTE
+    // ============================================================
+    async function gerarContratoCliente() {
+      if (!clienteEditando) { alert('Nenhum cliente selecionado.'); return; }
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '⏳ Gerando...';
+      try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          alert('✅ Contrato gerado com sucesso!');
+          if (resultado.url) window.open(resultado.url, '_blank');
+          carregarClientes();
+        } else {
+          alert('❌ Erro: ' + (resultado.error || 'Erro desconhecido'));
+        }
+      } catch (err) { alert('❌ Erro de conexão: ' + err.message); }
+      finally { btn.disabled = false; btn.textContent = '📜 Gerar Contrato'; }
+    }
+
+    // ============================================================
+    // CONTRATO PRESTADOR
+    // ============================================================
+    function abrirModalContratoPrestador() {
+      document.getElementById('modalContratoPrestador').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      if (!document.getElementById('prestador_data_inicio').value) {
+        document.getElementById('prestador_data_inicio').value = new Date().toISOString().split('T')[0];
+      }
+      document.getElementById('statusContratoPrestador').textContent = '';
+    }
+    function fecharModalContratoPrestador() {
+      document.getElementById('modalContratoPrestador').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('modalContratoPrestador').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalContratoPrestador();
+    });
+
+    async function gerarContratoPrestador() {
+      const dados = {
+        nome: document.getElementById('prestador_nome').value.trim(),
+        cpf: document.getElementById('prestador_cpf').value.trim(),
+        rg: document.getElementById('prestador_rg').value.trim(),
+        nacionalidade: document.getElementById('prestador_nacionalidade').value.trim(),
+        estado_civil: document.getElementById('prestador_estado_civil').value,
+        profissao: document.getElementById('prestador_profissao').value.trim(),
+        endereco: document.getElementById('prestador_endereco').value.trim(),
+        especialidade: document.getElementById('prestador_especialidade').value.trim(),
+        duracao_meses: document.getElementById('prestador_duracao_meses').value || '12',
+        data_inicio: document.getElementById('prestador_data_inicio').value,
+        valor_hora: document.getElementById('prestador_valor_hora').value.trim().replace(',', '.'),
+        banco: document.getElementById('prestador_banco').value.trim(),
+        agencia: document.getElementById('prestador_agencia').value.trim(),
+        conta: document.getElementById('prestador_conta').value.trim(),
+        pix: document.getElementById('prestador_pix').value.trim()
+      };
+      if (!dados.nome || !dados.cpf) { alert('Preencha pelo menos Nome e CPF.'); return; }
+      const btn = event.target;
+      const status = document.getElementById('statusContratoPrestador');
+      btn.disabled = true;
+      status.textContent = '⏳ Gerando...';
+      try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo: 'prestador', dados: dados })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          status.textContent = '✅ Contrato gerado!';
+          alert('✅ Contrato gerado com sucesso!');
+          if (resultado.url) window.open(resultado.url, '_blank');
+          fecharModalContratoPrestador();
+        } else {
+          status.textContent = '❌ Erro: ' + (resultado.error || '');
+          alert('❌ Erro ao gerar contrato: ' + (resultado.error || ''));
+        }
+      } catch (err) {
+        status.textContent = '❌ Erro de conexão';
+        alert('❌ Erro de conexão: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        setTimeout(() => { status.textContent = ''; }, 5000);
+      }
+    }
+
+    // ============================================================
+    // COMISSIONAMENTO
+    // ============================================================
+    let clienteComissAtual = null;
+    function abrirModalComissionamento() {
+      if (clienteEditando) {
+        clienteComissAtual = clienteEditando;
+        document.getElementById('comissClienteNome').textContent = clienteEditando.nome;
+      } else {
+        alert('Abra um cliente para edição antes de gerar o comissionamento.');
+        return;
+      }
+      document.getElementById('modalComissionamento').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('statusComiss').textContent = '';
+    }
+    function fecharModalComissionamento() {
+      document.getElementById('modalComissionamento').classList.remove('active');
+      document.body.style.overflow = '';
+      clienteComissAtual = null;
+    }
+    document.getElementById('modalComissionamento').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalComissionamento();
+    });
+
+    async function gerarRelatorioComissionamento() {
+      if (!clienteComissAtual && !clienteEditando) {
+        alert('Nenhum cliente associado. Abra um cliente antes de gerar o relatório.');
+        return;
+      }
+      const cliente = clienteComissAtual || clienteEditando;
+      const clienteId = cliente.id;
+      const comissao = {
+        potencia_kwp: document.getElementById('comiss_potencia').value || null,
+        qtd_modulos: document.getElementById('comiss_qtd_modulos').value || null,
+      };
+      if (!comissao.potencia_kwp || !comissao.qtd_modulos) {
+        alert('Preencha pelo menos a Potência e a Quantidade de módulos.');
+        return;
+      }
+      const btn = document.getElementById('btnGerarComiss');
+      const status = document.getElementById('statusComiss');
+      btn.disabled = true;
+      status.textContent = '⏳ Gerando...';
+      const payload = {
+        cliente_id: clienteId,
+        comissionamento: comissao,
+        engenheiro: document.getElementById('comiss_engenheiro').value || 'Nícolas Alves de Sá',
+        crea: document.getElementById('comiss_crea').value || '5071237870'
+      };
+      try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_comissionamento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          status.textContent = '✅ Relatório gerado!';
+          alert('✅ Relatório de comissionamento gerado com sucesso!');
+          if (resultado.url) window.open(resultado.url, '_blank');
+          fecharModalComissionamento();
+          carregarClientes();
+        } else {
+          status.textContent = '❌ Erro: ' + (resultado.error || '');
+          alert('❌ Erro ao gerar relatório: ' + (resultado.error || ''));
+        }
+      } catch (err) {
+        status.textContent = '❌ Erro de conexão';
+        alert('❌ Erro de conexão: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        setTimeout(() => { status.textContent = ''; }, 5000);
+      }
+    }
+
+    // ============================================================
+    // EXCLUSÃO DE CLIENTE
+    // ============================================================
+    let clienteExcluirId = null;
+    function abrirModalExcluir() {
+      if (!clienteEditando) return;
+      clienteExcluirId = clienteEditando.id;
+      const nomeEl = document.getElementById('nomeClienteExcluir');
+      if (!nomeEl) {
+        console.error('❌ Elemento "nomeClienteExcluir" não encontrado!');
+        alert('Erro interno: elemento de confirmação não encontrado.');
+        return;
+      }
+      nomeEl.textContent = clienteEditando.nome;
+      document.getElementById('modalExcluirCliente').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModalExcluir() {
+      document.getElementById('modalExcluirCliente').classList.remove('active');
+      document.body.style.overflow = '';
+      clienteExcluirId = null;
+    }
+
+    async function confirmarExcluir() {
+      if (!clienteExcluirId) {
+        alert('Nenhum cliente selecionado para excluir.');
+        return;
+      }
+      if (!adminToken) {
+        alert('⚠️ Sessão expirada. Faça login novamente.');
+        return;
+      }
+      const btn = document.getElementById('btnConfirmarExcluir');
+      btn.disabled = true;
+      btn.textContent = '⏳ Excluindo...';
+      try {
+        const resp = await fetch(URL_API, {
+          method: 'POST',
+          body: JSON.stringify({
+            acao: 'adminExcluirCliente',
+            idCliente: clienteExcluirId,
+            senhaAdmin: adminToken
+          })
+        });
+        const resultado = await resp.json();
+        if (resultado.success) {
+          abrirModalCriarCliente(
+            'Cliente excluído com sucesso!',
+            'O cliente foi removido permanentemente.',
+            '✅',
+            '#0b2f5c'
+          );
+          fecharModalExcluir();
+          fecharModalEdicao();
+          carregarClientes();
+        } else {
+          abrirModalCriarCliente(
+            '❌ Erro ao excluir',
+            resultado.error || 'Erro desconhecido',
+            '❌',
+            '#b91c1c'
+          );
+        }
+      } catch (err) {
+        abrirModalCriarCliente(
+          '❌ Erro de conexão',
+          err.message,
+          '❌',
+          '#b91c1c'
+        );
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚠️ Sim, excluir';
+      }
+    }
+
+    document.getElementById('modalExcluirCliente').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalExcluir();
+    });
+
+    // ============================================================
+    // MODAL DE CRIAÇÃO DE CLIENTE (GENÉRICO)
+    // ============================================================
+    function abrirModalCriarCliente(titulo, mensagem, icone = '✅', cor = '#0b2f5c') {
+      const modal = document.getElementById('modalCriarCliente');
+      if (!modal) return;
+      document.getElementById('modalCriarClienteTitulo').textContent = titulo;
+      document.getElementById('modalCriarClienteMsg').textContent = mensagem;
+      document.getElementById('modalCriarClienteIcon').textContent = icone;
+      modal.querySelector('.titulo-modal').style.color = cor;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModalCriarCliente(callback) {
+      const modal = document.getElementById('modalCriarCliente');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        if (typeof callback === 'function') callback();
+      }
+    }
+
+    document.getElementById('modalCriarCliente').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalCriarCliente();
+    });
+
+    // ============================================================
+    // EVENTOS PARA MÁSCARAS (Telefone e CEP)
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+      const telefoneInput = document.getElementById('novo_telefone');
+      const cepInput = document.getElementById('novo_cep');
+
+      if (telefoneInput) {
+        telefoneInput.addEventListener('input', function() {
+          mascaraTelefone(this);
+        });
+      }
+
+      if (cepInput) {
+        cepInput.addEventListener('input', function() {
+          mascaraCEP(this);
+        });
+      }
+    });
+
+    // ============================================================
+    // LOGOUT E INICIALIZAÇÃO
+    // ============================================================
+    document.getElementById('btnLogout').addEventListener('click', function() {
+      if (confirm('Deseja sair?')) {
+        logoutAdmin();
+      }
+    });
+
+    (function init() {
+      vtPreencherConcessionarias();
+      const tokenSalvo = localStorage.getItem('adminToken');
+      if (tokenSalvo) {
+        adminToken = tokenSalvo;
+        carregarClientes();
+      } else {
+        document.getElementById('loginAdmin').classList.add('ativo');
+      }
+    })();
+  </script>
+</body>
+</html>
