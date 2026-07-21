@@ -722,11 +722,44 @@ def gerar_relatorio_conformidade():
 
         cliente_id = dados.get('cliente_id')
 
-        # ===== GERAR HASH (CORRIGIDO) =====
+        # ===== GERAR HASH =====
         hash_input = f"{cliente_id}{dados.get('data_visita', '')}{tipo}{datetime.now().isoformat()}"
         hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
 
-        # ===== CONTEXTO BASE (CORRIGIDO: REMOVIDA DUPLICIDADE) =====
+        # ===== GERAR PROTOCOLO SEQUENCIAL (ANTES DO PDF) =====
+        protocolo = None
+        if cliente_id:
+            try:
+                cliente = buscar_cliente_por_id(cliente_id)
+                if cliente:
+                    dados_visita = cliente.get('dados_visita', {})
+                    contador_diario = dados_visita.get('contador_diario', {})
+                    data_atual = datetime.now().strftime('%Y-%m-%d')
+
+                    proximo = contador_diario.get(data_atual, 0) + 1
+                    contador_diario[data_atual] = proximo
+
+                    protocolo = f"VT-{datetime.now().strftime('%Y%m%d')}-{cliente_id}-{proximo:03d}"
+                    dados_visita['contador_diario'] = contador_diario
+                    dados_visita['ultimo_protocolo'] = protocolo
+
+                    # Salvar o protocolo na planilha (via Área do Cliente)
+                    payload_protocolo = {
+                        "acao": "adminAtualizarCliente",
+                        "idCliente": str(cliente_id),
+                        "campos": {
+                            "dados_visita": dados_visita
+                        },
+                        "senhaAdmin": "SoLiVi@64253798@"
+                    }
+                    requests.post(URL_AREA_CLIENTE, json=payload_protocolo, timeout=30)
+                    print(f"✅ Protocolo gerado: {protocolo}")
+                else:
+                    print("⚠️ Cliente não encontrado para gerar protocolo")
+            except Exception as e:
+                print(f"⚠️ Erro ao gerar protocolo: {e}")
+
+        # ===== CONTEXTO BASE =====
         context = {
             'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
             'NOME_FANTASIA': 'SoLivia Engenharia',
@@ -742,8 +775,8 @@ def gerar_relatorio_conformidade():
             'NUM_RELATORIO': f"RT-{datetime.now().year}-{str(1).zfill(3)}",
             'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
             'HORA_EMISSAO': datetime.now().strftime('%H:%M'),
-            'NUM_PROTOCOLO': f"VT-{datetime.now().strftime('%Y%m%d')}-{cliente_id or '000'}",
-            'HASH_DOCUMENTO': hash_documento,  # ÚNICA ENTRADA
+            'NUM_PROTOCOLO': protocolo or f"VT-{datetime.now().strftime('%Y%m%d')}-{cliente_id or '000'}",  # usa o protocolo gerado ou fallback
+            'HASH_DOCUMENTO': hash_documento,
             'ENGENHEIRO_RESPONSAVEL': dados.get('engenheiro', 'Nícolas Alves de Sá'),
             'CREA_NUMERO': dados.get('crea', '5071237870'),
             'NUM_PROPOSTA': dados.get('num_proposta', ''),
@@ -755,7 +788,7 @@ def gerar_relatorio_conformidade():
             'OBSERVACOES_GERAIS': dados.get('observacoes_gerais', ''),
         }
 
-        # ===== CAMPOS ESPECÍFICOS =====
+                # ===== CAMPOS ESPECÍFICOS =====
         if tipo == 'sem_adequacao':
             context.update({
                 'POTENCIA': dados.get('potencia', ''),
@@ -787,7 +820,11 @@ def gerar_relatorio_conformidade():
                 'ADEQUACAO_TECNICA_2': dados.get('adequacao_tec2', ''),
                 'ADEQUACAO_TECNICA_3': dados.get('adequacao_tec3', ''),
                 'VALOR_ADEQUACOES': format_moeda(dados.get('valor_adequacoes', 0)),
+                'REFORCO_ESTRUTURAL': dados.get('reforco_estrutural', ''),
             })
+            # ===== ADEQUAÇÕES PARA O TEMPLATE =====
+            adequacoes = dados.get('adequacoes', ['geracao', 'homologacao'])
+            context['ADEQUACOES'] = adequacoes
         elif tipo == 'fast_track':
             context.update({
                 'GERACAO_ORIGINAL': dados.get('geracao_original', ''),
@@ -804,11 +841,13 @@ def gerar_relatorio_conformidade():
             if value:
                 context[key.upper()] = f"data:image/png;base64,{value}"
 
-                # ===== RENDERIZAR PDF =====
+        # ===== RENDERIZAR PDF (AGORA COM O PROTOCOLO CORRETO) =====
         html_rendered = render_template(template_file, **context)
         pdf_bytes = HTML(string=html_rendered).write_pdf()
 
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+        # ===== ENVIAR PARA O APPS SCRIPT =====
         payload_script = {
             'token': TOKEN,
             'acao': 'salvar_pdf',
@@ -818,6 +857,7 @@ def gerar_relatorio_conformidade():
                 'tipo_documento': 'Visita_Tecnica',
                 'cliente_id': cliente_id,
                 'hash_documento': hash_documento,
+                'subpasta': 'Visita_Tecnica',   # <-- ADICIONE ESTA LINHA
             }
         }
 
@@ -827,7 +867,7 @@ def gerar_relatorio_conformidade():
             if result.get('success'):
                 url = result.get('url')
 
-                # ===== SALVAR HASH DIRETAMENTE NA PLANILHA (VIA ÁREA DO CLIENTE) =====
+                # ===== SALVAR HASH NA PLANILHA (VIA ÁREA DO CLIENTE) =====
                 if cliente_id and hash_documento:
                     try:
                         cliente = buscar_cliente_por_id(cliente_id)
@@ -835,6 +875,9 @@ def gerar_relatorio_conformidade():
                             dados_visita = cliente.get('dados_visita', {})
                             dados_visita['hash_documento'] = hash_documento
                             dados_visita['relatorio_url'] = url
+                            # O protocolo já foi salvo antes, mas podemos garantir que está lá
+                            if protocolo and 'ultimo_protocolo' not in dados_visita:
+                                dados_visita['ultimo_protocolo'] = protocolo
 
                             payload_hash = {
                                 "acao": "adminAtualizarCliente",
