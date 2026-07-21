@@ -1151,16 +1151,17 @@
           <p style="font-weight: bold; color: #0b2f5c; margin-bottom: 10px;">
             📋 Quais adequações são necessárias?
           </p>
+          <!-- CORREÇÃO: value="homologacao" e value="geracao" adicionados -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-  <label><input type="checkbox" class="adeq-check" value="inversor" onchange="vtToggleAdequacao()"> Ajuste de potência do inversor</label>
-  <label><input type="checkbox" class="adeq-check" value="quadro" onchange="vtToggleAdequacao()"> Adequação do quadro elétrico</label>
-  <label><input type="checkbox" class="adeq-check" value="estrutura" onchange="vtToggleAdequacao()"> Reforço estrutural do telhado</label>
-  <label><input type="checkbox" class="adeq-check" value="homologacao" checked onchange="vtToggleAdequacao()"> Adequações para homologação</label>
-  <label><input type="checkbox" class="adeq-check" value="geracao" checked onchange="vtToggleAdequacao()"> Alteração na geração</label>
-</div>
-          <div style="margin-top: 8px; font-size: 12px; color: #888;">
-            ⚠️ Selecione pelo menos uma adequação. Os campos correspondentes aparecerão abaixo.
+            <label><input type="checkbox" class="adeq-check" value="inversor" onchange="vtToggleAdequacao()"> Ajuste de potência do inversor</label>
+            <label><input type="checkbox" class="adeq-check" value="quadro" onchange="vtToggleAdequacao()"> Adequação do quadro elétrico</label>
+            <label><input type="checkbox" class="adeq-check" value="estrutura" onchange="vtToggleAdequacao()"> Reforço estrutural do telhado</label>
+            <label><input type="checkbox" class="adeq-check" value="homologacao" checked onchange="vtToggleAdequacao()"> Adequações para homologação</label>
+            <label><input type="checkbox" class="adeq-check" value="geracao" checked onchange="vtToggleAdequacao()"> Alteração na geração</label>
           </div>
+          <div id="vtMsgAdequacao" style="margin-top: 8px; font-size: 12px; color: #888;">
+  ⚠️ Selecione pelo menos uma adequação. Os campos correspondentes aparecerão abaixo.
+</div>
         </div>
         <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
 
@@ -1249,8 +1250,8 @@
         <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
         <h4 style="color:#0b2f5c; margin-bottom:0.8rem;">⚡ Fast Track</h4>
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-          <div class="campo"><label>Geração original *</label><input type="number" step="0.1" id="vtGeracaoOriginal" /></div>
-          <div class="campo"><label>Geração otimizada *</label><input type="number" step="0.1" id="vtGeracaoOtimizada" /></div>
+          <div class="campo"><label>Geração original *</label><input type="number" step="0.1" id="vtFTGeracaoOriginal" /></div>
+<div class="campo"><label>Geração otimizada *</label><input type="number" step="0.1" id="vtFTGeracaoOtimizada" /></div>
           <div class="campo"><label>Módulos *</label><input type="number" id="vtQtdModulosFT" /></div>
           <div class="campo"><label>Potência inversor *</label><input type="text" id="vtPotenciaInversorFT" placeholder="Ex: 5 kW" /></div>
           <div class="campo full"><label>Local inversor *</label><input type="text" id="vtLocalInversorFT" /></div>
@@ -1348,6 +1349,55 @@
     let clientes = [];
     let clienteEditando = null;
     let filtroEtapaAtual = 'todos';
+
+    // ============================================================
+    // FUNÇÃO PARA GARANTIR VALORES NOS CHECKBOXES (FALLBACK MELHORADO)
+    // ============================================================
+    function garantirValoresCheckboxes() {
+  const checkboxes = document.querySelectorAll('.adeq-check');
+  console.log('🔧 Garantindo valores para', checkboxes.length, 'checkboxes');
+  
+  // Mapeamento usando palavras-chave (todas sem acentos)
+  const mapaPalavraValor = {
+    'inversor': 'inversor',
+    'quadro': 'quadro',
+    'estrutura': 'estrutura',
+    'homologacao': 'homologacao',
+    'geracao': 'geracao'
+  };
+
+  checkboxes.forEach(cb => {
+    // Se já tiver valor, não sobrescreve
+    if (cb.value && cb.value !== '') {
+      console.log(`   -> ${cb.value} (já definido) ${cb.checked ? '✅' : '❌'}`);
+      return;
+    }
+
+    const label = cb.closest('label');
+    if (label) {
+      // Normaliza: remove acentos, converte para minúsculas
+      const texto = label.textContent.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      console.log(`   🔍 Texto normalizado: "${texto}"`);
+      
+      let valorEncontrado = null;
+      for (const [palavra, valor] of Object.entries(mapaPalavraValor)) {
+        if (texto.includes(palavra)) {
+          valorEncontrado = valor;
+          break;
+        }
+      }
+      
+      if (valorEncontrado) {
+        cb.value = valorEncontrado;
+        console.log(`   ✅ Atribuído value="${valorEncontrado}"`);
+      } else {
+        console.warn(`   ⚠️ Nenhum valor mapeado para: "${texto}"`);
+      }
+    } else {
+      console.warn('   ⚠️ Checkbox sem label próximo');
+    }
+  });
+}
 
     // ============================================================
     // FUNÇÃO PARA ABRIR RELATÓRIO (BOTÃO)
@@ -2204,77 +2254,73 @@
     // FUNÇÃO: MOSTRA/ESCONDE CAMPOS COM BASE NOS CHECKBOXES (COM DEPURAÇÃO)
     // ============================================================
     function vtToggleAdequacao() {
-  console.log('✅ vtToggleAdequacao foi chamada!');
-  
-  const checkboxes = document.querySelectorAll('.adeq-check');
-  console.log('🔍 Número de checkboxes encontrados:', checkboxes.length);
-  
-  const selecionadas = [];
-  checkboxes.forEach(cb => {
-    if (cb.checked) {
-      selecionadas.push(cb.value);
-      console.log(`   ✅ Marcado: ${cb.value}`);
-    } else {
-      console.log(`   ❌ Desmarcado: ${cb.value}`);
-    }
-  });
-  console.log('📋 Categorias selecionadas:', selecionadas);
-
-  const mapa = {
-    'inversor': 'vtSecaoInversor',
-    'quadro': 'vtSecaoQuadro',
-    'estrutura': 'vtSecaoEstrutura',
-    'homologacao': 'vtSecaoHomologacao',
-    'geracao': 'vtSecaoGeracao'
-  };
-
-  for (const [categoria, divId] of Object.entries(mapa)) {
-    const div = document.getElementById(divId);
-    if (div) {
-      const deveExibir = selecionadas.includes(categoria);
-      div.style.display = deveExibir ? 'block' : 'none';
-      console.log(`🔘 ${divId} -> ${deveExibir ? 'EXIBIR' : 'OCULTAR'}`);
-      if (!deveExibir) {
-        const inputs = div.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-          if (input.type !== 'checkbox' && input.type !== 'radio') {
-            input.value = '';
-          }
-        });
-      }
-    } else {
-      console.warn(`⚠️ Div com ID "${divId}" não encontrada.`);
-    }
+      console.log('✅ vtToggleAdequacao foi chamada!');
+      
+      // Garante que os checkboxes tenham valores (fallback)
+      garantirValoresCheckboxes();
+      
+      const checkboxes = document.querySelectorAll('.adeq-check');
+      console.log('🔍 Número de checkboxes encontrados:', checkboxes.length);
+      
+      const selecionadas = [];
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          selecionadas.push(cb.value);
+          console.log(`   ✅ Marcado: ${cb.value}`);
+        } else {
+          console.log(`   ❌ Desmarcado: ${cb.value}`);
+        }
+      });
+      console.log('📋 Categorias selecionadas:', selecionadas);
+  // === CONTROLE DA MENSAGEM DE AVISO ===
+  const msg = document.getElementById('vtMsgAdequacao');
+  if (msg) {
+    msg.style.display = selecionadas.length === 0 ? 'block' : 'none';
   }
-}
+      const mapa = {
+        'inversor': 'vtSecaoInversor',
+        'quadro': 'vtSecaoQuadro',
+        'estrutura': 'vtSecaoEstrutura',
+        'homologacao': 'vtSecaoHomologacao',
+        'geracao': 'vtSecaoGeracao'
+      };
 
-function vtResetarAdequacoes() {
-  console.log('🔄 vtResetarAdequacoes foi chamada!');
-  const checkboxes = document.querySelectorAll('.adeq-check');
-  console.log('🔍 Número de checkboxes para resetar:', checkboxes.length);
-  checkboxes.forEach(cb => {
-    if (cb.value === 'homologacao' || cb.value === 'geracao') {
-      cb.checked = true;
-      console.log(`   ✅ Marcado (padrão): ${cb.value}`);
-    } else {
-      cb.checked = false;
-      console.log(`   ❌ Desmarcado: ${cb.value}`);
+      for (const [categoria, divId] of Object.entries(mapa)) {
+        const div = document.getElementById(divId);
+        if (div) {
+          const deveExibir = selecionadas.includes(categoria);
+          div.style.display = deveExibir ? 'block' : 'none';
+          console.log(`🔘 ${divId} -> ${deveExibir ? 'EXIBIR' : 'OCULTAR'}`);
+          if (!deveExibir) {
+            const inputs = div.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+              if (input.type !== 'checkbox' && input.type !== 'radio') {
+                input.value = '';
+              }
+            });
+          }
+        } else {
+          console.warn(`⚠️ Div com ID "${divId}" não encontrada.`);
+        }
+      }
     }
-  });
-  vtToggleAdequacao();
-}
 
     // ============================================================
     // FUNÇÃO: RESETAR CHECKBOXES AO MUDAR O TIPO DE RELATÓRIO
     // ============================================================
     function vtResetarAdequacoes() {
       console.log('🔄 vtResetarAdequacoes foi chamada!');
+      // Garante que os checkboxes tenham valores
+      garantirValoresCheckboxes();
       const checkboxes = document.querySelectorAll('.adeq-check');
+      console.log('🔍 Número de checkboxes para resetar:', checkboxes.length);
       checkboxes.forEach(cb => {
         if (cb.value === 'homologacao' || cb.value === 'geracao') {
           cb.checked = true;
+          console.log(`   ✅ Marcado (padrão): ${cb.value}`);
         } else {
           cb.checked = false;
+          console.log(`   ❌ Desmarcado: ${cb.value}`);
         }
       });
       vtToggleAdequacao();
@@ -2414,215 +2460,275 @@ function vtResetarAdequacoes() {
     // GERAR RELATÓRIO VT (FLASK)
     // ============================================================
     async function gerarRelatorioVT() {
-      const modal = document.getElementById('modalRelatorioVT');
-      const tipo = document.getElementById('vtTipoRelatorio').value;
-      if (!tipo) {
-        alert('Selecione o tipo de relatório.');
-        return;
-      }
-      const dataVisita = document.getElementById('vtDataVisita').value;
-      const concessionaria = document.getElementById('vtConcessionaria').value;
-      if (!dataVisita || !concessionaria) {
-        alert('Preencha a data da visita e a concessionária.');
-        return;
-      }
+  const modal = document.getElementById('modalRelatorioVT');
+  const tipo = document.getElementById('vtTipoRelatorio').value;
+  if (!tipo) {
+    alert('Selecione o tipo de relatório.');
+    return;
+  }
+  const dataVisita = document.getElementById('vtDataVisita').value;
+  const concessionaria = document.getElementById('vtConcessionaria').value;
+  if (!dataVisita || !concessionaria) {
+    alert('Preencha a data da visita e a concessionária.');
+    return;
+  }
 
-      const btn = document.getElementById('btnGerarVT');
-      const status = document.getElementById('vtStatus');
-      btn.disabled = true;
-      status.textContent = '⏳ Gerando...';
+  const btn = document.getElementById('btnGerarVT');
+  const status = document.getElementById('vtStatus');
+  btn.disabled = true;
+  status.textContent = '⏳ Gerando...';
 
-      const dadosComuns = {
-        cliente_id: parseInt(modal.dataset.clienteId),
-        pasta_id: modal.dataset.pastaId || null,
-        nome_cliente: modal.dataset.clienteNome,
-        email_cliente: modal.dataset.clienteEmail,
-        endereco: modal.dataset.clienteEndereco,
-        cep: modal.dataset.clienteCep,
-        cpf_cnpj: modal.dataset.clienteCpf,
-        data_visita: dataVisita,
-        concessionaria: concessionaria,
-        engenheiro: document.getElementById('vtEngenheiro').value || 'Nícolas Alves de Sá',
-        crea: document.getElementById('vtCrea').value || '5071237870',
-        tipo: tipo,
-        observacoes_gerais: document.getElementById('vtObservacoesGerais').value || ''
-      };
+  const dadosComuns = {
+    cliente_id: parseInt(modal.dataset.clienteId),
+    pasta_id: modal.dataset.pastaId || null,
+    nome_cliente: modal.dataset.clienteNome,
+    email_cliente: modal.dataset.clienteEmail,
+    endereco: modal.dataset.clienteEndereco,
+    cep: modal.dataset.clienteCep,
+    cpf_cnpj: modal.dataset.clienteCpf,
+    data_visita: dataVisita,
+    concessionaria: concessionaria,
+    engenheiro: document.getElementById('vtEngenheiro').value || 'Nícolas Alves de Sá',
+    crea: document.getElementById('vtCrea').value || '5071237870',
+    tipo: tipo,
+    observacoes_gerais: document.getElementById('vtObservacoesGerais').value || ''
+  };
 
-      let camposEspecificos = {};
-      if (tipo === 'sem_adequacao') {
-        camposEspecificos = {
-          potencia: document.getElementById('vtPotencia').value,
-          qtd_modulos: document.getElementById('vtQtdModulos').value,
-          inversor: document.getElementById('vtInversor').value,
-          geracao: document.getElementById('vtGeracao').value,
-          investimento: document.getElementById('vtInvestimento').value,
-          observacoes: document.getElementById('vtObservacoes').value
-        };
-        if (!camposEspecificos.potencia || !camposEspecificos.qtd_modulos || !camposEspecificos.inversor ||
-          !camposEspecificos.geracao || !camposEspecificos.investimento) {
-          alert('Preencha todos os campos do relatório sem adequação.');
-          btn.disabled = false; status.textContent = ''; return;
-        }
-      } else if (tipo === 'com_adequacao') {
-        camposEspecificos = {
-          desafio1: document.getElementById('vtDesafio1').value,
-          desafio2: document.getElementById('vtDesafio2').value,
-          desafio3: document.getElementById('vtDesafio3').value,
-          adequacao_layout1: document.getElementById('vtAdequacaoLayout1').value,
-          adequacao_layout2: document.getElementById('vtAdequacaoLayout2').value,
-          modulos_op1: document.getElementById('vtModulosOp1').value,
-          inversor_op1: document.getElementById('vtInversorOp1').value,
-          valor_op1: document.getElementById('vtValorOp1').value,
-          geracao_op1: document.getElementById('vtGeracaoOp1').value,
-          modulos_op2: document.getElementById('vtModulosOp2').value,
-          inversor_op2: document.getElementById('vtInversorOp2').value,
-          valor_op2: document.getElementById('vtValorOp2').value,
-          geracao_op2: document.getElementById('vtGeracaoOp2').value,
-          recomendacao: document.getElementById('vtRecomendacao').value,
-          local_quadro: document.getElementById('vtLocalQuadro').value,
-          adequacao_tec1: document.getElementById('vtAdequacaoTec1').value,
-          adequacao_tec2: document.getElementById('vtAdequacaoTec2').value,
-          adequacao_tec3: document.getElementById('vtAdequacaoTec3').value,
-          valor_adequacoes: document.getElementById('vtValorAdequacoes').value,
-          reforco_estrutural: document.getElementById('vtReforcoEstrutural').value
-        };
-        if (!camposEspecificos.desafio1 || !camposEspecificos.adequacao_layout1 ||
-          !camposEspecificos.modulos_op1 || !camposEspecificos.inversor_op1 ||
-          !camposEspecificos.valor_op1 || !camposEspecificos.geracao_op1 ||
-          !camposEspecificos.recomendacao || !camposEspecificos.local_quadro ||
-          !camposEspecificos.adequacao_tec1 || !camposEspecificos.valor_adequacoes) {
-          alert('Preencha todos os campos obrigatórios do relatório com adequação.');
-          btn.disabled = false; status.textContent = ''; return;
-        }
-      } else if (tipo === 'fast_track') {
-        camposEspecificos = {
-          geracao_original: document.getElementById('vtGeracaoOriginal').value,
-          geracao_otimizada: document.getElementById('vtGeracaoOtimizada').value,
-          qtd_modulos: document.getElementById('vtQtdModulosFT').value,
-          potencia_inversor: document.getElementById('vtPotenciaInversorFT').value,
-          local_inversor: document.getElementById('vtLocalInversorFT').value,
-          observacoes: document.getElementById('vtObservacoesFT').value
-        };
-        if (!camposEspecificos.geracao_original || !camposEspecificos.geracao_otimizada ||
-          !camposEspecificos.qtd_modulos || !camposEspecificos.potencia_inversor ||
-          !camposEspecificos.local_inversor) {
-          alert('Preencha todos os campos obrigatórios do Fast Track.');
-          btn.disabled = false; status.textContent = ''; return;
-        }
-      }
+  let camposEspecificos = {};
 
-      const imagens = {};
-      async function processarImagem(idInput, nomeCampo) {
-        const input = document.getElementById(idInput);
-        if (input && input.files && input.files[0]) {
-          try {
-            imagens[nomeCampo] = await fileToBase64(input.files[0]);
-          } catch (err) {
-            console.warn(`Erro ao ler ${nomeCampo}:`, err);
-          }
-        }
-      }
-      await processarImagem('vtCroqui', 'croqui_layout');
-      await processarImagem('vtPanoramica', 'foto_panoramica');
-      await processarImagem('vtTelhado', 'foto_telhado');
-      await processarImagem('vtLocalInversorImg', 'foto_local_inversor');
-      await processarImagem('vtPadraoEntrada', 'foto_padrao_entrada');
-      await processarImagem('vtQuadroEletrico', 'foto_quadro_eletrico');
+  if (tipo === 'sem_adequacao') {
+    camposEspecificos = {
+      potencia: document.getElementById('vtPotencia').value,
+      qtd_modulos: document.getElementById('vtQtdModulos').value,
+      inversor: document.getElementById('vtInversor').value,
+      geracao: document.getElementById('vtGeracao').value,
+      investimento: document.getElementById('vtInvestimento').value,
+      observacoes: document.getElementById('vtObservacoes').value
+    };
+    if (!camposEspecificos.potencia || !camposEspecificos.qtd_modulos || !camposEspecificos.inversor ||
+      !camposEspecificos.geracao || !camposEspecificos.investimento) {
+      alert('Preencha todos os campos do relatório sem adequação.');
+      btn.disabled = false; status.textContent = ''; return;
+    }
+  } else if (tipo === 'com_adequacao') {
+    const v = {
+      desafio1: document.getElementById('vtDesafio1').value,
+      desafio2: document.getElementById('vtDesafio2').value,
+      desafio3: document.getElementById('vtDesafio3').value,
+      adequacao_layout1: document.getElementById('vtAdequacaoLayout1').value,
+      adequacao_layout2: document.getElementById('vtAdequacaoLayout2').value,
+      modulos_op1: document.getElementById('vtModulosOp1').value,
+      inversor_op1: document.getElementById('vtInversorOp1').value,
+      valor_op1: document.getElementById('vtValorOp1').value,
+      geracao_op1: document.getElementById('vtGeracaoOp1').value,
+      modulos_op2: document.getElementById('vtModulosOp2').value,
+      inversor_op2: document.getElementById('vtInversorOp2').value,
+      valor_op2: document.getElementById('vtValorOp2').value,
+      geracao_op2: document.getElementById('vtGeracaoOp2').value,
+      recomendacao: document.getElementById('vtRecomendacao').value,
+      local_quadro: document.getElementById('vtLocalQuadro').value,
+      adequacao_tec1: document.getElementById('vtAdequacaoTec1').value,
+      adequacao_tec2: document.getElementById('vtAdequacaoTec2').value,
+      adequacao_tec3: document.getElementById('vtAdequacaoTec3').value,
+      valor_adequacoes: document.getElementById('vtValorAdequacoes').value,
+      reforco_estrutural: document.getElementById('vtReforcoEstrutural').value
+    };
 
-      if (!imagens.croqui_layout) {
-        alert('O croqui do layout é obrigatório. Por favor, anexe uma imagem.');
-        btn.disabled = false; status.textContent = ''; return;
-      }
+    const checkboxes = document.querySelectorAll('.adeq-check:checked');
+    const adequacoes = [];
+    checkboxes.forEach(cb => adequacoes.push(cb.value));
 
-      const payload = { ...dadosComuns, ...camposEspecificos, imagens: imagens };
+    if (adequacoes.length === 0) {
+      exibirModalComAcao('⚠️ Nenhuma adequação', 'Selecione pelo menos uma adequação.', '⚠️', '#b91c1c', null);
+      btn.disabled = false; status.textContent = ''; return;
+    }
 
+    let erro = '';
+    if (adequacoes.includes('inversor') && (!v.desafio1 || !v.adequacao_layout1 || !v.modulos_op1 || !v.inversor_op1 || !v.valor_op1 || !v.geracao_op1 || !v.recomendacao)) {
+      erro = 'Preencha todos os campos da seção "Inversor" (Opção 1).';
+    }
+    if (!erro && adequacoes.includes('quadro') && !v.local_quadro) {
+      erro = 'Preencha o campo "Local do quadro".';
+    }
+    if (!erro && adequacoes.includes('estrutura') && !v.reforco_estrutural) {
+      erro = 'Preencha o campo "Reforço estrutural".';
+    }
+    if (!erro && adequacoes.includes('homologacao') && (!v.adequacao_tec1 || !v.valor_adequacoes)) {
+      erro = 'Preencha a "Adequação técnica 1" e o "Valor das adequações".';
+    }
+    if (!erro && adequacoes.includes('geracao')) {
+      const orig = document.getElementById('vtGeracaoOriginal').value;
+      const otim = document.getElementById('vtGeracaoOtimizada').value;
+      if (!orig || !otim) erro = 'Preencha a "Geração original" e a "Geração otimizada".';
+    }
+
+    if (erro) {
+      exibirModalComAcao('⚠️ Dados incompletos', erro, '⚠️', '#b91c1c', null);
+      btn.disabled = false; status.textContent = ''; return;
+    }
+
+    camposEspecificos = v;
+  } else if (tipo === 'fast_track') {
+  // ===== CAPTURA OS VALORES =====
+  const geracaoOrig = document.getElementById('vtFTGeracaoOriginal').value.trim();
+const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim();
+  const qtdModulos = document.getElementById('vtQtdModulosFT').value.trim();
+  const potInversor = document.getElementById('vtPotenciaInversorFT').value.trim();
+  const localInversor = document.getElementById('vtLocalInversorFT').value.trim();
+  const observacoes = document.getElementById('vtObservacoesFT').value.trim();
+
+  // ===== LOG DETALHADO DE CADA CAMPO =====
+  console.log('🔍 Fast Track - Campos individuais:');
+  console.log('  vtGeracaoOriginal:', geracaoOrig, '| tipo:', typeof geracaoOrig, '| comprimento:', geracaoOrig.length);
+  console.log('  vtGeracaoOtimizada:', geracaoOtim, '| tipo:', typeof geracaoOtim, '| comprimento:', geracaoOtim.length);
+  console.log('  vtQtdModulosFT:', qtdModulos, '| tipo:', typeof qtdModulos, '| comprimento:', qtdModulos.length);
+  console.log('  vtPotenciaInversorFT:', potInversor, '| tipo:', typeof potInversor, '| comprimento:', potInversor.length);
+  console.log('  vtLocalInversorFT:', localInversor, '| tipo:', typeof localInversor, '| comprimento:', localInversor.length);
+
+  // ===== VALIDAÇÃO COM CHECAGEM EXPLÍCITA =====
+  let camposVazios = [];
+  if (!geracaoOrig || geracaoOrig === '') camposVazios.push('Geração original');
+  if (!geracaoOtim || geracaoOtim === '') camposVazios.push('Geração otimizada');
+  if (!qtdModulos || qtdModulos === '') camposVazios.push('Quantidade de módulos');
+  if (!potInversor || potInversor === '') camposVazios.push('Potência do inversor');
+  if (!localInversor || localInversor === '') camposVazios.push('Local do inversor');
+
+  if (camposVazios.length > 0) {
+    console.log('❌ Campos vazios detectados:', camposVazios);
+    alert('Preencha todos os campos obrigatórios do Fast Track. Campos faltando: ' + camposVazios.join(', '));
+    btn.disabled = false;
+    status.textContent = '';
+    return;
+  }
+
+  console.log('✅ Todos os campos do Fast Track estão preenchidos!');
+
+  camposEspecificos = {
+    geracao_original: geracaoOrig,
+    geracao_otimizada: geracaoOtim,
+    qtd_modulos: qtdModulos,
+    potencia_inversor: potInversor,
+    local_inversor: localInversor,
+    observacoes: observacoes
+  };
+}
+
+  const imagens = {};
+  async function processarImagem(idInput, nomeCampo) {
+    const input = document.getElementById(idInput);
+    if (input && input.files && input.files[0]) {
       try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_conformidade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const resultado = await resp.json();
-
-        if (resultado.success) {
-          status.textContent = '✅ Relatório gerado!';
-
-          const modalSucesso = document.getElementById('modalSucesso');
-          const msg = document.getElementById('modalSucessoMsg');
-          const btnAbrir = document.getElementById('modalSucessoAbrir');
-          const btnFechar = document.getElementById('modalSucessoFechar');
-
-          if (modalSucesso) {
-            msg.textContent = 'Clique no botão abaixo para visualizar o relatório.';
-            btnAbrir.onclick = function() {
-              if (resultado.url) {
-                window.open(resultado.url, '_blank');
-              }
-              modalSucesso.classList.remove('active');
-            };
-            btnFechar.onclick = function() {
-              modalSucesso.classList.remove('active');
-            };
-            modalSucesso.classList.add('active');
-
-            modalSucesso.onclick = function(e) {
-              if (e.target === this) {
-                modalSucesso.classList.remove('active');
-              }
-            };
-          }
-
-          if (resultado.url) {
-            console.log('1. URL recebida:', resultado.url);
-
-            const urlField = document.getElementById('visita_relatorio_url');
-            if (urlField) {
-              urlField.value = resultado.url;
-              console.log('2. Campo URL atualizado');
-            }
-
-            const btnAbrirRelatorio = document.getElementById('btnAbrirRelatorio');
-            if (btnAbrirRelatorio) {
-              btnAbrirRelatorio.style.background = '#0b2f5c';
-              btnAbrirRelatorio.style.color = 'white';
-              btnAbrirRelatorio.style.borderColor = '#0b2f5c';
-              btnAbrirRelatorio.style.opacity = '1';
-              btnAbrirRelatorio.style.pointerEvents = 'auto';
-              btnAbrirRelatorio.style.cursor = 'pointer';
-              btnAbrirRelatorio.textContent = '📄 Abrir relatório';
-              console.log('3. Botão ativado (estilo azul)');
-            }
-
-            if (clienteEditando) {
-              if (!clienteEditando.dados_visita) clienteEditando.dados_visita = {};
-              clienteEditando.dados_visita.relatorio_url = resultado.url;
-              console.log('4. Objeto local atualizado');
-            }
-
-            const clienteId = modal.dataset.clienteId;
-            if (clienteId) {
-              await salvarRelatorioUrl(clienteId, resultado.url);
-              console.log('5. URL salva no servidor');
-            }
-
-            console.log('6. Atualização concluída');
-          }
-
-          fecharModalRelatorioVT();
-          limparCamposRelatorio();
-          carregarClientes();
-        } else {
-          status.textContent = '❌ Erro: ' + (resultado.error || '');
-          alert('❌ Erro ao gerar relatório: ' + (resultado.error || ''));
-        }
+        imagens[nomeCampo] = await fileToBase64(input.files[0]);
       } catch (err) {
-        status.textContent = '❌ Erro de conexão';
-        alert('❌ Erro de conexão: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        setTimeout(() => { status.textContent = ''; }, 5000);
+        console.warn(`Erro ao ler ${nomeCampo}:`, err);
       }
     }
+  }
+  await processarImagem('vtCroqui', 'croqui_layout');
+  await processarImagem('vtPanoramica', 'foto_panoramica');
+  await processarImagem('vtTelhado', 'foto_telhado');
+  await processarImagem('vtLocalInversorImg', 'foto_local_inversor');
+  await processarImagem('vtPadraoEntrada', 'foto_padrao_entrada');
+  await processarImagem('vtQuadroEletrico', 'foto_quadro_eletrico');
+
+  if (!imagens.croqui_layout) {
+    alert('O croqui do layout é obrigatório. Por favor, anexe uma imagem.');
+    btn.disabled = false; status.textContent = ''; return;
+  }
+
+  // ===== COLETA AS CATEGORIAS MARCADAS PARA ENVIAR =====
+  let adequacoes = [];
+  if (tipo === 'com_adequacao') {
+    const checkboxes = document.querySelectorAll('.adeq-check:checked');
+    checkboxes.forEach(cb => adequacoes.push(cb.value));
+  }
+
+  const payload = {
+    ...dadosComuns,
+    ...camposEspecificos,
+    imagens: imagens,
+    adequacoes: adequacoes
+  };
+
+  try {
+    const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_conformidade', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const resultado = await resp.json();
+
+    if (resultado.success) {
+      status.textContent = '✅ Relatório gerado!';
+
+      const modalSucesso = document.getElementById('modalSucesso');
+      const msg = document.getElementById('modalSucessoMsg');
+      const btnAbrir = document.getElementById('modalSucessoAbrir');
+      const btnFechar = document.getElementById('modalSucessoFechar');
+
+      if (modalSucesso) {
+        msg.textContent = 'Clique no botão abaixo para visualizar o relatório.';
+        btnAbrir.onclick = function() {
+          if (resultado.url) {
+            window.open(resultado.url, '_blank');
+          }
+          modalSucesso.classList.remove('active');
+        };
+        btnFechar.onclick = function() {
+          modalSucesso.classList.remove('active');
+        };
+        modalSucesso.classList.add('active');
+        modalSucesso.onclick = function(e) {
+          if (e.target === this) modalSucesso.classList.remove('active');
+        };
+      }
+
+      if (resultado.url) {
+        console.log('1. URL recebida:', resultado.url);
+        const urlField = document.getElementById('visita_relatorio_url');
+        if (urlField) {
+          urlField.value = resultado.url;
+          console.log('2. Campo URL atualizado');
+        }
+        const btnAbrirRelatorio = document.getElementById('btnAbrirRelatorio');
+        if (btnAbrirRelatorio) {
+          btnAbrirRelatorio.style.background = '#0b2f5c';
+          btnAbrirRelatorio.style.color = 'white';
+          btnAbrirRelatorio.style.borderColor = '#0b2f5c';
+          btnAbrirRelatorio.style.opacity = '1';
+          btnAbrirRelatorio.style.pointerEvents = 'auto';
+          btnAbrirRelatorio.style.cursor = 'pointer';
+          btnAbrirRelatorio.textContent = '📄 Abrir relatório';
+          console.log('3. Botão ativado (estilo azul)');
+        }
+        if (clienteEditando) {
+          if (!clienteEditando.dados_visita) clienteEditando.dados_visita = {};
+          clienteEditando.dados_visita.relatorio_url = resultado.url;
+          console.log('4. Objeto local atualizado');
+        }
+        const clienteId = modal.dataset.clienteId;
+        if (clienteId) {
+          await salvarRelatorioUrl(clienteId, resultado.url);
+          console.log('5. URL salva no servidor');
+        }
+        console.log('6. Atualização concluída');
+      }
+
+      fecharModalRelatorioVT();
+      limparCamposRelatorio();
+      carregarClientes();
+    } else {
+      status.textContent = '❌ Erro: ' + (resultado.error || '');
+      alert('❌ Erro ao gerar relatório: ' + (resultado.error || ''));
+    }
+  } catch (err) {
+    status.textContent = '❌ Erro de conexão';
+    alert('❌ Erro de conexão: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { status.textContent = ''; }, 5000);
+  }
+}
 
     // ============================================================
     // GERAR PROPOSTA FINAL
