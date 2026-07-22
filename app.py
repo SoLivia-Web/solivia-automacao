@@ -1,9 +1,7 @@
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from jinja2 import Template
 from weasyprint import HTML
 import io
-import os
 import base64
 import requests
 import matplotlib
@@ -12,28 +10,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date, datetime
 import warnings
+import json
+import os
+import hashlib
+
 warnings.filterwarnings("ignore")
 
 app = Flask(__name__)
-CORS(app)
 
-# ============================================================
-# CORS MANUAL – GARANTE QUE TODAS AS RESPOSTAS TENHAM HEADERS
-# ============================================================
 @app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     return response
-
-@app.route('/gerar_relatorio_conformidade', methods=['OPTIONS'])
-def handle_options():
-    response = jsonify({'status': 'ok'})
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    return response, 200
 
 # ============================================================
 # CONFIGURAÇÃO DO GOOGLE APPS SCRIPT (salvar PDF)
@@ -46,25 +36,23 @@ TOKEN = 'x9K2mP5vR8tY3wL7qZ1nB4fJ6cH5sU9e'
 # ============================================================
 URL_AREA_CLIENTE = 'https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec'
 
-def criar_cliente_area_cliente(dados_cliente):
-    """Chama a API da Área do Cliente para criar um novo cliente."""
-    payload = {
-        "acao": "criarClienteViaOrcamento",
-        "dados": {
-            "nome": dados_cliente.get('nome_cliente', ''),
-            "email": dados_cliente.get('email', ''),
-            "telefone": dados_cliente.get('telefone', ''),
-            "cep": dados_cliente.get('cep', ''),
-            "endereco": dados_cliente.get('endereco', '') + (f", {dados_cliente.get('numero_endereco', '')}" if dados_cliente.get('numero_endereco') else '')
-        }
-    }
-    try:
-        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(f"❌ Erro ao criar cliente na Área do Cliente: {e}")
-        return {'success': False, 'error': str(e)}
+# ============================================================
+# CONFIGURAÇÃO: AUTENTIQUE (ASSINATURA DIGITAL)
+# ============================================================
+AUTENTIQUE_API_KEY_SOLIVIA = "d5a81d2cb0a0c68a91152fa00189a275f477fe44f403a158f4061224c1bd4f68"
+AUTENTIQUE_API_KEY_NICOLAS = "52216c13e8e032e7ebef8b87f5955651acd7463e3a303c45a3aeb207fde3e463"
+
+ASSINANTE_SOLIVIA = {
+    "email": "contato@solivia.com.br",
+    "nome": "SoLivia Engenharia",
+    "api_key": AUTENTIQUE_API_KEY_SOLIVIA
+}
+
+ASSINANTE_NICOLAS = {
+    "email": "ncalves91@gmail.com",
+    "nome": "Nícolas Alves de Sá",
+    "api_key": AUTENTIQUE_API_KEY_NICOLAS
+}
 
 # ============================================================
 # FUNÇÕES AUXILIARES
@@ -131,9 +119,6 @@ def gerar_marcos_20(linhas):
         indices.update(extra[:20 - len(indices)])
     return sorted(list(indices))
 
-# ============================================================
-# FUNÇÃO: GERAR GRÁFICO DE PAYBACK
-# ============================================================
 def gerar_grafico_payback(dados_simulacao):
     try:
         investimento = dados_simulacao.get('investimento', 0)
@@ -239,2674 +224,258 @@ def gerar_grafico_payback(dados_simulacao):
         return None
 
 # ============================================================
-# TEMPLATE 1: PROPOSTA COMERCIAL (completo – igual ao seu original)
+# FUNÇÕES DE BUSCA E CRIAÇÃO
 # ============================================================
-template_proposta = """
-<html>
-<head>
-    <style>
-        :root {
-            --azul-premium: #001f3f;
-            --azul-glow: #0b2f5c;
-            --amarelo-sol: #ffc400;
-            --fundo-conteudo: #f8fafc;
-            --azul-corporativo: #0b2f5c;
+def buscar_cliente_por_id(cliente_id):
+    try:
+        senha_admin = 'SoLiVi@64253798@'
+        cliente_id_str = str(cliente_id)
+        payload = {
+            "acao": "adminObterCliente",
+            "idCliente": cliente_id_str,
+            "senhaAdmin": senha_admin
         }
-        @page {
-            size: A4;
-            margin: 0;
+        print(f"🔍 Buscando cliente com ID: {cliente_id_str}")
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        print(f"📡 Status da resposta: {response.status_code}")
+        if response.status_code == 200:
+            data = response.json()
+            print(f"📦 Dados retornados: {data}")
+            if data.get('success'):
+                return data.get('cliente')
+        return None
+    except Exception as e:
+        print(f"❌ Erro ao buscar cliente: {e}")
+        return None
+
+def buscar_cliente_por_documento_id(document_id):
+    """
+    Busca um cliente na planilha pelo document_id salvo em documentos.contrato.document_id
+    """
+    try:
+        senha_admin = 'SoLiVi@64253798@'
+        payload = {
+            "acao": "adminListarClientes",
+            "senhaAdmin": senha_admin
         }
-        @page interna {
-            margin: 0;
-            @bottom-center {
-                content: element(footer_geral);
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                clientes = data.get('clientes', [])
+                for cliente_resumido in clientes:
+                    # Buscar dados completos do cliente
+                    payload_cliente = {
+                        "acao": "adminObterCliente",
+                        "idCliente": cliente_resumido['id'],
+                        "senhaAdmin": senha_admin
+                    }
+                    resp_cliente = requests.post(URL_AREA_CLIENTE, json=payload_cliente, timeout=30)
+                    if resp_cliente.status_code == 200:
+                        dados_cliente = resp_cliente.json()
+                        if dados_cliente.get('success'):
+                            cliente_completo = dados_cliente.get('cliente', {})
+                            documentos = cliente_completo.get('documentos', {})
+                            contrato = documentos.get('contrato', {})
+                            if contrato.get('document_id') == document_id:
+                                return cliente_completo
+        return None
+    except Exception as e:
+        print(f"❌ Erro ao buscar cliente por document_id: {e}")
+        return None
+
+def atualizar_aprovacao_cliente(cliente_id):
+    print(f"✅ Atualizando aprovação do cliente {cliente_id}")
+    pass
+
+def criar_cliente_area_cliente(dados_cliente):
+    payload = {
+        "acao": "criarClienteViaOrcamento",
+        "dados": {
+            "nome": dados_cliente.get('nome_cliente', ''),
+            "email": dados_cliente.get('email', ''),
+            "telefone": dados_cliente.get('telefone', ''),
+            "cep": dados_cliente.get('cep', ''),
+            "endereco": dados_cliente.get('endereco', '') + (f", {dados_cliente.get('numero_endereco', '')}" if dados_cliente.get('numero_endereco') else '')
+        }
+    }
+    try:
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"❌ Erro ao criar cliente na Área do Cliente: {e}")
+        return {'success': False, 'error': str(e)}
+
+# ============================================================
+# FUNÇÃO: ENVIAR PARA ASSINATURA AUTENTIQUE (COM POSITIONS)
+# ============================================================
+def enviar_para_assinatura_autentique(
+    pdf_bytes,
+    nome_documento,
+    cliente_email,
+    cliente_nome,
+    assinante_empresa=None,
+    posicao_engenheiro=None,
+    posicao_cliente=None
+):
+    if assinante_empresa is None:
+        assinante_empresa = ASSINANTE_SOLIVIA
+
+    # Posições: x, y, z (z = página)
+    if posicao_engenheiro is None:
+        posicao_engenheiro = {"x": 200, "y": 400, "z": 1}
+    if posicao_cliente is None:
+        posicao_cliente = {"x": 200, "y": 300, "z": 1}
+
+    api_key = assinante_empresa["api_key"]
+
+    query = """
+    mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInput!]!, $file: Upload!) {
+        createDocument(
+            document: $document,
+            signers: $signers,
+            file: $file
+        ) {
+            id
+            name
+            created_at
+            signatures {
+                public_id
+                name
+                email
+                link {
+                    short_link
+                }
             }
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .capa-container {
-            width: 210mm;
-            height: 297mm;
-            background-color: var(--azul-premium);
-            color: white;
-            position: relative;
-            page-break-after: always;
-        }
-        .fundo-gradiente-capa {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 85% 15%, rgba(255,196,0,0.1) 0%, transparent 40%),
-                        radial-gradient(circle at 15% 85%, rgba(11,47,92,0.5) 0%, transparent 50%);
-        }
-        .logo-central-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .logo-img-central {
-            max-height: 420px;
-            max-width: 85%;
-            object-fit: contain;
-        }
-        .titulo-container-capa {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: translateY(-50%);
-        }
-        .linha-lateral-capa {
-            flex-grow: 1;
-            height: 1px;
-            background: rgba(255,255,255,0.3);
-            margin: 0;
-        }
-        .titulo-texto-capa {
-            font-size: 36px;
-            font-weight: bold;
-            letter-spacing: 12px;
-            margin: 0 15px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            color: var(--amarelo-sol);
-        }
-        .slogan-superior {
-            position: absolute;
-            bottom: 145px;
-            right: 60px;
-            font-size: 16px;
-            letter-spacing: 5px;
-            opacity: 0.9;
-            color: var(--amarelo-sol);
-            font-weight: 500;
-        }
-        .rodape-bloco-capa {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 135px;
-            background: rgba(0,0,0,0.25);
-            border-top: 5px solid var(--amarelo-sol);
-        }
-        .rodape-conteudo-capa {
-            position: relative;
-            width: 90%;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .linha-divisoria-capa {
-            width: 4px;
-            height: 60px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 2px;
-        }
-        .texto-identidade-capa {
-            text-align: center;
-            color: white;
-        }
-        .texto-identidade-capa b {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .texto-identidade-capa span {
-            font-size: 13px;
-            opacity: 0.8;
-            letter-spacing: 1.5px;
-            white-space: nowrap;
-        }
-        .info-proposta-capa {
-            text-align: right;
-            font-size: 14px;
-            color: white;
-            line-height: 1.8;
-        }
-        .info-proposta-capa b {
-            font-weight: 600;
-        }
+    }
+    """
 
-        .page-interna {
-            page: interna;
-            page-break-after: always;
-            width: 210mm;
-            min-height: 297mm;
-            background-color: var(--fundo-conteudo);
-            padding: 1.5cm;
-            box-sizing: border-box;
-            position: relative;
-            color: #333;
-        }
-        #footer_geral {
-            position: running(footer_geral);
-            text-align: center;
-            font-size: 8px;
-            color: #64748b;
-            padding: 5px 0;
-            width: 95%;
-            border-top: 2px solid var(--azul-corporativo);
-            margin: 0 auto;
-        }
-        .header-interna {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 3px solid var(--amarelo-sol);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-        }
-        .texto-solivia-topo {
-            color: var(--azul-corporativo);
-            font-weight: 800;
-            font-size: 16px;
-        }
-        .banner-azul {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 25px;
-            text-align: center;
-            border-radius: 10px;
-            border-bottom: 8px solid var(--amarelo-sol);
-        }
-        .foto-cliente {
-            width: 100%;
-            height: 320px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin: 15px 0;
-            border: 4px solid white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 15px;
-        }
-        .card-diagnostico {
-            background: white;
-            padding: 30px 25px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            min-height: auto;
-            overflow: visible;
-        }
-        .card-diagnostico .destaque-solivia {
-            font-weight: bold;
-            color: var(--azul-corporativo);
-            font-size: 1.1em;
-            display: block;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px solid var(--amarelo-sol);
-            text-align: center;
-        }
-        .titulo-faixa {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 12px 20px;
-            font-weight: bold;
-            border-left: 8px solid var(--amarelo-sol);
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        .valor-container {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 40px;
-            border-radius: 12px;
-            text-align: center;
-            border-right: 20px solid var(--amarelo-sol);
-        }
-        .valor-texto {
-            font-size: 48px;
-            font-weight: 800;
-            color: var(--amarelo-sol);
-        }
-        .tabela-projecao {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-        }
-        .tabela-projecao thead th {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 6px 3px;
-            font-weight: 600;
-            border-bottom: 2px solid var(--amarelo-sol);
-            border: none;
-            font-size: 10px;
-        }
-        .tabela-projecao tbody td {
-            padding: 5px 3px;
-            border: none;
-            border-bottom: 1px solid #e9edf2;
-            text-align: center;
-            font-size: 10px;
-        }
-        .tabela-projecao tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .celula-resultado {
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-weight: 700;
-        }
-        .pagina-especificacao table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-            border: 1px solid #cbd5e1;
-        }
-        .pagina-especificacao th {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 8px 6px;
-            font-weight: 600;
-            border: 1px solid #cbd5e1;
-            text-align: center;
-        }
-        .pagina-especificacao td {
-            padding: 6px 4px;
-            border: 1px solid #cbd5e1;
-            text-align: center;
-            font-size: 10px;
-        }
-        .container-grafico {
-            max-height: 550px;
-            overflow: hidden;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .imagem-grafico {
-            max-width: 100%;
-            max-height: 500px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            object-fit: contain;
-        }
-        .frase-compromisso {
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 20px;
-            font-style: italic;
-        }
-        .assinatura-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 80px;
-        }
-        .assinatura {
-            width: 40%;
-            text-align: center;
-        }
-        .linha-assinatura {
-            width: 100%;
-            border-top: 1.5px solid #333;
-            margin-bottom: 5px;
-        }
-        .nome-assinatura {
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        .cargo-assinatura {
-            font-size: 11px;
-            color: #555;
-        }
-        .icone-condicao {
-            display: inline-block;
-            width: 20px;
-            text-align: center;
-            margin-right: 8px;
-        }
-        .lista-inclusos {
-            list-style: none;
-            padding: 0;
-            font-size: 12px;
-            line-height: 1.8;
-        }
-        .lista-inclusos li::before {
-            content: "✔ ";
-            color: #10b981;
-            font-weight: bold;
-        }
-        .lista-exclusos {
-            list-style: none;
-            padding: 0;
-            font-size: 12px;
-            line-height: 1.8;
-        }
-        .lista-exclusos li::before {
-            content: "✘ ";
-            color: #e11d48;
-            font-weight: bold;
-        }
-        .beneficio-item {
-            font-size: 1.0em;
-            line-height: 2.2;
-        }
-        .solucao-texto {
-            font-size: 1.0em;
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
-        .destaque-pre-proposta {
-            font-weight: 600;
-            color: var(--azul-corporativo);
-            background: #eef2f7;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .passo-container {
-            width: 100%;
-            text-align: center;
-            background: white;
-            padding: 28px 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        .passo-container .icone-passo {
-            font-size: 28px;
-            margin-bottom: 5px;
-            display: block;
-        }
-        .passo-container .titulo-passo {
-            font-weight: bold;
-            font-size: 14px;
-            color: var(--azul-corporativo);
-            margin-bottom: 3px;
-        }
-        .passo-container .desc-passo {
-            font-size: 12px;
-            color: #555;
-            margin: 0;
-        }
-        .galeria-equipamentos {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        .item-equipamento {
-            flex: 1 1 110px;
-            max-width: 120px;
-            text-align: center;
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 8px 5px;
-            border: 1px solid #e2e8f0;
-        }
-        .item-equipamento .img-placeholder {
-            width: 100%;
-            height: 190px;
-            background: #e2e8f0;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 4px;
-        }
-        .item-equipamento .legenda {
-            font-size: 10px;
-            color: #555;
-            font-weight: 500;
-        }
-    </style>
-</head>
-<body>
-    <div id="footer_geral">SoLivia ENGENHARIA | CNPJ: 49.972.976/0001-15 | {{ CONTATOS }}</div>
+    variables = {
+        "document": {"name": nome_documento},
+        "signers": [
+            {
+                "email": assinante_empresa["email"],
+                "name": assinante_empresa["nome"],
+                "action": "SIGN",
+                "positions": [
+                    {
+                        "x": posicao_engenheiro["x"],
+                        "y": posicao_engenheiro["y"],
+                        "z": posicao_engenheiro["z"]
+                    }
+                ]
+            },
+            {
+                "email": cliente_email,
+                "name": cliente_nome,
+                "action": "SIGN",
+                "positions": [
+                    {
+                        "x": posicao_cliente["x"],
+                        "y": posicao_cliente["y"],
+                        "z": posicao_cliente["z"]
+                    }
+                ]
+            }
+        ]
+    }
 
-    <!-- CAPA -->
-    <div class="capa-container">
-        <div class="fundo-gradiente-capa"></div>
-        <div class="logo-central-wrapper">
-            {% if LOGO_CENTRAL %}<img src="{{ LOGO_CENTRAL }}" class="logo-img-central">{% endif %}
-        </div>
-        <div class="titulo-container-capa">
-            <div class="linha-lateral-capa"></div>
-            <div class="titulo-texto-capa">PROPOSTA COMERCIAL</div>
-            <div class="linha-lateral-capa"></div>
-        </div>
-        <div class="slogan-superior">SoLivia ENGENHARIA LTDA</div>
-        <div class="rodape-bloco-capa">
-            <div class="rodape-conteudo-capa">
-                <div style="display: flex; align-items: center; gap: 25px;">
-                    {% if LOGO_RODAPE %}<img src="{{ LOGO_RODAPE }}" style="max-height: 100px;">{% endif %}
-                    <div class="linha-divisoria-capa"></div>
-                    <div class="texto-identidade-capa">
-                        <b>SoLivia ENGENHARIA</b>
-                        <span>{{ TIPO_PROJETO }}</span>
-                    </div>
-                </div>
-                <div class="info-proposta-capa">
-                    <b>Nº DA PROPOSTA:</b> {{ NUM_PROPOSTA }}<br>
-                    <b>REVISÃO:</b> {{ REVISAO }}<br>
-                    <b>DATA:</b> {{ DATA_EMISSAO }}
-                </div>
-            </div>
-        </div>
-    </div>
+    operations = {"query": query, "variables": variables}
+    map_payload = {"file": ["variables.file"]}
 
-    <!-- PÁGINA 2: IDENTIFICAÇÃO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 02</div>
-        </div>
-        <div class="banner-azul">
-            <h1 style="margin:0; font-size: 28px;">{{ TIPO_PROJETO }}</h1>
-        </div>
-        {% if FOTO_CAPA_MIOLO %}
-        <img src="{{ FOTO_CAPA_MIOLO }}" class="foto-cliente">
-        {% endif %}
-        <div class="titulo-faixa">Identificação do Cliente</div>
-        <div class="card">
-            <p>
-                <b>CLIENTE:</b> {{ NOME_CLIENTE }}<br>
-                <b>CPF/CNPJ:</b> {{ CPF_CNPJ }}<br>
-                <b>TELEFONE:</b> {{ TELEFONE_CLIENTE }}<br>
-                <b>LOCAL:</b> {{ ENDERECO }}{% if NUMERO_ENDERECO %}, {{ NUMERO_ENDERECO }}{% endif %}
-            </p>
-        </div>
-        <p style="text-align: center; font-style: italic; margin-top: 30px; font-size: 16px; color: #0b2f5c;">
-            "{{ FRASE_IMPACTO }}"
-        </p>
-    </div>
+    url = "https://autentique-proxy.ncalves91.workers.dev/v2/graphql"
 
-    <!-- PÁGINA 3: DIAGNÓSTICO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 03</div>
-        </div>
-        <div class="titulo-faixa">Diagnóstico Técnico</div>
-        <div class="card-diagnostico">
-            {{ DIAGNOSTICO }}
-            <span class="destaque-solivia">{{ DESTAQUE_FINAL }} </span>
-        </div>
-    </div>
+    response = requests.post(
+        url,
+        data={"operations": json.dumps(operations), "map": json.dumps(map_payload)},
+        files={"file": (nome_documento, pdf_bytes, "application/pdf")},
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout=60,
+        proxies={}
+    )
 
-    <!-- PÁGINA 4: SOLUÇÃO E BENEFÍCIOS -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 04</div>
-        </div>
-        <div class="titulo-faixa">Solução Proposta e Benefícios</div>
-        <div class="card">
-            <div class="solucao-texto">
-                {{ SOLUCAO_TEXTO }}
-            </div>
-            <ul style="list-style: none; padding: 0; font-size: 1.0em; line-height: 2.2;">
-                {% for beneficio in BENEFICIOS %}
-                <li class="beneficio-item">★ {{ beneficio }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% if FOTO_PROVA %}
-        <div class="container-grafico">
-            <img src="{{ FOTO_PROVA }}" class="imagem-grafico">
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- PÁGINA 5: COMO FUNCIONA O SISTEMA -->
-    <div class="page-interna" style="padding:1.2cm 1.5cm; display:flex; flex-direction:column; height:100%; box-sizing:border-box;">
-        <div class="header-interna" style="flex-shrink:0;">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 05</div>
-        </div>
-        <div class="titulo-faixa" style="flex-shrink:0; margin: 8px 0 12px 0;">Como Funciona o Sistema Solar?</div>
-
-        <div style="flex:1; display:flex; flex-direction:column; gap:10px; min-height:0;">
-
-            <!-- Card 1: Geração -->
-            <div class="passo-container" style="flex:1; padding:10px 15px; border-radius:12px; border:1px solid #e2e8f0; background:white; display:flex; align-items:center; gap:15px; min-height:0;">
-                <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/1.%20Gera%C3%A7%C3%A3o.png" style="width:50%; height:160px; object-fit:cover; object-position:top center; border-radius:8px; flex-shrink:0;">
-                <div style="flex:1; text-align:left;">
-                    <p class="titulo-passo" style="margin:0 0 2px 0; font-weight:bold; font-size:14px; color:var(--azul-corporativo);">1. Geração</p>
-                    <p class="desc-passo" style="margin:0; font-size:12px; color:#555;">Os módulos captam a luz solar e geram energia em corrente contínua (CC).</p>
-                </div>
-            </div>
-
-            <!-- Card 2: Conversão -->
-            <div class="passo-container" style="flex:1; padding:10px 15px; border-radius:12px; border:1px solid #e2e8f0; background:white; display:flex; align-items:center; gap:15px; min-height:0;">
-                <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/2.%20Convers%C3%A3o.png" style="width:50%; height:160px; object-fit:cover; object-position:center center; border-radius:8px; flex-shrink:0;">
-                <div style="flex:1; text-align:left;">
-                    <p class="titulo-passo" style="margin:0 0 2px 0; font-weight:bold; font-size:14px; color:var(--azul-corporativo);">2. Conversão</p>
-                    <p class="desc-passo" style="margin:0; font-size:12px; color:#555;">O inversor transforma a corrente contínua (CC) em corrente alternada (CA).</p>
-                </div>
-            </div>
-
-            <!-- Card 3: Distribuição -->
-            <div class="passo-container" style="flex:1; padding:10px 15px; border-radius:12px; border:1px solid #e2e8f0; background:white; display:flex; align-items:center; gap:15px; min-height:0;">
-                <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/3.%20Distribui%C3%A7%C3%A3o.png" style="width:50%; height:160px; object-fit:cover; object-position:center center; border-radius:8px; flex-shrink:0;">
-                <div style="flex:1; text-align:left;">
-                    <p class="titulo-passo" style="margin:0 0 2px 0; font-weight:bold; font-size:14px; color:var(--azul-corporativo);">3. Distribuição</p>
-                    <p class="desc-passo" style="margin:0; font-size:12px; color:#555;">A energia gerada abastece os eletrodomésticos e a iluminação do imóvel.</p>
-                </div>
-            </div>
-
-            <!-- Card 4: Excedente -->
-            <div class="passo-container" style="flex:1; padding:10px 15px; border-radius:12px; border:1px solid #e2e8f0; background:white; display:flex; align-items:center; gap:15px; min-height:0;">
-                <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/4.%20Excedente.png" style="width:50%; height:160px; object-fit:cover; object-position:center center; border-radius:8px; flex-shrink:0;">
-                <div style="flex:1; text-align:left;">
-                    <p class="titulo-passo" style="margin:0 0 2px 0; font-weight:bold; font-size:14px; color:var(--azul-corporativo);">4. Excedente</p>
-                    <p class="desc-passo" style="margin:0; font-size:12px; color:#555;">O excedente vai para a rede elétrica, gerando créditos de energia para você.</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- PÁGINA 6: PROJEÇÃO 20 MARCOS + GRÁFICO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 06</div>
-        </div>
-        <div class="titulo-faixa">Projeção Financeira – Marcos (20 anos)</div>
-        <table class="tabela-projecao">
-            <thead>
-                <tr>
-                    <th>ANO</th>
-                    <th>Custo s/ solar (Mês)</th>
-                    <th>Eficiência</th>
-                    <th>Tarifa</th>
-                    <th>Custo c/ solar</th>
-                    <th>Economia anual</th>
-                    <th>Resultado Solar</th>
-                    <th>Resultado Poupança</th>
-                    <th>Resultado CDB (líq.)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in PROJECAO_20 %}
-                <tr>
-                    <td>{{ item.ano }}</td>
-                    <td>R$ {{ item.custoSemSolarMes }}</td>
-                    <td>{{ item.eficiencia }}%</td>
-                    <td>R$ {{ item.tarifa }}</td>
-                    <td>R$ {{ item.custoComSolarMes }}</td>
-                    <td>R$ {{ item.economiaAnual }}</td>
-                    <td class="col-resultado">
-                        <span class="celula-resultado" style="background-color:{{ item.cor_fundo }}; color:{{ item.cor_texto }}; padding: 2px 6px; border-radius: 3px;">
-                            R$ {{ item.resultadoAcumulado }}
-                        </span>
-                    </td>
-                    <td>R$ {{ item.saldoPoupanca }}</td>
-                    <td>R$ {{ item.saldoCDB }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% if GRAFICO_BASE64 %}
-        <div class="container-grafico">
-            <img src="data:image/png;base64,{{ GRAFICO_BASE64 }}" class="imagem-grafico">
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- PÁGINA 7: ESPECIFICAÇÕES + GALERIA DE EQUIPAMENTOS -->
-    <div class="page-interna pagina-especificacao">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 07</div>
-        </div>
-        <div class="titulo-faixa">Especificações do Sistema</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Descrição</th>
-                    <th>Marca</th>
-                    <th>Quantidade</th>
-                    <th>Preço Unitário</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in ITENS_ESCOPO %}
-                <tr>
-                    <td>{{ item.desc }}</td>
-                    <td>{{ item.marca }}</td>
-                    <td>{{ item.qtd }}</td>
-                    <td>R$ {{ item.preco }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div style="display: flex; gap: 20px; margin-top: 30px;">
-            <div style="flex: 1;">
-                <p style="font-weight: bold; color: #10b981; font-size: 12px;">✔ INCLUSO:</p>
-                <ul class="lista-inclusos">
-                    {% for i in INCLUSOS %}
-                    <li>{{ i }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div style="flex: 1;">
-                <p style="font-weight: bold; color: #e11d48; font-size: 12px;">✘ NÃO INCLUSO:</p>
-                <ul class="lista-exclusos">
-                    {% for i in EXCLUSOS %}
-                    <li>{{ i }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <!-- GALERIA DE EQUIPAMENTOS -->
-        <div style="margin-top: 25px;">
-            <p style="font-weight: bold; color: var(--azul-corporativo); font-size: 12px; margin-bottom: 8px;">🔧 Componentes do Sistema</p>
-            <div class="galeria-equipamentos">
-                <div class="item-equipamento">
-                    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/M%C3%B3dulo%20Solar.png" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">
-                    <span class="legenda">Módulo Solar</span>
-                </div>
-                <div class="item-equipamento">
-                    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/Inversor.jpg" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">
-                    <span class="legenda">Inversor</span>
-                </div>
-                <div class="item-equipamento">
-                    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/Microinversor.png" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">
-                    <span class="legenda">Microinversor</span>
-                </div>
-                <div class="item-equipamento">
-                    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/String%20Box.jpg" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">
-                    <span class="legenda">String Box</span>
-                </div>
-                <div class="item-equipamento">
-                    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/Estrutura.jpg" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">
-                    <span class="legenda">Estrutura</span>
-                </div>
-            </div>
-        </div>
-        <p style="font-size: 9px; color: #64748b; text-align: center; margin-top: 8px; font-style: italic;">
-            * Imagens ilustrativas dos principais equipamentos do sistema.
-        </p>
-    </div>
-
-    <!-- PÁGINA 8: INVESTIMENTO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">SoLivia ENGENHARIA</div>
-            <div>Pág. 08</div>
-        </div>
-        <div class="titulo-faixa">Investimento Final</div>
-        <div class="valor-container" style="margin-top: 20px;">
-            <span style="font-size: 14px; opacity: 0.8; letter-spacing: 2px; margin-bottom: 25px; display: block;">
-                INVESTIMENTO TOTAL
-            </span>
-            <div class="valor-texto">{{ VALOR_TOTAL }}</div>
-        </div>
-        <div class="card" style="margin-top: 30px; padding: 25px;">
-            <p>
-                <span class="icone-condicao">💰</span>
-                <b>FORMA DE INVESTIMENTO:</b> {{ CONDICAO_1 }} / {{ CONDICAO_2 }} / {{ CONDICAO_3 }}
-            </p>
-            <p>
-                <span class="icone-condicao">⏱️</span>
-                <b>PRAZO DE EXECUÇÃO:</b> {{ PRAZO_EXECUCAO }}
-            </p>
-            <p>
-                <span class="icone-condicao">📅</span>
-                <b>VALIDADE DA PROPOSTA:</b> {{ VALIDADE_PROPOSTA }}
-            </p>
-        </div>
-
-        <!-- BLOCO DA VISITA TÉCNICA -->
-        <div class="card" style="margin-top: 20px; padding: 20px; background: #f8fafc; border-left: 6px solid var(--amarelo-sol);">
-            <p>
-                <span class="icone-condicao">📍</span>
-                <b>VISITA TÉCNICA:</b> Distância: {{ DISTANCIA_VISITA }} | Custo: {{ CUSTO_VISITA }}
-            </p>
-            <p style="font-size: 11px; color: #555; margin-top: 8px; font-style: italic;">
-                * Este é um valor estimado da visita técnica, baseado na distância entre o CEP da empresa e o CEP do cliente.
-                Caso o projeto seja fechado conosco, o valor da visita será integralmente abatido do investimento total.
-            </p>
-        </div>
-
-        <div style="margin-top: 40px; text-align: center;">
-            {% if SELO_QUALIDADE %}<img src="{{ SELO_QUALIDADE }}" style="width: 140px;">{% endif %}
-            <p class="frase-compromisso">Compromisso com Excelência e Sustentabilidade</p>
-        </div>
-        <div class="assinatura-container">
-            <div class="assinatura">
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura"><b>CLIENTE</b></div>
-            </div>
-            <div class="assinatura">
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">SoLivia ENGENHARIA</div>
-                <div class="cargo-assinatura"><b>GESTOR DE SOLUÇÕES</b></div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-"""
+    if response.status_code == 200:
+        dados = response.json()
+        if "errors" in dados:
+            return {"success": False, "error": dados["errors"]}
+        resultado = dados.get("data", {}).get("createDocument", {})
+        link_assinatura = None
+        signatures = resultado.get("signatures", [])
+        if signatures:
+            for sig in signatures:
+                link = sig.get("link")
+                if link and link.get("short_link"):
+                    link_assinatura = link["short_link"]
+                    break
+        return {
+            "success": True,
+            "document_id": resultado.get("id"),
+            "link_assinatura": link_assinatura,
+            "data": resultado
+        }
+    else:
+        return {"success": False, "error": response.text}
 
 # ============================================================
-# TEMPLATE 2: RELATÓRIO SEM ADEQUAÇÃO (VT)
+# NOVA FUNÇÃO: BAIXAR PDF ASSINADO
 # ============================================================
-template_sem_adequacao = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>RELATÓRIO DE CONFORMIDADE TÉCNICA - SoLivia ENGENHARIA</title>
-    <style>
-        :root {
-            --azul-premium: #001f3f;
-            --azul-glow: #0b2f5c;
-            --amarelo-sol: #ffc400;
-            --fundo-conteudo: #f8fafc;
-            --azul-corporativo: #0b2f5c;
-        }
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        @page interna {
-            margin: 0;
-            @bottom-center {
-                content: element(footer_geral);
+def baixar_pdf_assinado(document_id, api_key):
+    # 1. Obter a URL assinada via Worker (GraphQL)
+    query = """
+    query DownloadDocument($id: UUID!) {
+        document(id: $id) {
+            files {
+                signed
             }
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .capa-container {
-            width: 210mm;
-            height: 297mm;
-            background-color: var(--azul-premium);
-            color: white;
-            position: relative;
-            page-break-after: always;
-        }
-        .fundo-gradiente-capa {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 85% 15%, rgba(255,196,0,0.1) 0%, transparent 40%),
-                        radial-gradient(circle at 15% 85%, rgba(11,47,92,0.5) 0%, transparent 50%);
-        }
-        .logo-central-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .logo-img-central {
-            max-height: 420px;
-            max-width: 85%;
-            object-fit: contain;
-        }
-        .titulo-container-capa {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: translateY(-50%);
-        }
-        .linha-lateral-capa {
-            flex-grow: 1;
-            height: 1px;
-            background: rgba(255,255,255,0.3);
-            margin: 0;
-        }
-        .titulo-texto-capa {
-            font-size: 36px;
-            font-weight: bold;
-            letter-spacing: 12px;
-            margin: 0 15px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            color: var(--amarelo-sol);
-        }
-        .rodape-bloco-capa {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 135px;
-            background: rgba(0,0,0,0.25);
-            border-top: 5px solid var(--amarelo-sol);
-        }
-        .rodape-conteudo-capa {
-            position: relative;
-            width: 90%;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .linha-divisoria-capa {
-            width: 4px;
-            height: 60px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 2px;
-        }
-        .texto-identidade-capa {
-            text-align: center;
-            color: white;
-        }
-        .texto-identidade-capa b {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .texto-identidade-capa span {
-            font-size: 13px;
-            opacity: 0.8;
-            letter-spacing: 1.5px;
-            white-space: nowrap;
-        }
-        .info-proposta-capa {
-            text-align: right;
-            font-size: 14px;
-            color: white;
-            line-height: 1.8;
-        }
-        .info-proposta-capa b {
-            font-weight: 600;
-        }
+    }
+    """
+    variables = {"id": document_id}
 
-        /* PÁGINAS INTERNAS */
-        .page-interna {
-            page: interna;
-            page-break-after: always;
-            width: 210mm;
-            min-height: 297mm;
-            background-color: var(--fundo-conteudo);
-            padding: 1.5cm;
-            box-sizing: border-box;
-            position: relative;
-            color: #333;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-        #footer_geral {
-            position: running(footer_geral);
-            text-align: center;
-            font-size: 8px;
-            color: #64748b;
-            padding: 5px 0;
-            width: 95%;
-            border-top: 2px solid var(--azul-corporativo);
-            margin: 0 auto;
-        }
-        .header-interna {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 3px solid var(--amarelo-sol);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-        }
-        .texto-solivia-topo {
-            color: var(--azul-corporativo);
-            font-weight: 800;
-            font-size: 16px;
-        }
-        .titulo-faixa {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 10px 18px;
-            font-weight: bold;
-            border-left: 8px solid var(--amarelo-sol);
-            border-radius: 4px;
-            margin: 16px 0;
-            font-size: 14px;
-        }
-        .clausula-titulo {
-            font-weight: bold;
-            margin-top: 15px;
-            color: var(--azul-corporativo);
-            font-size: 14px;
-        }
-        .clausula-conteudo {
-            text-align: justify;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-        .negrito {
-            font-weight: bold;
-        }
-        .item-lista {
-            margin-left: 20px;
-            margin-bottom: 6px;
-            font-size: 12px;
-        }
-        .assinatura-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 110px;
-            page-break-inside: avoid;
-        }
-        .assinatura {
-            width: 40%;
-            text-align: center;
-        }
-        .linha-assinatura {
-            width: 100%;
-            border-top: 1.5px solid #333;
-            margin-bottom: 5px;
-        }
-        .nome-assinatura {
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        .cargo-assinatura {
-            font-size: 11px;
-            color: #555;
-        }
-        .destaque-azul {
-            background-color: rgba(11, 47, 92, 0.1);
-            padding: 15px;
-            border-left: 4px solid var(--azul-corporativo);
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        .destaque-verde {
-            background-color: rgba(76, 175, 80, 0.1);
-            padding: 20px;
-            border-left: 6px solid #4CAF50;
-            margin: 20px 0;
-            border-radius: 6px;
-            text-align: center;
-        }
-        .container-geracao {
-            display: flex;
-            justify-content: space-around;
-            align-items: stretch;
-            margin: 15px 0 10px 0;
-            gap: 12px;
-        }
-        .box-geracao {
-            background: white;
-            border: 2px solid var(--azul-corporativo);
-            padding: 10px 8px;
-            border-radius: 8px;
-            text-align: center;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 80px;
-        }
-        .valor-geracao {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--azul-corporativo);
-            margin: 2px 0;
-        }
-        .label-geracao {
-            font-size: 11px;
-            color: #666;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .sub-label {
-            font-size: 10px;
-            color: #555;
-            margin-top: 2px;
-        }
-        .emoji-grande {
-            font-size: 56px;
-            margin-bottom: 10px;
-        }
-        .moldura-imagem {
-            border: 4px solid var(--azul-corporativo);
-            border-radius: 12px;
-            padding: 8px;
-            background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin: 15px 0;
-            text-align: center;
-        }
-        .moldura-imagem img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            display: block;
-            margin: 0 auto;
-        }
-        .clausula-conteudo, .item-lista, .destaque-azul p, .destaque-verde p {
-            font-size: 12px;
-        }
-        .destaque-azul .negrito, .destaque-verde .negrito {
-            font-size: 13px;
-        }
-        .selo-contato {
-            margin-top: 25px;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <div id="footer_geral">{{ RAZAO_SOCIAL }} | CNPJ: {{ CNPJ }} | Telefone: {{ TELEFONE }} | WhatsApp: (11) 91686-6075 | {{ EMAIL }}</div>
+    response = requests.post(
+        "https://autentique-proxy.ncalves91.workers.dev/v2/graphql",
+        json={"query": query, "variables": variables},
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        timeout=60,
+        proxies={}
+    )
 
-    <!-- CAPA -->
-    <div class="capa-container">
-        <div class="fundo-gradiente-capa"></div>
-        <div class="logo-central-wrapper">
-            <img src="{{ LOGO_CENTRAL }}" class="logo-img-central">
-        </div>
-        <div class="titulo-container-capa">
-            <div class="linha-lateral-capa"></div>
-            <div class="titulo-texto-capa">RELATÓRIO TÉCNICO</div>
-            <div class="linha-lateral-capa"></div>
-        </div>
-        <div class="rodape-bloco-capa">
-            <div class="rodape-conteudo-capa">
-                <div style="display: flex; align-items: center; gap: 25px;">
-                    <img src="{{ LOGO_RODAPE }}" style="max-height: 100px;">
-                    <div class="linha-divisoria-capa"></div>
-                    <div class="texto-identidade-capa">
-                        <b>{{ NOME_FANTASIA }}</b>
-                        <span>ENGENHARIA E INSTALAÇÕES SOLARES</span>
-                    </div>
-                </div>
-                <div class="info-proposta-capa">
-                    <b>Nº DO RELATÓRIO:</b> {{ NUM_RELATORIO }}<br>
-                    <b>DATA:</b> {{ DATA_EMISSAO }}<br>
-                    <b>CLIENTE:</b> {{ NOME_CLIENTE }}
-                </div>
-            </div>
-        </div>
-    </div>
+    if response.status_code != 200:
+        print(f"❌ Erro na requisição GraphQL: {response.status_code}")
+        return None
 
-    <!-- PÁGINA 1 -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 01</div>
-        </div>
+    data = response.json()
+    if "errors" in data:
+        print(f"❌ Erro GraphQL: {data['errors']}")
+        return None
 
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
+    signed_url = data.get("data", {}).get("document", {}).get("files", {}).get("signed")
+    if not signed_url:
+        print("❌ Nenhum signed URL encontrado")
+        return None
 
-        <div class="clausula-conteudo">
-            <span class="negrito">Cliente:</span> {{ NOME_CLIENTE }}<br>
-            <span class="negrito">Endereço:</span> {{ ENDERECO }}
-        </div>
+    print(f"📥 Baixando PDF via Worker: {signed_url}")
 
-        <div class="destaque-verde">
-            <div class="emoji-grande">🎉</div>
-            <p class="negrito" style="font-size: 18px; color: #2E7D32;">
-                ANÁLISE CONCLUÍDA: NENHUM AJUSTE NECESSÁRIO!
-            </p>
-            <p style="font-size: 13px; margin-top: 10px;">
-                Sua instalação está pronta para prosseguir conforme planejado!
-            </p>
-        </div>
+    # 2. Baixar o PDF via Worker (passando a URL como parâmetro)
+    pdf_response = requests.get(
+        f"https://autentique-proxy.ncalves91.workers.dev/?url={signed_url}",
+        timeout=60,
+        proxies={}
+    )
 
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            Este relatório técnico apresenta o layout definido para sua instalação fotovoltaica. Concluímos a análise da visita técnica com ótimas notícias: <span class="negrito">seu projeto não requer adequações adicionais</span> e está pronto para homologação junto à concessionária.
-        </div>
-
-        <div class="destaque-azul">
-            <p class="negrito">SOBRE SUA CONCESSIONÁRIA</p>
-            <p style="font-size: 11px; margin: 5px 0;">
-                A {{ CONCESSIONARIA }} possui normativas específicas para instalações fotovoltaicas. Nossa equipe técnica analisou seu imóvel e confirmou que o projeto atende integralmente às exigências técnicas.
-            </p>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Objetivo deste relatório:</span>
-            <div class="item-lista">• Apresentar o layout técnico otimizado para seu imóvel</div>
-            <div class="item-lista">• Garantir conformidade com as normativas da {{ CONCESSIONARIA }}</div>
-            <div class="item-lista">• Estabelecer os próximos passos para instalação</div>
-            <div class="item-lista">• Orientar sobre procedimentos importantes</div>
-        </div>
-
-        <div style="margin-top: 60px; text-align: center;">
-            <p style="font-style: italic; color: var(--azul-corporativo);">
-                "Soluções energéticas com excelência técnica e segurança"
-            </p>
-            <div style="margin-top: 40px;">
-                <div class="linha-assinatura" style="width: 60%; margin: 0 auto;"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura">CLIENTE / PROPRIETÁRIO</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA 2 -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 02</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">LAYOUT DEFINIDO PARA INSTALAÇÃO</div>
-
-        <div class="clausula-conteudo">
-            Após análise detalhada das imagens e dados coletados na visita técnica, confirmamos que o projeto está <span class="negrito">totalmente adequado</span> para instalação imediata. Estamos entusiasmados com esta parceria e confiantes de que alcançaremos resultados excepcionais juntos!
-        </div>
-
-        <div class="container-geracao">
-            <div class="box-geracao">
-                <div class="label-geracao">SISTEMA DEFINIDO</div>
-                <div class="valor-geracao">{{ QTD_MODULOS }} MÓDULOS</div>
-                <div class="sub-label">+ {{ INVERSOR }}</div>
-            </div>
-            <div class="box-geracao">
-                <div class="label-geracao">GERAÇÃO ESTIMADA</div>
-                <div class="valor-geracao">{{ GERACAO }} kWh/mês</div>
-                <div class="sub-label">MÉDIA MENSAL</div>
-            </div>
-            <div class="box-geracao">
-                <div class="label-geracao">INVESTIMENTO TOTAL</div>
-                <div class="valor-geracao">R$ {{ INVESTIMENTO }}</div>
-                <div class="sub-label">PROJETO CHAVE NA MÃO</div>
-            </div>
-        </div>
-
-        <div class="moldura-imagem">
-            {% if CROQUI_LAYOUT %}
-            <img src="data:image/png;base64,{{ CROQUI_LAYOUT }}" alt="Layout do sistema fotovoltaico">
-            {% else %}
-            <img src="https://i.imgur.com/014AgLG.png" alt="Layout do sistema fotovoltaico">
-            {% endif %}
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 10px;">
-            <span class="negrito">Especificações do sistema:</span>
-            <div class="item-lista">• {{ QTD_MODULOS }} módulos fotovoltaicos de alta eficiência</div>
-            <div class="item-lista">• {{ INVERSOR }} com tecnologia MPPT</div>
-            <div class="item-lista">• Sistema de monitoramento remoto incluído</div>
-            <div class="item-lista">• Estrutura de fixação compatível com seu telhado</div>
-            <div class="item-lista">• Cabos e conectores específicos para energia solar</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 10px;">
-            <span class="negrito">Vantagens do layout definido:</span>
-            <div class="item-lista">• Máxima eficiência energética para seu consumo</div>
-            <div class="item-lista">• Instalação rápida e sem adequações adicionais</div>
-            <div class="item-lista">• Homologação simplificada junto à concessionária</div>
-            <div class="item-lista">• Retorno do investimento otimizado</div>
-        </div>
-
-        <div style="margin-top: 15px; text-align: center;">
-            <p style="font-style: italic; color: var(--azul-corporativo); font-size: 12px;">
-                "Energia solar com tecnologia de ponta e tranquilidade"
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 3 -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 03</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">LOCAL DE INSTALAÇÃO DOS INVERSORES</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Local definido para instalação dos inversores:</span>
-            <div class="item-lista" style="margin-top: 10px;">• Instalados diretamente <span class="negrito">embaixo dos módulos fotovoltaicos</span></div>
-            <div class="item-lista">• Protegidos contra chuva e radiação UV (IP67)</div>
-            <div class="item-lista">• Ventilação natural adequada (convecção)</div>
-            <div class="item-lista">• Fácil acesso para manutenção quando necessário</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Requisitos técnicos atendidos:</span>
-            <div class="item-lista">• Estrutura do telhado em boas condições para fixação</div>
-            <div class="item-lista">• Espaço mínimo para circulação de ar</div>
-            <div class="item-lista">• Temperatura ambiente dentro da faixa recomendada</div>
-            <div class="item-lista">• Conexões elétricas devidamente protegidas</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Considerações importantes:</span>
-            <div class="item-lista">• Os inversores possuem Wi-Fi integrado para monitoramento direto</div>
-            <div class="item-lista">• Recomendamos garantir acesso à rede Wi-Fi para monitoramento</div>
-            <div class="item-lista">• Cada inversor conecta até 4 módulos</div>
-        </div>
-
-        <div class="selo-contato">
-            <img src="{{ SELO_QUALIDADE }}" style="width: 100px; opacity: 0.8;">
-            <p style="font-size: 11px; color: #666; margin-top: 8px;">
-                {{ SITE }}<br>
-                {{ TELEFONE }} | {{ EMAIL }}
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 4 -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 04</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            Para garantir que sua instalação ocorra de forma tranquila, segura e dentro dos prazos estabelecidos, destacamos os seguintes pontos importantes:
-        </div>
-
-        <div class="clausula-titulo">RECEBIMENTO DOS EQUIPAMENTOS</div>
-        <div class="item-lista">• <span class="negrito">Confira imediatamente</span> a quantidade de volumes entregues, comparando com a nota fiscal</div>
-        <div class="item-lista">• <span class="negrito">Verifique a integridade física</span> dos módulos fotovoltaicos (painéis solares)</div>
-        <div class="item-lista">• Em caso de avaria ou divergência, <span class="negrito">registre fotos e entre em contato imediatamente</span></div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">ARMAZENAMENTO TEMPORÁRIO</div>
-        <div class="item-lista">• <span class="negrito">Reserve uma área adequada</span> para armazenamento (os equipamentos ocupam espaço considerável)</div>
-        <div class="item-lista">• Módulos podem ficar expostos ao tempo, mas <span class="negrito">REMOVA o papelão de proteção</span> se houver chuva</div>
-        <div class="item-lista">• Inversores e outros equipamentos eletrônicos <span class="negrito">DEVEM ficar em locais cobertos e secos</span></div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">PRESENÇA NO LOCAL</div>
-        <div class="item-lista">• É <span class="negrito">obrigatória a presença do cliente ou pessoa autorizada</span> durante a entrega dos equipamentos</div>
-        <div class="item-lista">• Durante a instalação, é necessário que <span class="negrito">alguém de confiança esteja presente</span> para acesso e esclarecimento de dúvidas</div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">CONEXÃO E MONITORAMENTO</div>
-        <div class="item-lista">• Para funcionamento do monitoramento remoto (aplicativo), é necessário <span class="negrito">internet de qualidade no local</span></div>
-        <div class="item-lista">• Se não houver internet no momento da instalação, o <span class="negrito">retorno do técnico para configuração será cobrado adicionalmente</span></div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">ALTERAÇÕES NO PROJETO</div>
-        <div class="item-lista">• Caso o cliente realize adequações por conta própria, este relatório torna-se <span class="negrito">apenas consultivo</span></div>
-        <div class="item-lista">• A {{ RAZAO_SOCIAL }} não se responsabiliza por <span class="negrito">atrasos ou reprovações</span> junto à concessionária decorrentes de alterações não autorizadas</div>
-    </div>
-
-    <!-- PÁGINA 5 -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 05</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Reformas e alterações pós-assinatura:</span>
-            <div class="item-lista">• Qualquer reforma no imóvel após a assinatura deste relatório exigirá <span class="negrito">nova visita técnica para validação</span></div>
-            <div class="item-lista">• O custo da nova visita técnica será de <span class="negrito">responsabilidade integral do cliente</span></div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Alterações cadastrais:</span>
-            <div class="item-lista">• Mudanças no cadastro junto à concessionária durante o processo de instalação <span class="negrito">podem estender os prazos</span></div>
-            <div class="item-lista">• A {{ RAZAO_SOCIAL }} não se responsabiliza por <span class="negrito">atrasos decorrentes de alterações cadastrais</span> feitas pelo cliente</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Garantia e pós-venda:</span>
-            <div class="item-lista">• Garantia dos equipamentos conforme fabricante (certificados serão entregues após instalação)</div>
-            <div class="item-lista">• Garantia da instalação: 90 dias para vícios aparentes, 5 anos para vícios ocultos</div>
-            <div class="item-lista">• Suporte técnico disponível durante todo o período de garantia</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Próximos passos:</span>
-            <div class="item-lista">1. Aprovação deste relatório pelo cliente</div>
-            <div class="item-lista">2. Início do processo de homologação junto à concessionária ({{ CONCESSIONARIA }})</div>
-            <div class="item-lista">3. Agendamento da entrega dos equipamentos</div>
-            <div class="item-lista">4. Instalação e comissionamento do sistema</div>
-            <div class="item-lista">5. Ativação e monitoramento contínuo</div>
-        </div>
-
-        <div style="margin-top: 35px;">
-            <p style="text-align: center; font-size: 14px; color: var(--azul-corporativo);">
-                Em caso de dúvidas, estamos à sua disposição!
-            </p>
-        </div>
-
-        <div style="text-align: center; margin-top: 25px;">
-            <p style="font-size: 16px; font-weight: bold; color: var(--amarelo-sol);">
-                Junte-se à revolução da energia solar!
-            </p>
-            <p style="font-size: 12px; color: #666; margin-top: 8px;">
-                {{ NOME_CLIENTE }}<br>
-                {{ DATA_EMISSAO }}
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 6 -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 06</div>
-        </div>
-
-        <div class="titulo-faixa">VALIDAÇÃO E ASSINATURAS</div>
-
-        <div class="clausula-conteudo">
-            Este documento foi elaborado com base na visita técnica realizada e nas normas técnicas aplicáveis. A assinatura abaixo indica ciência e concordância com todas as informações técnicas apresentadas.
-        </div>
-
-        <div class="assinatura-container" style="margin-top: 130px;">
-            <div class="assinatura">
-                <p style="font-size: 12px; margin-bottom: 15px;">
-                    <span class="negrito">CLIENTE</span><br>
-                    Declaro ter lido e compreendido todas as informações deste relatório técnico.
-                </p>
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura">CPF/CNPJ: {{ CPF_CNPJ }}</div>
-            </div>
-
-            <div class="assinatura">
-                <p style="font-size: 12px; margin-bottom: 15px;">
-                    <span class="negrito">ENGENHEIRO RESPONSÁVEL</span><br>
-                    Certifico a veracidade das informações técnicas contidas neste relatório.
-                </p>
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ ENGENHEIRO_RESPONSAVEL }}</div>
-                <div class="cargo-assinatura">CREA: {{ CREA_NUMERO }}</div>
-            </div>
-        </div>
-
-        <div style="margin-top: 60px; font-size: 10px; color: #666; text-align: center;">
-            <p>Documento gerado eletronicamente por {{ RAZAO_SOCIAL }}</p>
-            <p>Data de emissão: {{ DATA_EMISSAO }} às {{ HORA_EMISSAO }}</p>
-            <p>Protocolo: {{ NUM_PROTOCOLO }}</p>
-
-            <div style="margin-top: 25px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                <p class="negrito">AUTENTICIDADE DO DOCUMENTO</p>
-                <p>Hash SHA256: {{ HASH_DOCUMENTO }}</p>
-                <p>Verifique a autenticidade em: {{ URL_VALIDACAO }}</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-            <p style="font-size: 9px; color: #999;">
-                {{ RAZAO_SOCIAL }} | CNPJ: {{ CNPJ }}<br>
-                {{ ENDERECO_EMPRESA }}<br>
-                {{ TELEFONE }} | {{ EMAIL }} | {{ SITE }}
-            </p>
-        </div>
-    </div>
-</body>
-</html>
-"""
+    if pdf_response.status_code == 200:
+        print(f"✅ PDF baixado com sucesso: {len(pdf_response.content)} bytes")
+        return pdf_response.content
+    else:
+        print(f"❌ Erro ao baixar PDF via Worker: {pdf_response.status_code}")
+        return None
 
 # ============================================================
-# TEMPLATE 3: RELATÓRIO COM ADEQUAÇÃO (VT)
+# ROTAS
 # ============================================================
-template_com_adequacao = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>RELATÓRIO DE CONFORMIDADE TÉCNICA - SoLivia ENGENHARIA</title>
-    <style>
-        :root {
-            --azul-premium: #001f3f;
-            --azul-glow: #0b2f5c;
-            --amarelo-sol: #ffc400;
-            --fundo-conteudo: #f8fafc;
-            --azul-corporativo: #0b2f5c;
-        }
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        @page interna {
-            margin: 0;
-            @bottom-center {
-                content: element(footer_geral);
-            }
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
 
-        /* CAPA - MESMO DESIGN DOS CONTRATOS */
-        .capa-container {
-            width: 210mm;
-            height: 297mm;
-            background-color: var(--azul-premium);
-            color: white;
-            position: relative;
-            page-break-after: always;
-        }
-        .fundo-gradiente-capa {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 85% 15%, rgba(255,196,0,0.1) 0%, transparent 40%),
-                        radial-gradient(circle at 15% 85%, rgba(11,47,92,0.5) 0%, transparent 50%);
-        }
-        .logo-central-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .logo-img-central {
-            max-height: 420px;
-            max-width: 85%;
-            object-fit: contain;
-        }
-        .titulo-container-capa {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: translateY(-50%);
-        }
-        .linha-lateral-capa {
-            flex-grow: 1;
-            height: 1px;
-            background: rgba(255,255,255,0.3);
-            margin: 0;
-        }
-        .titulo-texto-capa {
-            font-size: 36px;
-            font-weight: bold;
-            letter-spacing: 12px;
-            margin: 0 15px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            color: var(--amarelo-sol);
-        }
-        .slogan-superior {
-            position: absolute;
-            bottom: 145px;
-            right: 60px;
-            font-size: 16px;
-            letter-spacing: 5px;
-            opacity: 0.9;
-            color: var(--amarelo-sol);
-            font-weight: 500;
-        }
-        .rodape-bloco-capa {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 135px;
-            background: rgba(0,0,0,0.25);
-            border-top: 5px solid var(--amarelo-sol);
-        }
-        .rodape-conteudo-capa {
-            position: relative;
-            width: 90%;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .linha-divisoria-capa {
-            width: 4px;
-            height: 60px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 2px;
-        }
-        .texto-identidade-capa {
-            text-align: center;
-            color: white;
-        }
-        .texto-identidade-capa b {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .texto-identidade-capa span {
-            font-size: 13px;
-            opacity: 0.8;
-            letter-spacing: 1.5px;
-            white-space: nowrap;
-        }
-        .info-proposta-capa {
-            text-align: right;
-            font-size: 14px;
-            color: white;
-            line-height: 1.8;
-        }
-        .info-proposta-capa b {
-            font-weight: 600;
-        }
-
-        /* PÁGINAS INTERNAS */
-        .page-interna {
-            page: interna;
-            page-break-after: always;
-            width: 210mm;
-            min-height: 297mm;
-            background-color: var(--fundo-conteudo);
-            padding: 1.5cm;
-            box-sizing: border-box;
-            position: relative;
-            color: #333;
-        }
-        #footer_geral {
-            position: running(footer_geral);
-            text-align: center;
-            font-size: 10px;
-            color: #64748b;
-            padding: 10px 0;
-            width: 90%;
-            border-top: 2px solid var(--azul-corporativo);
-            margin: 0 auto;
-        }
-        .header-interna {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 3px solid var(--amarelo-sol);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-        }
-        .texto-solivia-topo {
-            color: var(--azul-corporativo);
-            font-weight: 800;
-            font-size: 16px;
-        }
-        .titulo-faixa {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 12px 20px;
-            font-weight: bold;
-            border-left: 8px solid var(--amarelo-sol);
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        .clausula-titulo {
-            font-weight: bold;
-            margin-top: 15px;
-            color: var(--azul-corporativo);
-            font-size: 14px;
-        }
-        .clausula-conteudo {
-            text-align: justify;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-        .negrito {
-            font-weight: bold;
-        }
-        .item-lista {
-            margin-left: 20px;
-            margin-bottom: 8px;
-        }
-        .assinatura-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 80px;
-            page-break-inside: avoid;
-        }
-        .assinatura {
-            width: 40%;
-            text-align: center;
-        }
-        .linha-assinatura {
-            width: 100%;
-            border-top: 1.5px solid #333;
-            margin-bottom: 5px;
-        }
-        .nome-assinatura {
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        .cargo-assinatura {
-            font-size: 11px;
-            color: #555;
-        }
-        .destaque-azul {
-            background-color: rgba(11, 47, 92, 0.1);
-            padding: 15px;
-            border-left: 4px solid var(--azul-corporativo);
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        .tabela-proposta {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 11px;
-        }
-        .tabela-proposta th {
-            background-color: var(--azul-corporativo);
-            color: white;
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        .tabela-proposta td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        .tabela-proposta tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .box-adequacao {
-            background: white;
-            border: 2px solid var(--amarelo-sol);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .valor-adequacao {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--azul-corporativo);
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div id="footer_geral">{{ RAZAO_SOCIAL }} | CNPJ: {{ CNPJ }} | {{ TELEFONE }} | {{ EMAIL }} | {{ SITE }}</div>
-
-    <!-- CAPA DO RELATÓRIO -->
-    <div class="capa-container">
-        <div class="fundo-gradiente-capa"></div>
-        <div class="logo-central-wrapper">
-            {% if LOGO_CENTRAL %}<img src="{{ LOGO_CENTRAL }}" class="logo-img-central">{% endif %}
-        </div>
-        <div class="titulo-container-capa">
-            <div class="linha-lateral-capa"></div>
-            <div class="titulo-texto-capa">RELATÓRIO TÉCNICO</div>
-            <div class="linha-lateral-capa"></div>
-        </div>
-        <div class="slogan-superior">{{ RAZAO_SOCIAL }}</div>
-        <div class="rodape-bloco-capa">
-            <div class="rodape-conteudo-capa">
-                <div style="display: flex; align-items: center; gap: 25px;">
-                    {% if LOGO_RODAPE %}<img src="{{ LOGO_RODAPE }}" style="max-height: 100px;">{% endif %}
-                    <div class="linha-divisoria-capa"></div>
-                    <div class="texto-identidade-capa">
-                        <b>{{ NOME_FANTASIA }}</b>
-                        <span>ENGENHARIA E INSTALAÇÕES SOLARES</span>
-                    </div>
-                </div>
-                <div class="info-proposta-capa">
-                    <b>Nº DO RELATÓRIO:</b> {{ NUM_RELATORIO }}<br>
-                    <b>DATA:</b> {{ DATA_EMISSAO }}<br>
-                    <b>PROPOSTA:</b> {{ NUM_PROPOSTA }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA 1: APRESENTAÇÃO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 01</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Cliente:</span> {{ NOME_CLIENTE }}<br>
-            <span class="negrito">Endereço:</span> {{ ENDERECO }}
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            Este relatório técnico apresenta as adequações necessárias para prosseguirmos com a instalação do seu sistema fotovoltaico. Sua cidade é atendida pela concessionária <span class="negrito">{{ CONCESSIONARIA }}</span>, e a seguir detalhamos o layout proposto e as adequações solicitadas para homologação do projeto.
-        </div>
-
-        <div class="destaque-azul">
-            <p class="negrito">CONSIDERAÇÕES DA CONCESSIONÁRIA</p>
-            <p style="font-size: 11px; margin: 5px 0;">
-                Cada concessionária possui normativas específicas para instalações fotovoltaicas. A <span class="negrito">{{ CONCESSIONARIA }}</span> exige que todos os projetos atendam rigorosamente às suas diretrizes técnicas para garantir a segurança da rede e dos usuários.
-            </p>
-            <p style="font-size: 11px; margin: 5px 0;">
-                Nossa equipe técnica analisou minuciosamente seu imóvel para propor a melhor solução dentro dos parâmetros exigidos.
-            </p>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Objetivo do relatório:</span>
-            <div class="item-lista">• Apresentar as adequações técnicas necessárias</div>
-            <div class="item-lista">• Otimizar a geração de energia do sistema</div>
-            <div class="item-lista">• Garantir conformidade com as normativas da {{ CONCESSIONARIA }}</div>
-            <div class="item-lista">• Estabelecer os próximos passos do processo</div>
-        </div>
-
-        <div style="margin-top: 40px; text-align: center;">
-            <p style="font-style: italic; color: var(--azul-corporativo);">
-                "Soluções energéticas com excelência técnica e segurança"
-            </p>
-
-            <div style="margin-top: 30px;">
-                <div class="linha-assinatura" style="width: 60%; margin: 0 auto;"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura">CLIENTE / PROPRIETÁRIO</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA 2: NOVA PROPOSTA DE LAYOUT -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 02</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">NOVA PROPOSTA DE LAYOUT</div>
-
-        <div class="clausula-conteudo">
-            Após análise detalhada das imagens e dados coletados na visita técnica, identificamos oportunidades para otimizar a performance do seu sistema fotovoltaico. Estamos comprometidos em entregar a melhor solução técnica possível!
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Desafios técnicos identificados:</span>
-            <div class="item-lista">• {{ DESAFIO_1 }}</div>
-            <div class="item-lista">• {{ DESAFIO_2 }}</div>
-            <div class="item-lista">• {{ DESAFIO_3 }}</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            Sua geração originalmente proposta foi de <span class="negrito">{{ GERACAO_ORIGINAL }} kWh/mês</span>. Na nova proposta, com o intuito de otimizarmos a geração de energia solar, o sistema contará com as seguintes adequações:
-            <div class="item-lista">• {{ ADEQUACAO_LAYOUT_1 }}</div>
-            <div class="item-lista">• {{ ADEQUACAO_LAYOUT_2 }}</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            Modificando o layout conforme as especificações técnicas e otimizando o uso dos espaços disponíveis, temos as seguintes opções de composição:
-        </div>
-
-        <table class="tabela-proposta">
-            <thead>
-                <tr>
-                    <th>QTDE DE MÓDULOS</th>
-                    <th>INVERSOR</th>
-                    <th>VALOR TOTAL DO PROJETO</th>
-                    <th>GERAÇÃO (média mensal)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ QTD_MODULOS_OPCAO1 }}</td>
-                    <td>{{ INVERSOR_OPCAO1 }}</td>
-                    <td>{{ VALOR_OPCAO1 }}</td>
-                    <td>{{ GERACAO_OPCAO1 }} kWh/mês</td>
-                </tr>
-                <tr>
-                    <td>{{ QTD_MODULOS_OPCAO2 }}</td>
-                    <td>{{ INVERSOR_OPCAO2 }}</td>
-                    <td>{{ VALOR_OPCAO2 }}</td>
-                    <td>{{ GERACAO_OPCAO2 }} kWh/mês</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Recomendação técnica:</span>
-            <div class="item-lista">• {{ RECOMENDACAO_TECNICA }}</div>
-            <div class="item-lista">• Considerar o custo-benefício de cada opção</div>
-            <div class="item-lista">• Avaliar a expansão futura do sistema</div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-            <p style="font-style: italic; color: var(--azul-corporativo);">
-                "Eficiência energética com tecnologia de ponta"
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 3: LOCAL DO QUADRO ELÉTRICO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 03</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">LOCAL DO QUADRO ELÉTRICO DO SISTEMA</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Cômodo definido para instalação do quadro elétrico:</span>
-            <div class="item-lista" style="margin-top: 10px;">• {{ LOCAL_QUADRO }}</div>
-            <div class="item-lista">• Próximo ao quadro elétrico geral do imóvel</div>
-            <div class="item-lista">• Área coberta e protegida</div>
-            <div class="item-lista">• Acesso facilitado para manutenção</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Especificações técnicas do local:</span>
-            <div class="item-lista">• Parede sólida para fixação do quadro</div>
-            <div class="item-lista">• Distância mínima de 1m de fontes de calor ou umidade</div>
-            <div class="item-lista">• Espaço para passagem de cabos e dutos</div>
-            <div class="item-lista">• Iluminação adequada para trabalhos de manutenção</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Componentes do quadro elétrico:</span>
-            <div class="item-lista">• Disjuntor geral de proteção</div>
-            <div class="item-lista">• DPS (Dispositivo de Proteção contra Surtos)</div>
-            <div class="item-lista">• Relé de interface com a rede</div>
-            <div class="item-lista">• Barramentos de distribuição</div>
-            <div class="item-lista">• Sistema de aterramento</div>
-        </div>
-
-        <div style="margin-top: 40px; text-align: center;">
-            {% if SELO_QUALIDADE %}<img src="{{ SELO_QUALIDADE }}" style="width: 100px; opacity: 0.8;">{% endif %}
-            <p style="font-size: 11px; color: #666; margin-top: 10px;">
-                {{ SITE }}<br>
-                {{ TELEFONE }} | {{ EMAIL }}
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 4: ADEQUAÇÕES OBRIGATÓRIAS -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 04</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">ADEQUAÇÕES OBRIGATÓRIAS PARA HOMOLOGAÇÃO</div>
-
-        <div class="clausula-conteudo">
-            Após a visita técnica, identificamos oportunidades para melhorar o padrão de entrada de energia, garantindo total conformidade com as normativas da concessionária <span class="negrito">{{ CONCESSIONARIA }}</span>. Para atender a todos os requisitos técnicos, serão realizadas as seguintes adequações:
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Adequações técnicas necessárias:</span>
-            <div class="item-lista">• {{ ADEQUACAO_TECNICA_1 }}</div>
-            <div class="item-lista">• {{ ADEQUACAO_TECNICA_2 }}</div>
-            <div class="item-lista">• {{ ADEQUACAO_TECNICA_3 }}</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Normativa aplicável:</span> {{ CONCESSIONARIA }}
-        </div>
-
-        <div class="box-adequacao">
-            <p style="text-align: center; font-size: 14px; margin-bottom: 10px;">
-                <span class="negrito">INVESTIMENTO EM ADEQUAÇÕES</span><br>
-                Valor adicional para atender todas as exigências técnicas
-            </p>
-            <div class="valor-adequacao">{{ VALOR_ADEQUACOES }}</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">A SoLivia está com você!</span> Nossa equipe técnica está preparada para esclarecer todas as dúvidas e auxiliá-lo em cada etapa do processo. Essas adequações garantem a segurança da sua instalação e a conformidade com as regulamentações vigentes.
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Benefícios das adequações:</span>
-            <div class="item-lista">• Maior segurança elétrica para seu imóvel</div>
-            <div class="item-lista">• Conformidade total com as normativas</div>
-            <div class="item-lista">• Agilidade no processo de homologação</div>
-            <div class="item-lista">• Proteção adicional para seus equipamentos</div>
-        </div>
-    </div>
-
-    <!-- PÁGINA 5: ORIENTAÇÕES FINAIS -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 05</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            Para garantir uma instalação segura, eficiente e dentro dos prazos estabelecidos, destacamos os seguintes pontos importantes:
-        </div>
-
-        <div class="clausula-titulo">RECEBIMENTO DOS EQUIPAMENTOS</div>
-        <div class="item-lista">• Confira imediatamente a quantidade de volumes entregues, comparando com a nota fiscal</div>
-        <div class="item-lista">• Verifique a integridade física dos módulos fotovoltaicos (painéis solares)</div>
-        <div class="item-lista">• Em caso de avaria ou divergência, registre fotos e entre em contato imediatamente</div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">ARMAZENAMENTO TEMPORÁRIO</div>
-        <div class="item-lista">• Reserve uma área adequada para armazenamento (os equipamentos ocupam espaço considerável)</div>
-        <div class="item-lista">• Módulos podem ficar expostos ao tempo, mas REMOVA o papelão de proteção se houver chuva</div>
-        <div class="item-lista">• Inversores e outros equipamentos eletrônicos DEVEM ficar em locais cobertos e secos</div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">PRESENÇA NO LOCAL</div>
-        <div class="item-lista">• É obrigatória a presença do cliente ou pessoa autorizada durante a entrega dos equipamentos</div>
-        <div class="item-lista">• Durante a instalação, é necessário que alguém de confiança esteja presente para acesso e dúvidas</div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">MONITORAMENTO DO SISTEMA</div>
-        <div class="item-lista">• Para funcionamento do monitoramento remoto (aplicativo), é necessário internet de qualidade no local do inversor</div>
-        <div class="item-lista">• Se não houver internet no momento da instalação, o retorno técnico para configuração será cobrado adicionalmente</div>
-
-        <div class="clausula-titulo" style="margin-top: 15px;">RESPONSABILIDADES</div>
-        <div class="item-lista">• Caso o cliente realize adequações por conta própria, este relatório torna-se apenas consultivo</div>
-        <div class="item-lista">• A SoLivia não se responsabiliza por atrasos ou reprovações junto à concessionária decorrentes de alterações não autorizadas</div>
-
-        <div style="margin-top: 30px;">
-            <p style="text-align: center; font-size: 14px; color: var(--azul-corporativo);">
-                Em caso de dúvidas, estamos à sua disposição!
-            </p>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-            <p style="font-size: 16px; font-weight: bold; color: var(--amarelo-sol);">
-                Junte-se à revolução da energia solar!
-            </p>
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                {{ NOME_CLIENTE }}<br>
-                {{ DATA_EMISSAO }}
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 6: ASSINATURAS -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 06</div>
-        </div>
-
-        <div class="titulo-faixa">VALIDAÇÃO E ASSINATURAS</div>
-
-        <div class="clausula-conteudo">
-            Este documento foi elaborado com base na visita técnica realizada e nas normas técnicas aplicáveis. A assinatura abaixo indica ciência e concordância com todas as informações técnicas apresentadas.
-        </div>
-
-        <div class="assinatura-container">
-            <div class="assinatura">
-                <p style="font-size: 12px; margin-bottom: 15px;">
-                    <span class="negrito">CLIENTE</span><br>
-                    Declaro ter lido e compreendido todas as informações deste relatório técnico.
-                </p>
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura">CPF/CNPJ: {{ CPF_CNPJ }}</div>
-            </div>
-
-            <div class="assinatura">
-                <p style="font-size: 12px; margin-bottom: 15px;">
-                    <span class="negrito">ENGENHEIRO RESPONSÁVEL</span><br>
-                    Certifico a veracidade das informações técnicas contidas neste relatório.
-                </p>
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ ENGENHEIRO_RESPONSAVEL }}</div>
-                <div class="cargo-assinatura">CREA: {{ CREA_NUMERO }}</div>
-            </div>
-        </div>
-
-        <div style="margin-top: 60px; font-size: 10px; color: #666; text-align: center;">
-            <p>Documento gerado eletronicamente por {{ RAZAO_SOCIAL }}</p>
-            <p>Data de emissão: {{ DATA_EMISSAO }} às {{ HORA_EMISSAO }}</p>
-            <p>Protocolo: {{ NUM_PROTOCOLO }}</p>
-
-            <div style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                <p class="negrito">AUTENTICIDADE DO DOCUMENTO</p>
-                <p>Hash SHA256: {{ HASH_DOCUMENTO }}</p>
-                <p>Verifique a autenticidade em: {{ URL_VALIDACAO }}</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-            <p style="font-size: 9px; color: #999;">
-                {{ RAZAO_SOCIAL }} | CNPJ: {{ CNPJ }}<br>
-                {{ ENDERECO_EMPRESA }}<br>
-                {{ TELEFONE }} | {{ EMAIL }} | {{ SITE }}
-            </p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-# ============================================================
-# TEMPLATE 4: RELATÓRIO FAST TRACK (VT)
-# ============================================================
-template_fast_track = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>RELATÓRIO DE CONFORMIDADE TÉCNICA - SoLivia ENGENHARIA</title>
-    <style>
-        :root {
-            --azul-premium: #001f3f;
-            --azul-glow: #0b2f5c;
-            --amarelo-sol: #ffc400;
-            --fundo-conteudo: #f8fafc;
-            --azul-corporativo: #0b2f5c;
-        }
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        @page interna {
-            margin: 0;
-            @bottom-center {
-                content: element(footer_geral);
-            }
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* CAPA - MESMO DESIGN DOS CONTRATOS */
-        .capa-container {
-            width: 210mm;
-            height: 297mm;
-            background-color: var(--azul-premium);
-            color: white;
-            position: relative;
-            page-break-after: always;
-        }
-        .fundo-gradiente-capa {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 85% 15%, rgba(255,196,0,0.1) 0%, transparent 40%),
-                        radial-gradient(circle at 15% 85%, rgba(11,47,92,0.5) 0%, transparent 50%);
-        }
-        .logo-central-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .logo-img-central {
-            max-height: 420px;
-            max-width: 85%;
-            object-fit: contain;
-        }
-        .titulo-container-capa {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: translateY(-50%);
-        }
-        .linha-lateral-capa {
-            flex-grow: 1;
-            height: 1px;
-            background: rgba(255,255,255,0.3);
-            margin: 0;
-        }
-        .titulo-texto-capa {
-            font-size: 36px;
-            font-weight: bold;
-            letter-spacing: 12px;
-            margin: 0 15px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            color: var(--amarelo-sol);
-        }
-        .slogan-superior {
-            position: absolute;
-            bottom: 145px;
-            right: 60px;
-            font-size: 16px;
-            letter-spacing: 5px;
-            opacity: 0.9;
-            color: var(--amarelo-sol);
-            font-weight: 500;
-        }
-        .rodape-bloco-capa {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 135px;
-            background: rgba(0,0,0,0.25);
-            border-top: 5px solid var(--amarelo-sol);
-        }
-        .rodape-conteudo-capa {
-            position: relative;
-            width: 90%;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .linha-divisoria-capa {
-            width: 4px;
-            height: 60px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 2px;
-        }
-        .texto-identidade-capa {
-            text-align: center;
-            color: white;
-        }
-        .texto-identidade-capa b {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .texto-identidade-capa span {
-            font-size: 13px;
-            opacity: 0.8;
-            letter-spacing: 1.5px;
-            white-space: nowrap;
-        }
-        .info-proposta-capa {
-            text-align: right;
-            font-size: 14px;
-            color: white;
-            line-height: 1.8;
-        }
-        .info-proposta-capa b {
-            font-weight: 600;
-        }
-
-        /* PÁGINAS INTERNAS */
-        .page-interna {
-            page: interna;
-            page-break-after: always;
-            width: 210mm;
-            min-height: 297mm;
-            background-color: var(--fundo-conteudo);
-            padding: 1.5cm;
-            box-sizing: border-box;
-            position: relative;
-            color: #333;
-        }
-        #footer_geral {
-            position: running(footer_geral);
-            text-align: center;
-            font-size: 10px;
-            color: #64748b;
-            padding: 10px 0;
-            width: 90%;
-            border-top: 2px solid var(--azul-corporativo);
-            margin: 0 auto;
-        }
-        .header-interna {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 3px solid var(--amarelo-sol);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-        }
-        .texto-solivia-topo {
-            color: var(--azul-corporativo);
-            font-weight: 800;
-            font-size: 16px;
-        }
-        .titulo-faixa {
-            background: var(--azul-corporativo);
-            color: white;
-            padding: 12px 20px;
-            font-weight: bold;
-            border-left: 8px solid var(--amarelo-sol);
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        .clausula-titulo {
-            font-weight: bold;
-            margin-top: 15px;
-            color: var(--azul-corporativo);
-            font-size: 14px;
-        }
-        .clausula-conteudo {
-            text-align: justify;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-        .negrito {
-            font-weight: bold;
-        }
-        .item-lista {
-            margin-left: 20px;
-            margin-bottom: 8px;
-        }
-        .assinatura-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 80px;
-            page-break-inside: avoid;
-        }
-        .assinatura {
-            width: 40%;
-            text-align: center;
-        }
-        .linha-assinatura {
-            width: 100%;
-            border-top: 1.5px solid #333;
-            margin-bottom: 5px;
-        }
-        .nome-assinatura {
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        .cargo-assinatura {
-            font-size: 11px;
-            color: #555;
-        }
-        .destaque-amarelo {
-            background-color: rgba(255, 196, 0, 0.1);
-            padding: 15px;
-            border-left: 4px solid var(--amarelo-sol);
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        .container-geracao {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-        }
-        .box-geracao {
-            background: white;
-            border: 2px solid var(--azul-corporativo);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            width: 48%;
-        }
-        .valor-geracao {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--azul-corporativo);
-        }
-        .label-geracao {
-            font-size: 12px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div id="footer_geral">{{ RAZAO_SOCIAL }} | CNPJ: {{ CNPJ }} | {{ TELEFONE }} | {{ EMAIL }} | {{ SITE }}</div>
-
-    <!-- CAPA DO RELATÓRIO -->
-    <div class="capa-container">
-        <div class="fundo-gradiente-capa"></div>
-        <div class="logo-central-wrapper">
-            {% if LOGO_CENTRAL %}<img src="{{ LOGO_CENTRAL }}" class="logo-img-central">{% endif %}
-        </div>
-        <div class="titulo-container-capa">
-            <div class="linha-lateral-capa"></div>
-            <div class="titulo-texto-capa">RELATÓRIO TÉCNICO</div>
-            <div class="linha-lateral-capa"></div>
-        </div>
-        <div class="slogan-superior">{{ RAZAO_SOCIAL }}</div>
-        <div class="rodape-bloco-capa">
-            <div class="rodape-conteudo-capa">
-                <div style="display: flex; align-items: center; gap: 25px;">
-                    {% if LOGO_RODAPE %}<img src="{{ LOGO_RODAPE }}" style="max-height: 100px;">{% endif %}
-                    <div class="linha-divisoria-capa"></div>
-                    <div class="texto-identidade-capa">
-                        <b>{{ NOME_FANTASIA }}</b>
-                        <span>ENGENHARIA E INSTALAÇÕES SOLARES</span>
-                    </div>
-                </div>
-                <div class="info-proposta-capa">
-                    <b>Nº DO RELATÓRIO:</b> {{ NUM_RELATORIO }}<br>
-                    <b>DATA:</b> {{ DATA_EMISSAO }}<br>
-                    <b>PROPOSTA:</b> {{ NUM_PROPOSTA }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA 1: APRESENTAÇÃO E CONTEXTO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 01</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Cliente:</span> {{ NOME_CLIENTE }}<br>
-            <span class="negrito">Endereço:</span> {{ ENDERECO }}
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            Este relatório técnico tem como objetivo apresentar as análises e recomendações de engenharia para garantir o sucesso da sua instalação fotovoltaica. A seguir, detalhamos o layout otimizado e as considerações técnicas necessárias para homologação junto à concessionária.
-        </div>
-
-        <div class="destaque-amarelo">
-            <p class="negrito">PROCEDIMENTO FAST TRACK</p>
-            <p style="font-size: 11px; margin: 5px 0;">
-                Em algumas regiões, as concessionárias de energia têm solicitado redução da potência de sistemas fotovoltaicos devido ao fenômeno de <span class="negrito">inversão de fluxo</span>, que ocorre quando a geração de energia excede a demanda local, causando distúrbios na rede de distribuição.
-            </p>
-            <p style="font-size: 11px; margin: 5px 0;">
-                Para sistemas com potência inferior a 7,5 kWp, temos a opção do <span class="negrito">FAST TRACK</span>, que agiliza o processo de homologação, porém com as seguintes considerações importantes:
-            </p>
-            <ul style="font-size: 11px; margin: 5px 0 0 15px;">
-                <li>Não há análise de inversão de fluxo</li>
-                <li>Processo de homologação simplificado</li>
-                <li><span class="negrito">NÃO haverá possibilidade de roteamento de créditos excedentes para outras unidades, nem agora nem no futuro</span></li>
-            </ul>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            Para garantir transparência e evitar surpresas durante o processo, a SoLivia Energia inicia com antecedência o parecer de acesso junto à concessionária. Esta etapa permite identificar previamente qualquer necessidade de ajuste no projeto.
-        </div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Nota importante para financiamentos:</span> Devido ao prazo curto de validade das simulações financeiras, pode ser necessária uma nova tentativa de financiamento após a validação técnica do projeto.
-        </div>
-
-        <div style="margin-top: 40px; text-align: center;">
-            <p class="negrito">DECLARAÇÃO DE CIÊNCIA</p>
-            <p style="font-size: 12px;">
-                Declaro estar ciente e de acordo com a opção FAST TRACK, compreendendo todos os aspectos técnicos e regulatórios envolvidos.
-            </p>
-
-            <div style="margin-top: 30px;">
-                <div class="linha-assinatura" style="width: 60%; margin: 0 auto;"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura">CLIENTE / PROPRIETÁRIO</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA 2: ANÁLISE TÉCNICA E LAYOUT -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 02</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">NOVA PROPOSTA DE LAYOUT</div>
-
-        <div class="clausula-conteudo">
-            Após análise detalhada das imagens e dados coletados na visita técnica, identificamos considerações importantes que otimizam a performance do seu sistema fotovoltaico. Estamos comprometidos em entregar a melhor solução técnica possível!
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Observações técnicas identificadas:</span>
-            <div class="item-lista">• Orientação do telhado: A área disponível está voltada para noroeste, o que impacta na eficiência da geração solar durante o dia.</div>
-            <div class="item-lista">• Sombreamento: Verificamos possíveis interferências que podem reduzir a produção energética.</div>
-            <div class="item-lista">• Estrutura do telhado: Foram avaliadas as condições de suporte para os módulos fotovoltaicos.</div>
-        </div>
-
-        <div class="container-geracao">
-            <div class="box-geracao">
-                <div class="label-geracao">GERAÇÃO ORIGINALMENTE PROPOSTA</div>
-                <div class="valor-geracao">{{ GERACAO_ORIGINAL }} kWh/mês</div>
-            </div>
-            <div class="box-geracao">
-                <div class="label-geracao">GERAÇÃO OTIMIZADA</div>
-                <div class="valor-geracao">{{ GERACAO_OTIMIZADA }} kWh/mês</div>
-            </div>
-        </div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Sistema proposto:</span>
-            <div class="item-lista">• {{ QTD_MODULOS }} módulos fotovoltaicos de alta eficiência</div>
-            <div class="item-lista">• 1 inversor central string de {{ POTENCIA_INVERSOR }}</div>
-            <div class="item-lista">• Sistema de monitoramento remoto incluído</div>
-            <div class="item-lista">• Estrutura de fixação em alumínio anodizado</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Próximos passos:</span>
-            <div class="item-lista">1. Aprovação deste layout pelo cliente</div>
-            <div class="item-lista">2. Início do processo de homologação junto à concessionária</div>
-            <div class="item-lista">3. Agendamento da instalação</div>
-            <div class="item-lista">4. Comissionamento e ativação do sistema</div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-            <p style="font-style: italic; color: var(--azul-corporativo);">
-                "Energia solar com excelência técnica e transparência"
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 3: LOCAL DE INSTALAÇÃO DO INVERSOR -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 03</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-titulo">LOCAL DE INSTALAÇÃO DO INVERSOR CENTRAL</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Cômodo definido para instalação do inversor:</span>
-            <div class="item-lista" style="margin-top: 10px;">• {{ LOCAL_INVERSOR }}</div>
-            <div class="item-lista">• Área coberta e protegida das intempéries</div>
-            <div class="item-lista">• Acesso facilitado para manutenção</div>
-            <div class="item-lista">• Distância otimizada dos módulos fotovoltaicos</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Requisitos técnicos do local:</span>
-            <div class="item-lista">• Parede sólida para fixação do inversor</div>
-            <div class="item-lista">• Altura recomendada: 1,5m do chão</div>
-            <div class="item-lista">• Espaço para circulação de ar (mínimo 50cm em todas as laterais)</div>
-            <div class="item-lista">• Temperatura ambiente entre 0°C e 40°C</div>
-            <div class="item-lista">• Proteção contra incidência direta de sol e umidade excessiva</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 20px;">
-            <span class="negrito">Considerações importantes:</span>
-            <div class="item-lista">• O inversor deve ficar afastado de fontes de calor excessivo</div>
-            <div class="item-lista">• Evitar locais com poeira excessiva ou vapores corrosivos</div>
-            <div class="item-lista">• Garantir acesso à rede Wi-Fi para monitoramento remoto</div>
-            <div class="item-lista">• Tomada elétrica próxima (se aplicável ao modelo)</div>
-        </div>
-
-        <div style="margin-top: 40px; text-align: center;">
-            {% if SELO_QUALIDADE %}<img src="{{ SELO_QUALIDADE }}" style="width: 100px; opacity: 0.8;">{% endif %}
-            <p style="font-size: 11px; color: #666; margin-top: 10px;">
-                {{ SITE }}<br>
-                {{ TELEFONE }} | {{ EMAIL }}
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 4: ORIENTAÇÕES PARA INSTALAÇÃO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 04</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            Para garantir uma instalação segura, eficiente e dentro dos prazos estabelecidos, destacamos os seguintes pontos importantes:
-        </div>
-
-        <div class="clausula-titulo">RECEBIMENTO DOS EQUIPAMENTOS</div>
-        <div class="item-lista">• Confira imediatamente a quantidade de volumes entregues, comparando com a nota fiscal</div>
-        <div class="item-lista">• Verifique a integridade física dos módulos fotovoltaicos (painéis solares)</div>
-        <div class="item-lista">• Em caso de avaria ou divergência, registre fotos e entre em contato imediatamente</div>
-
-        <div class="clausula-titulo" style="margin-top: 20px;">ARMAZENAMENTO TEMPORÁRIO</div>
-        <div class="item-lista">• Reserve uma área adequada para armazenamento (os equipamentos ocupam espaço considerável)</div>
-        <div class="item-lista">• Módulos podem ficar expostos ao tempo, mas REMOVA o papelão de proteção se houver chuva</div>
-        <div class="item-lista">• Inversores e outros equipamentos eletrônicos DEVEM ficar em locais cobertos e secos</div>
-
-        <div class="clausula-titulo" style="margin-top: 20px;">PRESENÇA NO LOCAL</div>
-        <div class="item-lista">• É obrigatória a presença do cliente ou pessoa autorizada durante a entrega dos equipamentos</div>
-        <div class="item-lista">• Durante a instalação, é necessário que alguém de confiança esteja presente para acesso e dúvidas</div>
-
-        <div class="clausula-titulo" style="margin-top: 20px;">CONEXÃO E MONITORAMENTO</div>
-        <div class="item-lista">• Para funcionamento do monitoramento remoto (aplicativo), é necessário internet de qualidade no local do inversor</div>
-        <div class="item-lista">• Se não houver internet no momento da instalação, o retorno técnico para configuração será cobrado adicionalmente</div>
-
-        <div class="clausula-titulo" style="margin-top: 20px;">ALTERAÇÕES NO PROJETO</div>
-        <div class="item-lista">• Caso o cliente realize adequações por conta própria, este relatório torna-se apenas consultivo</div>
-        <div class="item-lista">• A SoLivia não se responsabiliza por atrasos ou reprovações junto à concessionária decorrentes de alterações não autorizadas</div>
-    </div>
-
-    <!-- PÁGINA 5: CONSIDERAÇÕES FINAIS -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 05</div>
-        </div>
-
-        <div class="titulo-faixa">RELATÓRIO DE CONFORMIDADE TÉCNICA</div>
-        <div class="clausula-titulo">CHECK DE ENGENHARIA</div>
-
-        <div class="clausula-conteudo">
-            <span class="negrito">Reformas e alterações pós-assinatura:</span>
-            <div class="item-lista">• Qualquer reforma no imóvel após a assinatura deste relatório exigirá nova visita técnica para validação</div>
-            <div class="item-lista">• O custo da nova visita técnica será de responsabilidade integral do cliente</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Alterações cadastrais:</span>
-            <div class="item-lista">• Mudanças no cadastro junto à concessionária durante o processo de instalação podem estender os prazos</div>
-            <div class="item-lista">• A SoLivia não se responsabiliza por atrasos decorrentes de alterações cadastrais feitas pelo cliente</div>
-        </div>
-
-        <div class="clausula-conteudo" style="margin-top: 15px;">
-            <span class="negrito">Garantia e pós-venda:</span>
-            <div class="item-lista">• Garantia dos equipamentos conforme fabricante (certificados serão entregues após instalação)</div>
-            <div class="item-lista">• Garantia da instalação: 90 dias para vícios aparentes, 5 anos para vícios ocultos</div>
-            <div class="item-lista">• Suporte técnico disponível durante todo o período de garantia</div>
-        </div>
-
-        <div style="margin-top: 40px;">
-            <p style="text-align: center; font-size: 14px; color: var(--azul-corporativo);">
-                Estamos à disposição para esclarecer qualquer dúvida!
-            </p>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-            <p style="font-size: 16px; font-weight: bold; color: var(--amarelo-sol);">
-                Junte-se à revolução da energia solar!
-            </p>
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                {{ NOME_CLIENTE }}<br>
-                {{ DATA_EMISSAO }}
-            </p>
-        </div>
-    </div>
-
-    <!-- PÁGINA 6: ASSINATURAS E VALIDAÇÃO -->
-    <div class="page-interna">
-        <div class="header-interna">
-            <div class="texto-solivia-topo">{{ NOME_FANTASIA }}</div>
-            <div>Pág. 06</div>
-        </div>
-
-        <div class="titulo-faixa">VALIDACÃO E ASSINATURAS</div>
-
-        <div class="clausula-conteudo">
-            Este documento foi elaborado com base na visita técnica realizada e nas normas técnicas aplicáveis. A assinatura abaixo indica ciência e concordância com todas as informações técnicas apresentadas.
-        </div>
-
-        <div class="assinatura-container">
-            <div class="assinatura">
-                <p style="font-size: 12px; margin-bottom: 15px;">
-                    <span class="negrito">CLIENTE</span><br>
-                    Declaro ter lido e compreendido todas as informações deste relatório técnico.
-                </p>
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ NOME_CLIENTE }}</div>
-                <div class="cargo-assinatura">CPF/CNPJ: {{ CPF_CNPJ }}</div>
-            </div>
-
-            <div class="assinatura">
-                <p style="font-size: 12px; margin-bottom: 15px;">
-                    <span class="negrito">ENGENHEIRO RESPONSÁVEL</span><br>
-                    Certifico a veracidade das informações técnicas contidas neste relatório.
-                </p>
-                <div class="linha-assinatura"></div>
-                <div class="nome-assinatura">{{ ENGENHEIRO_RESPONSAVEL }}</div>
-                <div class="cargo-assinatura">CREA: {{ CREA_NUMERO }}</div>
-            </div>
-        </div>
-
-        <div style="margin-top: 60px; font-size: 10px; color: #666; text-align: center;">
-            <p>Documento gerado eletronicamente por {{ RAZAO_SOCIAL }}</p>
-            <p>Data de emissão: {{ DATA_EMISSAO }} às {{ HORA_EMISSAO }}</p>
-            <p>Protocolo: {{ NUM_PROTOCOLO }}</p>
-
-            <div style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                <p class="negrito">AUTENTICIDADE DO DOCUMENTO</p>
-                <p>Hash SHA256: {{ HASH_DOCUMENTO }}</p>
-                <p>Verifique a autenticidade em: {{ URL_VALIDACAO }}</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-            <p style="font-size: 9px; color: #999;">
-                {{ RAZAO_SOCIAL }} | CNPJ: {{ CNPJ }}<br>
-                {{ ENDERECO_EMPRESA }}<br>
-                {{ TELEFONE }} | {{ EMAIL }} | {{ SITE }}
-            </p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-# ============================================================
-# ENDPOINT: GERAR PROPOSTA (COMPLETO – IGUAL AO SEU ORIGINAL)
-# ============================================================
 @app.route('/gerar_proposta', methods=['POST'])
 def gerar_proposta_api():
     try:
@@ -2918,7 +487,16 @@ def gerar_proposta_api():
         print("📦 Nome do cliente:", sim_data.get('nome_cliente'))
         print("📦 Investimento recebido:", sim_data.get('investimento'))
 
-        # Extrair dados
+        resultado_cliente = criar_cliente_area_cliente(sim_data)
+        pasta_id_destino = None
+        if resultado_cliente.get('success'):
+            cliente_id = resultado_cliente.get('id')
+            pasta_id_destino = resultado_cliente.get('pastaId')
+            senha = resultado_cliente.get('senha_temporaria')
+            print(f"✅ Cliente criado: ID {cliente_id}, Pasta {pasta_id_destino}, Senha: {senha}")
+        else:
+            print(f"⚠️ Cliente não criado: {resultado_cliente.get('error')}")
+
         nome_cliente = sim_data.get('nome_cliente', '')
         telefone = sim_data.get('telefone', '')
         email = sim_data.get('email', '')
@@ -2950,7 +528,6 @@ def gerar_proposta_api():
         itens_recebidos = sim_data.get('itens_escopo', [])
         linhas_recebidas = sim_data.get('linhas', [])
 
-        # Processar itens
         itens_escopo = []
         for item in itens_recebidos:
             preco_str = item.get('preco', '0,00').replace('.', '').replace(',', '.')
@@ -2973,7 +550,6 @@ def gerar_proposta_api():
                 'preco': f"{investimento_ajustado:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
             }]
 
-        # Gráfico
         grafico_base64 = None
         if consumo_atual > 0 and investimento > 0:
             dados_grafico = {
@@ -2989,7 +565,6 @@ def gerar_proposta_api():
             if grafico_base64:
                 print("✅ Gráfico gerado com sucesso")
 
-        # Projeção 20 marcos
         projecao_20 = []
         if linhas_recebidas and len(linhas_recebidas) >= 2:
             indices = gerar_marcos_20(linhas_recebidas)
@@ -3015,7 +590,6 @@ def gerar_proposta_api():
                         'cor_texto': cor['text']
                     })
         else:
-            # Fallback
             for i in range(1, 26):
                 if len(projecao_20) >= 20:
                     break
@@ -3050,7 +624,6 @@ def gerar_proposta_api():
                         'cor_texto': cor['text']
                     })
 
-        # Diagnóstico, solução, benefícios, inclusos/exclusos
         cep_formatado = format_cep(cep)
         area_str = f"{area:.1f}" if area and area > 0 else "a ser dimensionada"
         economia_mensal_str = format_moeda(economia_mensal) if economia_mensal and economia_mensal > 0 else "a ser calculada"
@@ -3088,7 +661,6 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
             "Adequação elétrica pesada (caso o quadro ou a entrada de energia do imóvel esteja fora das normas atuais)"
         ]
 
-        # Imagens
         LOGO_CENTRAL = "https://i.imgur.com/HkYPKmQ.png"
         LOGO_RODAPE = "https://i.imgur.com/gdnq1ok.png"
         SELO = "https://i.imgur.com/hVtSG8M.png"
@@ -3130,11 +702,9 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
             "DISTANCIA_VISITA": f"{distancia_km:.1f} km"
         }
 
-        # Renderizar PDF
-        html_content = Template(template_proposta).render(dados_template)
+        html_content = render_template('pre_proposta.html', **dados_template)
         pdf_bytes = HTML(string=html_content).write_pdf()
 
-        # Enviar para o Google Apps Script
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
         payload = {
             'token': TOKEN,
@@ -3142,7 +712,8 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
             'dados': {
                 'nome_cliente': nome_cliente or 'cliente',
                 'pdf_base64': pdf_base64,
-                'nome_arquivo': f"PreProposta_{nome_cliente or 'cliente'}_{date.today().strftime('%Y%m%d')}.pdf"
+                'nome_arquivo': f"PreProposta_{nome_cliente or 'cliente'}_{date.today().strftime('%Y%m%d')}.pdf",
+                'pasta_id': pasta_id_destino
             }
         }
 
@@ -3162,197 +733,8 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-# ============================================================
-# ENDPOINT: PING
-# ============================================================
-@app.route('/ping', methods=['GET'])
-def ping():
-    return {'status': 'ok', 'message': 'SoLivia Engenharia - Gerador de Propostas e Relatórios'}
-    # ============================================================
-# CONFIGURAÇÃO: AUTENTIQUE (ASSINATURA DIGITAL)
-# ============================================================
-AUTENTIQUE_API_KEY_SOLIVIA = "d5a81d2cb0a0c68a91152fa00189a275f477fe44f403a158f4061224c1bd4f68"
-AUTENTIQUE_API_KEY_NICOLAS = "52216c13e8e032e7ebef8b87f5955651acd7463e3a303c45a3aeb207fde3e463"
-
-ASSINANTE_SOLIVIA = {
-    "email": "contato@solivia.com.br",
-    "nome": "SoLivia Engenharia",
-    "api_key": AUTENTIQUE_API_KEY_SOLIVIA
-}
-
-ASSINANTE_NICOLAS = {
-    "email": "ncalves91@gmail.com",
-    "nome": "Nícolas Alves de Sá",
-    "api_key": AUTENTIQUE_API_KEY_NICOLAS
-}
-
-# ============================================================
-# FUNÇÃO: BUSCAR CLIENTE POR ID (via API da Área do Cliente)
-# ============================================================
-def buscar_cliente_por_id(cliente_id):
-    """Busca os dados completos de um cliente via API da Área do Cliente."""
-    try:
-        senha_admin = 'SoLiVi@64253798@'
-        cliente_id_str = str(cliente_id)  # Garantir que é string
-        payload = {
-            "acao": "adminObterCliente",
-            "idCliente": cliente_id_str,
-            "senhaAdmin": senha_admin
-        }
-        print(f"🔍 Buscando cliente com ID: {cliente_id_str}")
-        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
-        print(f"📡 Status da resposta: {response.status_code}")
-        if response.status_code == 200:
-            data = response.json()
-            print(f"📦 Dados retornados: {data}")
-            if data.get('success'):
-                return data.get('cliente')
-        return None
-    except Exception as e:
-        print(f"❌ Erro ao buscar cliente: {e}")
-        return None
-
-# ============================================================
-# FUNÇÃO: ENVIAR PARA ASSINATURA (AUTENTIQUE)
-# ============================================================
-def enviar_para_assinatura_autentique(
-    pdf_bytes,
-    nome_documento,
-    cliente_email,
-    cliente_nome,
-    assinante_empresa=None,
-    posicao_engenheiro=None,
-    posicao_cliente=None
-):
-    """
-    Envia um PDF para assinatura via Autentique com dois signatários:
-    - Engenheiro/empresa (quem assina pela SoLivia)
-    - Cliente
-    """
-    if assinante_empresa is None:
-        assinante_empresa = ASSINANTE_SOLIVIA
-
-    if posicao_engenheiro is None:
-        posicao_engenheiro = {"page": 1, "x": 200, "y": 400, "width": 150, "height": 50}
-    if posicao_cliente is None:
-        posicao_cliente = {"page": 1, "x": 200, "y": 300, "width": 150, "height": 50}
-
-    api_key = assinante_empresa["api_key"]
-
-    query = """
-    mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInput!]!, $file: Upload!) {
-        createDocument(
-            document: $document,
-            signers: $signers,
-            file: $file
-        ) {
-            id
-            name
-            created_at
-            signatures {
-                public_id
-                name
-                email
-                link {
-                    short_link
-                }
-            }
-        }
-    }
-    """
-
-    variables = {
-        "document": {"name": nome_documento},
-        "signers": [
-            {
-                "email": assinante_empresa["email"],
-                "name": assinante_empresa["nome"],
-                "action": "SIGN",
-                "tabs": [
-                    {
-                        "document_id": "1",
-                        "page": posicao_engenheiro["page"],
-                        "x": posicao_engenheiro["x"],
-                        "y": posicao_engenheiro["y"],
-                        "width": posicao_engenheiro["width"],
-                        "height": posicao_engenheiro["height"],
-                        "type": "signature"
-                    }
-                ]
-            },
-            {
-                "email": cliente_email,
-                "name": cliente_nome,
-                "action": "SIGN",
-                "tabs": [
-                    {
-                        "document_id": "1",
-                        "page": posicao_cliente["page"],
-                        "x": posicao_cliente["x"],
-                        "y": posicao_cliente["y"],
-                        "width": posicao_cliente["width"],
-                        "height": posicao_cliente["height"],
-                        "type": "signature"
-                    }
-                ]
-            }
-        ]
-    }
-
-    operations = {"query": query, "variables": variables}
-    map_payload = {"file": ["variables.file"]}
-
-    response = requests.post(
-        "https://api.autentique.com.br/v2/graphql",
-        data={
-            "operations": json.dumps(operations),
-            "map": json.dumps(map_payload)
-        },
-        files={
-            "file": (nome_documento, pdf_bytes, "application/pdf")
-        },
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        },
-        timeout=60
-    )
-
-    if response.status_code == 200:
-        dados = response.json()
-        if "errors" in dados:
-            return {"success": False, "error": dados["errors"]}
-        resultado = dados.get("data", {}).get("createDocument", {})
-        link_assinatura = None
-        signatures = resultado.get("signatures", [])
-        if signatures:
-            for sig in signatures:
-                link = sig.get("link")
-                if link and link.get("short_link"):
-                    link_assinatura = link["short_link"]
-                    break
-        return {
-            "success": True,
-            "document_id": resultado.get("id"),
-            "link_assinatura": link_assinatura,
-            "data": resultado
-        }
-    else:
-        return {"success": False, "error": response.text}
-
-# ============================================================
-# ROTA: ENVIAR PARA ASSINATURA (via Autentique)
-# ============================================================
 @app.route('/api/enviar_para_assinatura', methods=['POST'])
 def api_enviar_para_assinatura():
-    """
-    Endpoint para enviar um PDF para assinatura via Autentique.
-    Espera um JSON com:
-        - cliente_id (obrigatório)
-        - pdf_base64 (obrigatório)
-        - nome_documento (opcional)
-        - tipo_assinante: "empresa" ou "engenheiro" (opcional, padrão: "empresa")
-    """
     try:
         dados = request.get_json()
         if not dados:
@@ -3361,41 +743,67 @@ def api_enviar_para_assinatura():
         cliente_id = dados.get('cliente_id')
         pdf_base64 = dados.get('pdf_base64')
         nome_documento = dados.get('nome_documento', 'Contrato.pdf')
-        tipo_assinante = dados.get('tipo_assinante', 'empresa')
+        tipo_assinante = dados.get('tipo_assinante', 'empresa')  # 'empresa' ou 'engenheiro'
+        posicao_engenheiro = dados.get('posicao_engenheiro')
+        posicao_cliente = dados.get('posicao_cliente')
 
         if not cliente_id:
             return jsonify({'success': False, 'error': 'cliente_id é obrigatório'}), 400
         if not pdf_base64:
             return jsonify({'success': False, 'error': 'pdf_base64 é obrigatório'}), 400
 
-        # Buscar cliente
         cliente = buscar_cliente_por_id(cliente_id)
         if not cliente:
             return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-        # Escolher assinante
         if tipo_assinante == 'engenheiro':
             assinante = ASSINANTE_NICOLAS
         else:
             assinante = ASSINANTE_SOLIVIA
 
-        # Decodificar PDF
         pdf_bytes = base64.b64decode(pdf_base64)
 
-        # Enviar para assinatura
         resultado = enviar_para_assinatura_autentique(
             pdf_bytes=pdf_bytes,
             nome_documento=nome_documento,
             cliente_email=cliente['email'],
             cliente_nome=cliente['nome'],
-            assinante_empresa=assinante
+            assinante_empresa=assinante,
+            posicao_engenheiro=posicao_engenheiro,
+            posicao_cliente=posicao_cliente
         )
 
         if resultado['success']:
-            print(f"✅ Documento enviado para assinatura. ID: {resultado['document_id']}")
+            document_id = resultado['document_id']
+
+            # ===== SALVAR document_id NO CLIENTE =====
+            try:
+                cliente_atual = buscar_cliente_por_id(cliente_id)
+                if cliente_atual:
+                    docs = cliente_atual.get('documentos', {})
+                    if 'contrato' not in docs:
+                        docs['contrato'] = {}
+                    docs['contrato']['document_id'] = document_id
+                    docs['contrato']['status'] = 'enviado'
+                    docs['contrato']['data_envio'] = datetime.now().isoformat()
+
+                    payload_update = {
+                        "acao": "adminAtualizarCliente",
+                        "idCliente": str(cliente_id),
+                        "campos": {
+                            "documentos": docs,
+                            "etapa_atual": "documentos"
+                        },
+                        "senhaAdmin": "SoLiVi@64253798@"
+                    }
+                    requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                    print(f"✅ document_id {document_id} salvo no cliente {cliente_id}")
+            except Exception as e:
+                print(f"⚠️ Erro ao salvar document_id: {e}")
+
             return jsonify({
                 'success': True,
-                'document_id': resultado['document_id'],
+                'document_id': document_id,
                 'link_assinatura': resultado['link_assinatura']
             })
         else:
@@ -3407,63 +815,8 @@ def api_enviar_para_assinatura():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ============================================================
-# ROTA: ADMIN OBTER CLIENTE (para testes)
-# ============================================================
-@app.route('/api/admin_obter_cliente', methods=['POST'])
-def admin_obter_cliente():
-    """Endpoint para obter dados de um cliente (usado para testes)"""
-    try:
-        dados = request.get_json()
-        cliente_id = dados.get('idCliente')
-        senha_admin = dados.get('senhaAdmin', 'SoLiVi@64253798@')
-
-        if not cliente_id:
-            return jsonify({'success': False, 'error': 'idCliente é obrigatório'}), 400
-
-        cliente = buscar_cliente_por_id(cliente_id)
-        if cliente:
-            return jsonify({'success': True, 'cliente': cliente})
-        else:
-            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ============================================================
-# ROTA: ADMIN CRIAR CLIENTE (para testes)
-# ============================================================
-@app.route('/api/admin_criar_cliente', methods=['POST'])
-def admin_criar_cliente():
-    """Endpoint para criar um cliente (usado para testes)"""
-    try:
-        dados = request.get_json()
-        dados_cliente = dados.get('dados', {})
-        senha_admin = dados.get('senhaAdmin', 'SoLiVi@64253798@')
-
-        if not dados_cliente.get('nome') or not dados_cliente.get('email'):
-            return jsonify({'success': False, 'error': 'Nome e e-mail são obrigatórios'}), 400
-
-        # Usar a função da Área do Cliente
-        payload = {
-            "acao": "adminCriarCliente",
-            "dados": dados_cliente,
-            "senhaAdmin": senha_admin
-        }
-        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
-        if response.status_code == 200:
-            data = response.json()
-            return jsonify(data)
-        else:
-            return jsonify({'success': False, 'error': f'Erro na API: {response.status_code}'}), 500
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ============================================================
-# ROTA: WEBHOOK (AUTENTIQUE)
-# ============================================================
 @app.route('/webhook/autentique', methods=['POST'])
 def webhook_autentique():
-    """Recebe notificações do Autentique quando um documento é assinado"""
     try:
         data = request.json
         print("📥 Webhook Autentique recebido:")
@@ -3475,8 +828,66 @@ def webhook_autentique():
 
         if event == 'document.finished' and document_status == 'signed':
             print(f"✅ Documento {document_id} foi assinado!")
-            # Aqui você pode implementar a lógica para atualizar a aprovação do cliente
-            # Por enquanto, apenas logamos
+
+            # Buscar cliente pelo document_id
+            cliente = buscar_cliente_por_documento_id(document_id)
+            if not cliente:
+                print(f"⚠️ Cliente com document_id {document_id} não encontrado.")
+                return '', 200
+
+            cliente_id = cliente['id']
+            print(f"✅ Cliente encontrado: {cliente['nome']} (ID: {cliente_id})")
+
+            # ===== BAIXAR O PDF ASSINADO =====
+            api_key = AUTENTIQUE_API_KEY_SOLIVIA
+            pdf_assinado_bytes = baixar_pdf_assinado(document_id, api_key)
+
+            if not pdf_assinado_bytes:
+                print("❌ Falha ao baixar PDF assinado")
+                return '', 200
+
+            print(f"✅ PDF assinado baixado: {len(pdf_assinado_bytes)} bytes")
+
+            # ===== SALVAR NO DRIVE =====
+            nome_arquivo = f"Contrato_Assinado_{cliente['nome'].replace(' ', '_')}.pdf"
+
+            payload = {
+                'acao': 'substituirPdfAssinado',
+                'senhaAdmin': 'SoLiVi@64253798@',
+                'cliente_id': cliente_id,
+                'pdf_bytes': base64.b64encode(pdf_assinado_bytes).decode('utf-8'),
+                'nome_arquivo': nome_arquivo
+            }
+
+            response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('success'):
+                    nova_url = result.get('url')
+                    print(f"✅ PDF assinado salvo no Drive: {nova_url}")
+
+                    # ===== ATUALIZAR PLANILHA =====
+                    cliente_atual = buscar_cliente_por_id(cliente_id)
+                    if cliente_atual:
+                        docs = cliente_atual.get('documentos', {})
+                        if 'contrato' not in docs:
+                            docs['contrato'] = {}
+                        docs['contrato']['url'] = nova_url
+                        docs['contrato']['status'] = 'assinado'
+                        docs['contrato']['data_assinatura'] = datetime.now().isoformat()
+
+                        payload_update = {
+                            "acao": "adminAtualizarCliente",
+                            "idCliente": str(cliente_id),
+                            "campos": {
+                                "documentos": docs,
+                                "etapa_atual": "instalacao",
+                                "assinatura_data": datetime.now().isoformat()
+                            },
+                            "senhaAdmin": "SoLiVi@64253798@"
+                        }
+                        requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                        print(f"✅ Cliente {cliente_id} atualizado para 'instalacao'")
 
         return '', 200
     except Exception as e:
@@ -3485,5 +896,795 @@ def webhook_autentique():
         traceback.print_exc()
         return '', 500
 
-if __name__ == "__main__":
+# ============================================================
+# ROTA MANUAL: FORÇAR ATUALIZAÇÃO DE ASSINATURA
+# ============================================================
+@app.route('/api/forcar_atualizacao_assinatura', methods=['POST'])
+def forcar_atualizacao_assinatura():
+    try:
+        dados = request.get_json()
+        document_id = dados.get('document_id')
+        print(f"🔍 Document ID recebido: {document_id}")
+
+        if not document_id:
+            return jsonify({'success': False, 'error': 'document_id não fornecido'}), 400
+
+        print("🔍 Buscando cliente por document_id...")
+        cliente = buscar_cliente_por_documento_id(document_id)
+        if not cliente:
+            print("❌ Cliente não encontrado")
+            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+        cliente_id = cliente['id']
+        print(f"✅ Cliente encontrado: {cliente['nome']} (ID: {cliente_id})")
+
+        # ===== BAIXAR O PDF ASSINADO =====
+        print("🔍 Baixando PDF assinado...")
+        api_key = AUTENTIQUE_API_KEY_SOLIVIA
+        pdf_assinado_bytes = baixar_pdf_assinado(document_id, api_key)
+
+        if not pdf_assinado_bytes:
+            print("❌ Falha ao baixar PDF assinado")
+            return jsonify({'success': False, 'error': 'Não foi possível baixar o PDF assinado'}), 500
+
+        print(f"✅ PDF assinado baixado: {len(pdf_assinado_bytes)} bytes")
+
+        # ===== SALVAR NO DRIVE =====
+        print("🔍 Salvando PDF assinado no Drive...")
+        nome_arquivo = f"Contrato_Assinado_{cliente['nome'].replace(' ', '_')}.pdf"
+
+        payload = {
+            'acao': 'substituirPdfAssinado',
+            'senhaAdmin': 'SoLiVi@64253798@',
+            'cliente_id': cliente_id,
+            'pdf_bytes': base64.b64encode(pdf_assinado_bytes).decode('utf-8'),
+            'nome_arquivo': nome_arquivo
+        }
+
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        print(f"📡 Status do Apps Script: {response.status_code}")
+        print(f"📦 Resposta do Apps Script: {response.text}")
+
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                nova_url = result.get('url')
+                print(f"✅ PDF assinado salvo no Drive: {nova_url}")
+
+                # ===== ATUALIZAR PLANILHA =====
+                print("🔍 Atualizando planilha...")
+                cliente_atual = buscar_cliente_por_id(cliente_id)
+                if cliente_atual:
+                    docs = cliente_atual.get('documentos', {})
+                    if 'contrato' not in docs:
+                        docs['contrato'] = {}
+                    docs['contrato']['url'] = nova_url
+                    docs['contrato']['status'] = 'assinado'
+                    docs['contrato']['data_assinatura'] = datetime.now().isoformat()
+
+                    payload_update = {
+                        "acao": "adminAtualizarCliente",
+                        "idCliente": str(cliente_id),
+                        "campos": {
+                            "documentos": docs,
+                            "etapa_atual": "instalacao",
+                            "assinatura_data": datetime.now().isoformat()
+                        },
+                        "senhaAdmin": "SoLiVi@64253798@"
+                    }
+                    update_response = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                    print(f"📡 Status da atualização: {update_response.status_code}")
+                    print(f"📦 Resposta da atualização: {update_response.text}")
+
+                    if update_response.status_code == 200:
+                        update_result = update_response.json()
+                        if update_result.get('success'):
+                            return jsonify({'success': True, 'message': 'Cliente atualizado com sucesso', 'url': nova_url})
+
+        return jsonify({'success': False, 'error': 'Erro ao processar'}), 500
+
+    except Exception as e:
+        print(f"❌ Exceção capturada: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROTA PRINCIPAL: GERAR RELATÓRIO DE CONFORMIDADE
+# ============================================================
+@app.route('/gerar_relatorio_conformidade', methods=['OPTIONS'])
+def handle_options_relatorio():
+    response = jsonify({'status': 'ok'})
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    return response, 200
+
+@app.route('/gerar_relatorio_conformidade', methods=['POST'])
+def gerar_relatorio_conformidade():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({'success': False, 'error': 'Dados não fornecidos'}), 400
+
+        tipo = dados.get('tipo')
+        if tipo not in ['sem_adequacao', 'com_adequacao', 'fast_track']:
+            return jsonify({'success': False, 'error': 'Tipo de relatório inválido'}), 400
+
+        template_map = {
+            'sem_adequacao': 'relatorio_sem_adequacao.html',
+            'com_adequacao': 'relatorio_com_adequacao.html',
+            'fast_track': 'relatorio_fast_track.html'
+        }
+        template_file = template_map[tipo]
+
+        cliente_id = dados.get('cliente_id')
+
+        # ===== GERAR HASH =====
+        hash_input = f"{cliente_id}{dados.get('data_visita', '')}{tipo}{datetime.now().isoformat()}"
+        hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
+
+        # ===== GERAR PROTOCOLO SEQUENCIAL =====
+        protocolo = None
+        if cliente_id:
+            try:
+                cliente = buscar_cliente_por_id(cliente_id)
+                if cliente:
+                    dados_visita = cliente.get('dados_visita', {})
+                    contador_diario = dados_visita.get('contador_diario', {})
+                    data_atual = datetime.now().strftime('%Y-%m-%d')
+
+                    proximo = contador_diario.get(data_atual, 0) + 1
+                    contador_diario[data_atual] = proximo
+
+                    protocolo = f"VT-{datetime.now().strftime('%Y%m%d')}-{cliente_id}-{proximo:03d}"
+                    dados_visita['contador_diario'] = contador_diario
+                    dados_visita['ultimo_protocolo'] = protocolo
+
+                    payload_protocolo = {
+                        "acao": "adminAtualizarCliente",
+                        "idCliente": str(cliente_id),
+                        "campos": {
+                            "dados_visita": dados_visita
+                        },
+                        "senhaAdmin": "SoLiVi@64253798@"
+                    }
+                    requests.post(URL_AREA_CLIENTE, json=payload_protocolo, timeout=30)
+                    print(f"✅ Protocolo gerado: {protocolo}")
+                else:
+                    print("⚠️ Cliente não encontrado para gerar protocolo")
+            except Exception as e:
+                print(f"⚠️ Erro ao gerar protocolo: {e}")
+
+        # ===== CONTEXTO BASE =====
+        context = {
+            'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+            'NOME_FANTASIA': 'SoLivia Engenharia',
+            'CNPJ': '49.972.976/0001-15',
+            'TELEFONE': '(11) 5028-2426',
+            'EMAIL': 'contato@solivia.com.br',
+            'SITE': 'solivia.com.br',
+            'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+            'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+            'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+            'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
+            'URL_VALIDACAO': f"https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec?hash={hash_documento}",
+            'NUM_RELATORIO': f"RT-{datetime.now().year}-{str(1).zfill(3)}",
+            'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+            'HORA_EMISSAO': datetime.now().strftime('%H:%M'),
+            'NUM_PROTOCOLO': protocolo or f"VT-{datetime.now().strftime('%Y%m%d')}-{cliente_id or '000'}",
+            'HASH_DOCUMENTO': hash_documento,
+            'ENGENHEIRO_RESPONSAVEL': dados.get('engenheiro', 'Nícolas Alves de Sá'),
+            'CREA_NUMERO': dados.get('crea', '5071237870'),
+            'NUM_PROPOSTA': dados.get('num_proposta', ''),
+            'NOME_CLIENTE': dados.get('nome_cliente', ''),
+            'ENDERECO': dados.get('endereco', ''),
+            'CPF_CNPJ': dados.get('cpf_cnpj', ''),
+            'CONCESSIONARIA': dados.get('concessionaria', ''),
+            'DATA_VISITA': dados.get('data_visita', ''),
+            'OBSERVACOES_GERAIS': dados.get('observacoes_gerais', ''),
+        }
+
+        # ===== CAMPOS ESPECÍFICOS =====
+        if tipo == 'sem_adequacao':
+            context.update({
+                'POTENCIA': dados.get('potencia', ''),
+                'QTD_MODULOS': dados.get('qtd_modulos', ''),
+                'INVERSOR': dados.get('inversor', ''),
+                'GERACAO': dados.get('geracao', ''),
+                'INVESTIMENTO': format_moeda(dados.get('investimento', 0)),
+                'OBSERVACOES': dados.get('observacoes', ''),
+            })
+        elif tipo == 'com_adequacao':
+            context.update({
+                'DESAFIO_1': dados.get('desafio1', ''),
+                'DESAFIO_2': dados.get('desafio2', ''),
+                'DESAFIO_3': dados.get('desafio3', ''),
+                'ADEQUACAO_LAYOUT_1': dados.get('adequacao_layout1', ''),
+                'ADEQUACAO_LAYOUT_2': dados.get('adequacao_layout2', ''),
+                'GERACAO_ORIGINAL': dados.get('geracao_original', ''),
+                'QTD_MODULOS_OPCAO1': dados.get('modulos_op1', ''),
+                'INVERSOR_OPCAO1': dados.get('inversor_op1', ''),
+                'VALOR_OPCAO1': format_moeda(dados.get('valor_op1', 0)),
+                'GERACAO_OPCAO1': dados.get('geracao_op1', ''),
+                'QTD_MODULOS_OPCAO2': dados.get('modulos_op2', ''),
+                'INVERSOR_OPCAO2': dados.get('inversor_op2', ''),
+                'VALOR_OPCAO2': format_moeda(dados.get('valor_op2', 0)),
+                'GERACAO_OPCAO2': dados.get('geracao_op2', ''),
+                'RECOMENDACAO_TECNICA': dados.get('recomendacao', ''),
+                'LOCAL_QUADRO': dados.get('local_quadro', ''),
+                'ADEQUACAO_TECNICA_1': dados.get('adequacao_tec1', ''),
+                'ADEQUACAO_TECNICA_2': dados.get('adequacao_tec2', ''),
+                'ADEQUACAO_TECNICA_3': dados.get('adequacao_tec3', ''),
+                'VALOR_ADEQUACOES': format_moeda(dados.get('valor_adequacoes', 0)),
+                'REFORCO_ESTRUTURAL': dados.get('reforco_estrutural', ''),
+            })
+            adequacoes = dados.get('adequacoes', ['geracao', 'homologacao'])
+            context['ADEQUACOES'] = adequacoes
+        elif tipo == 'fast_track':
+            context.update({
+                'GERACAO_ORIGINAL': dados.get('geracao_original', ''),
+                'GERACAO_OTIMIZADA': dados.get('geracao_otimizada', ''),
+                'QTD_MODULOS': dados.get('qtd_modulos', ''),
+                'POTENCIA_INVERSOR': dados.get('potencia_inversor', ''),
+                'LOCAL_INVERSOR': dados.get('local_inversor', ''),
+                'OBSERVACOES': dados.get('observacoes', ''),
+            })
+
+        # ===== IMAGENS =====
+        imagens = dados.get('imagens', {})
+        for key, value in imagens.items():
+            if value:
+                context[key.upper()] = f"data:image/png;base64,{value}"
+
+        # ===== RENDERIZAR PDF =====
+        html_rendered = render_template(template_file, **context)
+        pdf_bytes = HTML(string=html_rendered).write_pdf()
+
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+        # ===== ENVIAR PARA O APPS SCRIPT =====
+        payload_script = {
+            'token': TOKEN,
+            'acao': 'salvar_pdf',
+            'dados': {
+                'nome_cliente': context['NOME_CLIENTE'] or 'cliente',
+                'pdf_base64': pdf_base64,
+                'tipo_documento': 'Visita_Tecnica',
+                'cliente_id': cliente_id,
+                'hash_documento': hash_documento,
+                'subpasta': 'Visita_Tecnica',
+            }
+        }
+
+        response = requests.post(APPS_SCRIPT_URL, json=payload_script)
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                url = result.get('url')
+
+                # ===== SALVAR HASH NA PLANILHA =====
+                if cliente_id and hash_documento:
+                    try:
+                        cliente = buscar_cliente_por_id(cliente_id)
+                        if cliente:
+                            dados_visita = cliente.get('dados_visita', {})
+                            dados_visita['hash_documento'] = hash_documento
+                            dados_visita['relatorio_url'] = url
+                            if protocolo and 'ultimo_protocolo' not in dados_visita:
+                                dados_visita['ultimo_protocolo'] = protocolo
+
+                            payload_hash = {
+                                "acao": "adminAtualizarCliente",
+                                "idCliente": str(cliente_id),
+                                "campos": {
+                                    "dados_visita": dados_visita
+                                },
+                                "senhaAdmin": "SoLiVi@64253798@"
+                            }
+                            requests.post(URL_AREA_CLIENTE, json=payload_hash, timeout=30)
+                            print(f"✅ Hash salvo na planilha via Área do Cliente: {hash_documento}")
+                    except Exception as e:
+                        print(f"⚠️ Erro ao salvar hash via Área do Cliente: {e}")
+
+                return jsonify({'success': True, 'url': url})
+            else:
+                return jsonify({'success': False, 'error': result.get('error', 'Erro ao salvar no Drive')}), 500
+        else:
+            return jsonify({'success': False, 'error': f'Erro ao comunicar com o Apps Script: {response.status_code}'}), 500
+
+    except Exception as e:
+        print(f"❌ Erro: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROTA GERAR PROPOSTA FINAL
+# ============================================================
+@app.route('/gerar_proposta_final', methods=['POST'])
+def gerar_proposta_final():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({'success': False, 'error': 'Dados não fornecidos'}), 400
+
+        cliente_id = dados.get('cliente_id')
+        if not cliente_id:
+            return jsonify({'success': False, 'error': 'cliente_id não informado'}), 400
+
+        cliente = buscar_cliente_por_id(cliente_id)
+        if not cliente:
+            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+        dados_visita = cliente.get('dados_visita', {})
+        documentos = cliente.get('documentos', {})
+
+        nome_cliente = cliente.get('nome', '')
+        email_cliente = cliente.get('email', '')
+        telefone_cliente = cliente.get('telefone', '')
+        endereco = cliente.get('endereco', '')
+        cpf_cnpj = cliente.get('cpf_cnpj', '')
+
+        potencia = dados_visita.get('potencia') or dados_visita.get('potencia_kwp') or '0'
+        qtd_modulos = dados_visita.get('qtd_modulos') or dados_visita.get('modulos') or '0'
+        inversor = dados_visita.get('inversor') or 'Conforme projeto'
+        geracao = dados_visita.get('geracao') or dados_visita.get('geracao_estimada') or '0'
+        investimento = dados_visita.get('investimento') or 0
+        concessionaria = dados_visita.get('concessionaria') or cliente.get('concessionaria') or 'Concessionária local'
+
+        condicao_pagamento = dados.get('condicao_pagamento', 'À vista, cartão de crédito ou financiamento')
+        prazo_execucao = dados.get('prazo_execucao', '30 dias úteis')
+
+        num_proposta = f"PF-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
+
+        beneficios = [
+            "💰 Redução de até 95% na conta de luz",
+            "🔋 Energia limpa e sustentável",
+            "📈 Valorização do imóvel",
+            "🔒 Garantia de 25 anos nos painéis",
+            "🛡️ Proteção contra aumentos tarifários"
+        ]
+
+        inclusos = [
+            "Engenharia e Homologação (Gestão completa com a concessionária)",
+            "Aquisição e Logística de Equipamentos",
+            "Instalação Técnica Especializada",
+            "Suporte e Monitoramento pós-instalação",
+            "Garantia do Serviço"
+        ]
+        exclusos = [
+            "Obras civis (reformas de telhado ou alvenaria)",
+            "Adequação elétrica pesada (fora das normas atuais)"
+        ]
+
+        itens_escopo = [
+            {'desc': f'Sistema Fotovoltaico {potencia} kWp', 'marca': inversor, 'qtd': qtd_modulos, 'preco': format_moeda_sem_prefixo(investimento)},
+            {'desc': 'Estrutura de fixação', 'marca': 'Conforme projeto', 'qtd': '1', 'preco': '0,00'},
+            {'desc': 'Cabeamento e conectores', 'marca': 'Conforme projeto', 'qtd': '1', 'preco': '0,00'},
+        ]
+
+        comparativo = [
+            {'ano': 1, 'custoSem': '5.000,00', 'custoCom': '1.200,00', 'economia': '3.800,00'},
+            {'ano': 2, 'custoSem': '5.400,00', 'custoCom': '1.250,00', 'economia': '4.150,00'},
+            {'ano': 3, 'custoSem': '5.800,00', 'custoCom': '1.300,00', 'economia': '4.500,00'},
+            {'ano': 4, 'custoSem': '6.200,00', 'custoCom': '1.350,00', 'economia': '4.850,00'},
+            {'ano': 5, 'custoSem': '6.600,00', 'custoCom': '1.400,00', 'economia': '5.200,00'},
+        ]
+
+        hash_input = f"{cliente_id}{datetime.now().isoformat()}"
+        hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
+        url_validacao = f"https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec?hash={hash_documento}"
+
+        context = {
+            'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+            'NOME_FANTASIA': 'SoLivia Engenharia',
+            'CNPJ': '49.972.976/0001-15',
+            'TELEFONE': '(11) 5028-2426',
+            'EMAIL': 'contato@solivia.com.br',
+            'SITE': 'solivia.com.br',
+            'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+            'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+            'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+            'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
+            'FOTO_CAPA_MIOLO': 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&h=300&fit=crop',
+            'NUM_PROPOSTA': num_proposta,
+            'REVISAO': 'RV00',
+            'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+            'HORA_EMISSAO': datetime.now().strftime('%H:%M'),
+            'NOME_CLIENTE': nome_cliente,
+            'TELEFONE_CLIENTE': telefone_cliente,
+            'CPF_CNPJ': cpf_cnpj,
+            'ENDERECO': endereco,
+            'NUMERO_ENDERECO': '',
+            'FRASE_IMPACTO': 'Energia solar: economia, sustentabilidade e valorização do seu imóvel',
+            'RESUMO_SOLUCAO': f'Instalação de sistema fotovoltaico com {potencia} kWp, composto por {qtd_modulos} módulos, garantindo uma geração estimada de {geracao} kWh/mês e economia de até 95% na conta de luz.',
+            'BENEFICIOS': beneficios,
+            'INCLUSOS': inclusos,
+            'EXCLUSOS': exclusos,
+            'ITENS_ESCOPO': itens_escopo,
+            'VALOR_TOTAL': format_moeda(investimento),
+            'CONDICAO_1': 'À vista com 10% de desconto',
+            'CONDICAO_2': 'Cartão de crédito',
+            'CONDICAO_3': 'Financiamento',
+            'OBSERVACOES_COMERCIAIS': f'Condição de pagamento: {condicao_pagamento}. Prazo de execução: {prazo_execucao}.',
+            'PRAZO_EXECUCAO': prazo_execucao,
+            'VALIDADE_PROPOSTA': '15 dias úteis',
+            'COMPARATIVO': comparativo,
+            'GRAFICO_BASE64': None,
+            'HASH_DOCUMENTO': hash_documento,
+            'URL_VALIDACAO': url_validacao,
+            'NUM_PROTOCOLO': f'PF-{datetime.now().strftime("%Y%m%d")}-{cliente_id}'
+        }
+
+        html_rendered = render_template('proposta_final.html', **context)
+        pdf_bytes = HTML(string=html_rendered).write_pdf()
+
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+        payload_script = {
+            'token': TOKEN,
+            'acao': 'salvar_pdf',
+            'dados': {
+                'nome_cliente': nome_cliente or 'cliente',
+                'pdf_base64': pdf_base64,
+                'cliente_id': cliente_id,
+                'hash_documento': hash_documento,
+                'subpasta': 'Documentos',
+                'nome_arquivo': f"PropostaFinal_{nome_cliente.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            }
+        }
+
+        response = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                url_pdf = result.get('url')
+                try:
+                    cliente_atual = buscar_cliente_por_id(cliente_id)
+                    if cliente_atual:
+                        docs = cliente_atual.get('documentos', {})
+                        docs['proposta_final'] = {
+                            'url': url_pdf,
+                            'data_geracao': datetime.now().isoformat(),
+                            'hash': hash_documento
+                        }
+                        payload_update = {
+                            "acao": "adminAtualizarCliente",
+                            "idCliente": str(cliente_id),
+                            "campos": {
+                                "documentos": docs
+                            },
+                            "senhaAdmin": "SoLiVi@64253798@"
+                        }
+                        requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                        print(f"✅ Proposta final salva para cliente {cliente_id}")
+                except Exception as e:
+                    print(f"⚠️ Erro ao atualizar planilha: {e}")
+
+                return jsonify({'success': True, 'url': url_pdf, 'message': 'Proposta final gerada com sucesso!'})
+            else:
+                return jsonify({'success': False, 'error': result.get('error', 'Erro ao salvar no Drive')}), 500
+        else:
+            return jsonify({'success': False, 'error': f'Erro no Apps Script: {response.status_code}'}), 500
+
+    except Exception as e:
+        print(f"❌ Erro: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROTA: GERAR CONTRATO (CLIENTE E PRESTADOR) – ATUALIZADA
+# ============================================================
+@app.route('/gerar_contrato', methods=['POST'])
+def gerar_contrato():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({'success': False, 'error': 'Dados não fornecidos'}), 400
+
+        tipo = dados.get('tipo', 'cliente')
+
+        # ============================================================
+        # CASO: CONTRATO DO PRESTADOR
+        # ============================================================
+        if tipo == 'prestador' or tipo == 'parceiro':
+            prestador = dados.get('dados', {})
+            if not prestador:
+                return jsonify({'success': False, 'error': 'Dados do prestador não fornecidos'}), 400
+
+            obrigatorios = ['nome', 'cpf', 'especialidade', 'duracao_meses', 'data_inicio', 'valor_combinado']
+            faltando = [campo for campo in obrigatorios if not prestador.get(campo)]
+            if faltando:
+                return jsonify({'success': False, 'error': f'Campos obrigatórios faltando: {", ".join(faltando)}'}), 400
+
+            context = {
+                'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+                'NOME_FANTASIA': 'SoLivia Engenharia',
+                'CNPJ': '49.972.976/0001-15',
+                'TELEFONE': '(11) 5028-2426',
+                'EMAIL': 'contato@solivia.com.br',
+                'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+                'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+                'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+                'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+                'NUM_CONTRATO': f'PR-{datetime.now().strftime("%Y%m%d")}-{str(prestador.get("cpf", ""))[-4:]}',
+                'REPRESENTANTE': 'Nícolas Alves de Sá',
+                'CARGO_REPRESENTANTE': 'Sócio-Administrador',
+                'PRESTADOR_NOME': prestador.get('nome', ''),
+                'PRESTADOR_CPF': prestador.get('cpf', ''),
+                'PRESTADOR_RG': prestador.get('rg', ''),
+                'PRESTADOR_NACIONALIDADE': prestador.get('nacionalidade', 'Brasileiro'),
+                'PRESTADOR_ESTADO_CIVIL': prestador.get('estado_civil', ''),
+                'PRESTADOR_PROFISSAO': prestador.get('profissao', ''),
+                'PRESTADOR_ENDERECO': prestador.get('endereco', ''),
+                'PRESTADOR_ESPECIALIDADE': prestador.get('especialidade', ''),
+                'PRESTADOR_DURACAO_MESES': prestador.get('duracao_meses', '12'),
+                'PRESTADOR_DATA_INICIO': prestador.get('data_inicio', datetime.now().strftime('%Y-%m-%d')),
+                'PRESTADOR_VALOR_HORA': prestador.get('valor_combinado', ''),
+                'PRESTADOR_BANCO': prestador.get('banco', ''),
+                'PRESTADOR_AGENCIA': prestador.get('agencia', ''),
+                'PRESTADOR_CONTA': prestador.get('conta', ''),
+                'PRESTADOR_PIX': prestador.get('pix', '')
+            }
+
+            html_rendered = render_template('contrato_prestador.html', **context)
+            pdf_bytes = HTML(string=html_rendered).write_pdf()
+            pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+            payload_script = {
+                'acao': 'salvarPdfPrestador',
+                'senhaAdmin': 'SoLiVi@64253798@',
+                'nome_prestador': prestador.get('nome', 'prestador'),
+                'pdf_base64': pdf_base64,
+                'nome_arquivo': f"Contrato_Prestador_{prestador.get('nome', '').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            }
+
+            response = requests.post(URL_AREA_CLIENTE, json=payload_script, timeout=60)
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('success'):
+                    return jsonify({'success': True, 'url': result.get('url'), 'message': 'Contrato do prestador gerado com sucesso!'})
+                else:
+                    return jsonify({'success': False, 'error': result.get('error', 'Erro ao salvar no Drive')}), 500
+            else:
+                return jsonify({'success': False, 'error': f'Erro no Apps Script: {response.status_code}'}), 500
+
+        # ============================================================
+        # CASO: CONTRATO DO CLIENTE (COM ASSINATURA DIGITAL)
+        # ============================================================
+        elif tipo == 'cliente':
+            cliente_id = dados.get('cliente_id')
+            if not cliente_id:
+                return jsonify({'success': False, 'error': 'cliente_id não informado'}), 400
+
+            cliente = buscar_cliente_por_id(cliente_id)
+            if not cliente:
+                return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+            # Dados adicionais enviados pelo front-end (ajuste conforme necessário)
+            valor_contrato = dados.get('valor_contrato', '0,00')
+            prazo_execucao = dados.get('prazo_execucao', '60 dias')
+            condicao_pagamento = dados.get('condicao_pagamento', 'À vista')
+            observacoes = dados.get('observacoes', '')
+
+            # Prepara o contexto para o template do contrato (supondo que exista 'contrato_cliente.html')
+            context = {
+                'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+                'NOME_FANTASIA': 'SoLivia Engenharia',
+                'CNPJ': '49.972.976/0001-15',
+                'TELEFONE': '(11) 5028-2426',
+                'EMAIL': 'contato@solivia.com.br',
+                'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+                'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+                'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+                'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+                'NUM_CONTRATO': f'CT-{datetime.now().strftime("%Y%m%d")}-{cliente_id}',
+                'REPRESENTANTE': 'Nícolas Alves de Sá',
+                'CARGO_REPRESENTANTE': 'Sócio-Administrador',
+                'NOME_CLIENTE': cliente.get('nome', ''),
+                'CPF_CNPJ_CLIENTE': cliente.get('cpf_cnpj', ''),
+                'ENDERECO_CLIENTE': cliente.get('endereco', ''),
+                'VALOR_CONTRATO': format_moeda(valor_contrato),
+                'PRAZO_EXECUCAO': prazo_execucao,
+                'CONDICAO_PAGAMENTO': condicao_pagamento,
+                'OBSERVACOES': observacoes
+                # Adicione outros campos conforme o template exige
+            }
+
+            # Gera o PDF do contrato
+            html_rendered = render_template('contrato_cliente.html', **context)
+            pdf_bytes = HTML(string=html_rendered).write_pdf()
+
+            # Salva o PDF no Drive (pasta Documentos do cliente)
+            pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+            payload_script = {
+                'token': TOKEN,
+                'acao': 'salvar_pdf',
+                'dados': {
+                    'nome_cliente': cliente.get('nome', 'cliente'),
+                    'pdf_base64': pdf_base64,
+                    'cliente_id': cliente_id,
+                    'subpasta': 'Documentos',
+                    'nome_arquivo': f"Contrato_{cliente.get('nome', 'cliente').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                }
+            }
+            resp = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
+            if resp.status_code != 200:
+                return jsonify({'success': False, 'error': 'Erro ao salvar PDF no Drive'}), 500
+
+            result_save = resp.json()
+            if not result_save.get('success'):
+                return jsonify({'success': False, 'error': result_save.get('error', 'Erro ao salvar PDF')}), 500
+
+            url_pdf = result_save.get('url')
+
+            # ===== ENVIAR PARA ASSINATURA AUTENTIQUE =====
+            resultado = enviar_para_assinatura_autentique(
+                pdf_bytes=pdf_bytes,
+                nome_documento=f"Contrato_{cliente.get('nome', 'cliente').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf",
+                cliente_email=cliente['email'],
+                cliente_nome=cliente['nome'],
+                assinante_empresa=ASSINANTE_SOLIVIA  # pode ser ASSINANTE_NICOLAS se desejado
+            )
+
+            if not resultado['success']:
+                return jsonify({'success': False, 'error': resultado['error']}), 500
+
+            document_id = resultado['document_id']
+            link_assinatura = resultado['link_assinatura']
+
+            # ===== ATUALIZAR PLANILHA =====
+            cliente_atual = buscar_cliente_por_id(cliente_id)
+            if cliente_atual:
+                docs = cliente_atual.get('documentos', {})
+                docs['contrato'] = {
+                    'url': url_pdf,
+                    'document_id': document_id,
+                    'link_assinatura': link_assinatura,
+                    'status': 'enviado',
+                    'data_envio': datetime.now().isoformat()
+                }
+                payload_update = {
+                    "acao": "adminAtualizarCliente",
+                    "idCliente": str(cliente_id),
+                    "campos": {
+                        "documentos": docs,
+                        "etapa_atual": "documentos"
+                    },
+                    "senhaAdmin": "SoLiVi@64253798@"
+                }
+                requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                print(f"✅ Contrato enviado para assinatura. Document ID: {document_id}")
+
+            return jsonify({
+                'success': True,
+                'message': 'Contrato enviado para assinatura!',
+                'link_assinatura': link_assinatura,
+                'document_id': document_id
+            })
+
+        else:
+            return jsonify({'success': False, 'error': 'Tipo de contrato inválido'}), 400
+
+    except Exception as e:
+        print(f"❌ Erro: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROTAS ADICIONAIS
+# ============================================================
+
+@app.route('/gerar_relatorio_comissionamento', methods=['POST'])
+def gerar_relatorio_comissionamento():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({'success': False, 'error': 'Dados não fornecidos'}), 400
+
+        cliente_id = dados.get('cliente_id')
+        if not cliente_id:
+            return jsonify({'success': False, 'error': 'cliente_id não informado'}), 400
+
+        cliente_data = buscar_cliente_por_id(cliente_id)
+        if not cliente_data:
+            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+        return jsonify({'success': True, 'message': 'Relatório de comissionamento gerado'})
+
+    except Exception as e:
+        print(f"❌ Erro: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    return {'status': 'ok', 'message': 'SoLivia Engenharia - Gerador de Propostas e Relatórios'}
+
+@app.route('/api/atualizar_relatorio_url', methods=['POST'])
+def atualizar_relatorio_url():
+    try:
+        dados = request.get_json()
+        cliente_id = dados.get('cliente_id')
+        relatorio_url = dados.get('relatorio_url')
+        senha_admin = dados.get('senhaAdmin', 'SoLiVi@64253798@')
+
+        if not cliente_id or not relatorio_url:
+            return jsonify({'success': False, 'error': 'cliente_id e relatorio_url são obrigatórios'}), 400
+
+        cliente = buscar_cliente_por_id(cliente_id)
+        if not cliente:
+            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+        campos = {
+            'dados_visita': {
+                **cliente.get('dados_visita', {}),
+                'relatorio_url': relatorio_url
+            }
+        }
+
+        payload = {
+            'acao': 'adminAtualizarCliente',
+            'idCliente': str(cliente_id),
+            'campos': campos,
+            'senhaAdmin': senha_admin
+        }
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        resultado = response.json()
+
+        if resultado.get('success'):
+            return jsonify({'success': True, 'message': 'URL do relatório atualizada'})
+        else:
+            return jsonify({'success': False, 'error': resultado.get('error', 'Erro ao atualizar')}), 500
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/upload_documento_admin', methods=['POST'])
+def upload_documento_admin():
+    try:
+        cliente_id = request.form.get('cliente_id')
+        tipo_doc = request.form.get('tipo_doc')
+        arquivo = request.files.get('arquivo')
+
+        if not cliente_id or not tipo_doc or not arquivo:
+            return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
+
+        base64_content = base64.b64encode(arquivo.read()).decode('utf-8')
+        nome_arquivo = arquivo.filename
+
+        cliente = buscar_cliente_por_id(cliente_id)
+        if not cliente:
+            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+        payload = {
+            'acao': 'uploadDocumentoAdmin',
+            'senhaAdmin': 'SoLiVi@64253798@',
+            'cliente_id': cliente_id,
+            'tipo_doc': tipo_doc,
+            'nome_arquivo': nome_arquivo,
+            'base64': base64_content
+        }
+
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                return jsonify({'success': True, 'url': data.get('url')})
+            else:
+                return jsonify({'success': False, 'error': data.get('error', 'Erro no Apps Script')}), 500
+        else:
+            return jsonify({'success': False, 'error': f'Erro no Apps Script: {response.status_code}'}), 500
+
+    except Exception as e:
+        print(f"❌ Erro: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
