@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="no-js">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Área do Cliente - SoLivia Engenharia</title>
+
+    <!-- ===== VERIFICAÇÃO DE TOKEN (BLOQUEANTE - ELIMINA O FLICKER) ===== -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('tokenCliente');
+            if (token) {
+                document.documentElement.classList.add('is-logged-in');
+                console.log('🔑 Token encontrado no localStorage. Estado: LOGADO');
+            } else {
+                console.log('🔓 Nenhum token encontrado. Estado: PÚBLICO');
+            }
+        })();
+    </script>
+
+    <!-- ===== CSS ===== -->
+    <style>
+        /* ===== RESET E BASE ===== */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e2f3a;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            visibility: hidden;
+            transition: visibility 0.2s;
+        }
+        body.ready {
+            visibility: visible;
+        }
+
+        /* ===== CONTROLE DE VISIBILIDADE POR ESTADO ===== */
+        .view-public { display: block; }
+.view-logged { display: none; }
+
+.is-logged-in .view-public { display: none !important; }
+.is-logged-in .view-logged {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1;
+}
+
+        .is-logged-in .view-public { display: none !important; }
+        .is-logged-in .view-logged {
+            display: flex !important;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* ===== CORREÇÃO: FORÇA OCULTAÇÃO DA ÁREA LOGADA QUANDO NÃO ESTIVER LOGADO ===== */
+        
+
+        /* ===== HEADER PÚBLICO ===== */
+        .header-publico {
+            background: #0b2f5c;
+            padding: 0.8rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header-publico .header__container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-publico .header__logo img {
+            height: auto;
+            width: 150px;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+        .header-publico .header__nav {
+            display: flex;
+            gap: 2rem;
+        }
+        .header-publico .header__nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+        .header-publico .header__nav a:hover {
+            color: #ffc400;
+        }
+        .header-publico .header__nav a.active {
+            color: #ffc400 !important;
+            font-weight: 700;
+        }
+        .header-publico .header__hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .header-publico .header__hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+        }
+
+        /* ===== HEADER MINIMALISTA – COMPACTO ===== */
+        .header-minimal {
+            background: #0b2f5c;
+            padding: 0.5rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header-minimal .header__container {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100%;
+        }
+        .header-minimal .header__left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 0 1 auto;
+        }
+        .header-minimal .header__left .avatar {
+            width: 32px;
+            height: 32px;
+            background: #ffc400;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0b2f5c;
+            position: relative;
+            cursor: pointer;
+            font-size: 0.9rem;
+            overflow: hidden;
+        }
+        .header-minimal .header__left .avatar:hover .avatar-overlay {
+            display: flex !important;
+        }
+        .header-minimal .header__left .avatar .avatar-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+            pointer-events: none;
+            line-height: 1.2;
+        }
+        .header-minimal .header__left .avatar #spinnerAvatar {
+            display: none;
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .header-minimal .header__left .nome {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .header-minimal .header__left .logout {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 0.1rem;
+            white-space: nowrap;
+        }
+        .header-minimal .header__left .logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .header-minimal .header__right {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            margin-right: 2.8rem;
+        }
+        .header-minimal .header__right img {
+            height: 32px;
+            background: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            display: block;
+        }
+
+        /* ===== MOBILE MENU (público) ===== */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: #0b2f5c;
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            padding: 2rem;
+        }
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+        .mobile-menu .mobile-menu__close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            cursor: pointer;
+        }
+        .mobile-menu nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .mobile-menu nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .mobile-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+        .mobile-overlay.active {
+            display: block;
+        }
+
+        /* ===== HERO ===== */
+        .hero-cliente {
+            background-image: url('assets/img/hero-cliente.jpg');
+            background-size: 100% 100%;
+            background-position: center center;
+            background-repeat: no-repeat;
+            position: relative;
+            padding: 0;
+            margin-bottom: 2rem;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-cliente::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(255, 196, 0, 0.25) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+            animation: brilho 4s ease-in-out infinite alternate;
+        }
+        @keyframes brilho {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        .hero-cliente .container {
+            position: relative;
+            z-index: 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ===== CARD DE LOGIN ===== */
+        .login-section {
+            padding: 1rem 1.5rem 4rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: transparent;
+        }
+        .login-card {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 2.5rem 2rem;
+            max-width: 440px;
+            width: 100%;
+            border: 1px solid rgba(255, 196, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.12);
+        }
+        .login-card .logo-mini {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .login-card .logo-mini img {
+            height: 50px;
+            width: auto;
+        }
+        .login-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0b2f5c;
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+        .login-card .subtitulo {
+            text-align: center;
+            color: #5c7a6c;
+            font-size: 0.95rem;
+            margin-bottom: 1.8rem;
+        }
+        .login-card .campo {
+            margin-bottom: 1.2rem;
+        }
+        .login-card .campo label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #0b2f5c;
+            margin-bottom: 0.3rem;
+        }
+        .login-card .campo input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #dce3ea;
+            border-radius: 1.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #f9fbfd;
+        }
+        .login-card .campo input:focus {
+            outline: none;
+            border-color: #ffc400;
+            box-shadow: 0 0 0 3px rgba(255,196,0,0.2);
+            background: white;
+        }
+        .login-card .btn-entrar {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #ffc400 0%, #e6b000 100%);
+            color: #0b2f5c;
+            border: none;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 0.5rem;
+        }
+        .login-card .btn-entrar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .login-card .btn-entrar:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(255,196,0,0.4);
+        }
+        .login-card .links-rodape {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .login-card .links-rodape a {
+            color: #0b2f5c;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .login-card .links-rodape a:hover {
+            color: #ffc400;
+            text-decoration: underline;
+        }
+        .login-card .selo-seguranca {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.8rem;
+            font-size: 0.8rem;
+            color: #5c7a6c;
+            border-top: 1px solid #eef2f0;
+            padding-top: 1.5rem;
+        }
+        .login-card .selo-seguranca svg {
+            width: 18px;
+            height: 18px;
+            fill: #2e7d32;
+        }
+        .login-erro {
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* ===== DASHBOARD – OCUPA O MÁXIMO DE ALTURA ===== */
+        .dashboard-container {
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            flex: 1 !important;
+            padding: 4rem 2rem 6rem !important;
+            min-height: 85vh !important;
+            animation: fadeSlide 0.5s ease !important;
+            padding-bottom: 0 !important;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dashboard-container h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0b2f5c;
+            margin-bottom: 0.3rem;
+            text-align: center;
+        }
+        .dashboard-container .sub {
+            color: #5c7a6c;
+            margin-bottom: 2.5rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .dashboard-container h1,
+        .dashboard-container .sub {
+            transform: translateY(8rem);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            margin-top: 14cap;
+            transition: opacity 0.3s ease;
+        }
+        .cards-grid.oculto {
+            display: none;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            border: 1px solid #e2edf2;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        .card.bloqueado {
+            opacity: 0.5;
+            filter: grayscale(0.6);
+            pointer-events: none;
+            cursor: default;
+            border-color: #d1d9e0;
+        }
+        .card.bloqueado .card__imagem {
+            background: #e2e8f0;
+        }
+        .card.bloqueado .card__status {
+            background: #e2e8f0;
+            color: #7a8a9a;
+        }
+        .card.bloqueado:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .card:not(.bloqueado):hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.08);
+        }
+        .card__imagem {
+            width: 100%;
+            height: 140px;
+            background: #e9edf2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8899aa;
+            font-size: 0.9rem;
+            font-weight: 500;
+            position: relative;
+        }
+        .card__imagem svg {
+            width: 48px;
+            height: 48px;
+            fill: none;
+            stroke: #0b2f5c;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .card__imagem .placeholder-text {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 0.65rem;
+            background: rgba(255,255,255,0.7);
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            color: #556677;
+        }
+        .card__body {
+            padding: 1.2rem 1.2rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .card__titulo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0b2f5c;
+        }
+        .card__status {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .status--concluido { background: #e0f2e6; color: #0a6b3b; }
+        .status--andamento { background: #fff3d6; color: #a45d00; }
+        .status--pendente { background: #fce4e4; color: #b33636; }
+        .card__resumo {
+            color: #475569;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        /* ===== PÓS-VENDA (horizontal) ===== */
+        .card-posvenda {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            border: 1px solid #e2edf2;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            display: none;
+            align-items: stretch;
+            margin-top: 0.5rem;
+        }
+        .card-posvenda.ativo {
+            display: flex;
+        }
+        .card-posvenda:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.08);
+        }
+        .card-posvenda .card__imagem {
+            width: 180px;
+            min-height: 140px;
+            height: auto;
+            flex-shrink: 0;
+            background: #e9edf2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8899aa;
+            font-size: 0.9rem;
+            font-weight: 500;
+            position: relative;
+        }
+        .card-posvenda .card__imagem svg {
+            width: 48px;
+            height: 48px;
+            fill: none;
+            stroke: #0b2f5c;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .card-posvenda .card__body {
+            padding: 1.2rem 1.5rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .card-posvenda .card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .card-posvenda .card__titulo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0b2f5c;
+        }
+        .card-posvenda .card__resumo {
+            color: #475569;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* ===== DETALHES ===== */
+        .detalhes-area {
+            display: none;
+            animation: fadeSlide 0.3s ease;
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            border: 1px solid #e2edf2;
+            margin-top: 0.5rem;
+        }
+        .detalhes-area.ativo {
+            display: block;
+        }
+        .detalhes-area .voltar {
+            display: inline-block;
+            margin-bottom: 1.2rem;
+            color: #0b2f5c;
+            font-weight: 600;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 30px;
+            transition: background 0.2s;
+        }
+        .detalhes-area .voltar:hover {
+            background: #eef2f6;
+        }
+        .detalhes-area .voltar::before {
+            content: "← ";
+        }
+        .detalhes-area .titulo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0b2f5c;
+            margin-bottom: 0.3rem;
+        }
+        .detalhes-area .subtitulo {
+            color: #5c7a6c;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        .detalhes-area .conteudo p {
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+        }
+        .detalhes-area .conteudo ul,
+        .detalhes-area .conteudo .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .detalhes-area .conteudo ul li::before {
+            content: "•";
+            color: #ffc400;
+            font-weight: 700;
+        }
+        .detalhes-area .conteudo .checklist li::before {
+            content: "✅";
+            font-weight: 700;
+        }
+        .detalhes-area .destaque {
+            background: #f0f4fa;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            font-weight: 600;
+            color: #0b2f5c;
+        }
+        .detalhes-area .botao-acao {
+            background: #0b2f5c;
+            color: white;
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 1rem;
+            margin-right: 0.5rem;
+        }
+        .detalhes-area .botao-acao:hover {
+            background: #1a4a7a;
+        }
+        .detalhes-area .botao-acao--secundario {
+            background: transparent;
+            color: #0b2f5c;
+            border: 1px solid #dce3ea;
+        }
+        .detalhes-area .botao-acao--secundario:hover {
+            background: #eef2f6;
+        }
+        .detalhes-area .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+        .detalhes-area .grid-2col .item {
+            background: #f8fafc;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            border: 1px solid #eef2f6;
+        }
+
+        /* ===== FOOTER PÚBLICO ===== */
+        .footer-publico {
+            background: #0b2f5c;
+            color: rgba(255,255,255,0.7);
+            padding: 3rem 0 0;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .footer-publico .footer__container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+        }
+        .footer-publico .footer__logo {
+            height: auto;
+            max-height: 70px;
+            width: auto;
+            margin-bottom: 1rem;
+        }
+        .footer-publico .footer__description {
+            opacity: 0.8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .footer-publico .footer__title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffc400;
+        }
+        .footer-publico .footer__links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .footer-publico .footer__links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        .footer-publico .footer__links a:hover {
+            opacity: 1;
+            color: #ffc400;
+        }
+        .footer-publico .footer__contact p {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        .footer-publico .footer__social {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .footer-publico .footer__social a {
+            opacity: 0.8;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .footer-publico .footer__social a:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+        .footer-publico .footer__bottom {
+            border-top: 1px solid rgba(255,255,255,0.15);
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+        }
+        .footer-publico .footer__bottom-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .footer-publico .footer__copy,
+        .footer-publico .footer__cnpj {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin: 0;
+        }
+        .footer-publico .footer__privacy {
+            font-size: 0.85rem;
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        .footer-publico .footer__privacy:hover {
+            opacity: 1;
+            color: #ffc400;
+        }
+
+        /* ===== FOOTER MINIMALISTA – TEXTO MAIOR E UMA LINHA ===== */
+        .footer-minimal {
+            background: #0b2f5c;
+            color: rgba(255,255,255,0.7);
+            padding: 0.1rem 0.5rem;
+            font-size: 0.7rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 0.2rem !important;
+            flex-wrap: nowrap !important;
+            white-space: nowrap !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            min-width: max-content;
+        }
+
+        .footer-minimal a {
+            color: #ffc400;
+            text-decoration: none;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            display: inline-block !important;
+        }
+
+        /* ===== WHATSAPP FLUTUANTE – FIXO SEM CRIAR ESPAÇO ===== */
+        .whatsapp-float {
+            position: fixed !important;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+            background: #25D366;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 0 !important;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.05);
+        }
+        .whatsapp-float svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 1024px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.2rem;
+            }
+            .detalhes-area .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            .card-posvenda {
+                flex-direction: column;
+            }
+            .card-posvenda .card__imagem {
+                width: 100%;
+                height: 140px;
+            }
+        }
+        @media (max-width: 768px) {
+            .header-publico .header__nav {
+                display: none;
+            }
+            .header-publico .header__hamburger {
+                display: flex;
+            }
+            .hero-cliente {
+                min-height: 300px;
+            }
+            .login-card {
+                padding: 1.8rem 1.2rem;
+            }
+            .login-card .links-rodape {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .dashboard-container h1 {
+                font-size: 1.4rem;
+            }
+            .footer-publico .footer__container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .footer-publico .footer__logo {
+                margin: 0 auto 1rem;
+            }
+            .footer-publico .footer__social {
+                justify-content: center;
+            }
+            .footer-publico .footer__bottom-container {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        @media (max-width: 640px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .card__imagem,
+            .card-posvenda .card__imagem {
+                height: 100px;
+            }
+            .detalhes-area {
+                padding: 1.2rem;
+            }
+            .detalhes-area .titulo {
+                font-size: 1.4rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .hero-cliente {
+                min-height: 220px;
+            }
+            .whatsapp-float {
+                width: 50px;
+                height: 50px;
+                bottom: 15px;
+                right: 15px;
+            }
+            .whatsapp-float svg {
+                width: 28px;
+                height: 28px;
+            }
+            .footer-minimal {
+                flex-wrap: wrap;
+                font-size: 0.75rem;
+                padding: 0.2rem 0.5rem;
+            }
+        }
+        @media (max-width: 400px) {
+            .footer-minimal {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.3rem;
+                gap: 0.1rem;
+            }
+        }
+
+        /* ===== MODAIS ===== */
+        .modal-aviso {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-aviso.active {
+            display: flex;
+        }
+        .modal-aviso .conteudo {
+            background: white;
+            max-width: 420px;
+            width: 90%;
+            border-radius: 2rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.3s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-aviso .conteudo h3 {
+            font-size: 1.5rem;
+            color: #0b2f5c;
+            margin-bottom: 0.5rem;
+        }
+        .modal-aviso .conteudo p {
+            color: #5c7a6c;
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+        }
+        .modal-aviso .conteudo .campo-modal {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .modal-aviso .conteudo .campo-modal label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #0b2f5c;
+            margin-bottom: 0.3rem;
+        }
+        .modal-aviso .conteudo .campo-modal input {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #dce3ea;
+            border-radius: 1.5rem;
+            font-size: 0.95rem;
+            background: #f9fbfd;
+        }
+        .modal-aviso .conteudo .campo-modal input:focus {
+            outline: none;
+            border-color: #ffc400;
+            box-shadow: 0 0 0 3px rgba(255,196,0,0.2);
+            background: white;
+        }
+        .modal-aviso .conteudo .btn-modal {
+            background: #ffc400;
+            color: #0b2f5c;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 0.5rem;
+        }
+        .modal-aviso .conteudo .btn-modal:hover {
+            background: #e6b000;
+        }
+        .modal-aviso .conteudo .btn-fechar-modal {
+            background: transparent;
+            color: #0b2f5c;
+            border: 1px solid #dce3ea;
+            padding: 0.6rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 0.5rem;
+        }
+        .modal-aviso .conteudo .btn-fechar-modal:hover {
+            background: #f1f5f9;
+        }
+
+        /* ===== OCULTA BOTÃO PADRÃO DO TIDIO ===== */
+        #tidio-chat-button,
+        .tidio-chat-button,
+        [id^="tidio-chat-button"],
+        [class*="tidio-chat-button"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+    </style>
+
+    <!-- =========================================================
+         REDIRECIONAMENTO CONDICIONAL (apenas em produção)
+         ========================================================= -->
+    <script>
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            if (window.location.pathname.endsWith('.html')) {
+                var newUrl = window.location.pathname.replace('.html', '');
+                window.location.replace(newUrl);
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- ==================== HEADER PÚBLICO ==================== -->
+    <header class="header-publico view-public">
+        <div class="header__container">
+            <button class="header__hamburger" id="hamburgerPublico" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <a href="/" class="header__logo">
+                <img src="assets/img/logo.png" alt="Logo SoLivia">
+            </a>
+            <nav class="header__nav">
+                <a href="instalacao">Instalação</a>
+                <a href="consultoria">Consultoria</a>
+                <a href="blog">Blog</a>
+                <a href="contato">Contato</a>
+                <a href="area-cliente" class="active">Área do Cliente</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ==================== HEADER MINIMALISTA (COMPACTO) ==================== -->
+    <header class="header-minimal view-logged">
+        <div class="header__container">
+            <div class="header__left">
+                <div class="avatar" id="avatarCliente" style="cursor: pointer;" onclick="uploadFotoPerfil()">
+                    <img id="fotoPerfil" src="" alt="Foto" style="display:none; width:100%; height:100%; border-radius:50%; object-fit:cover;" />
+                    <span id="inicialAvatar">?</span>
+                    <div class="avatar-overlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.5); border-radius:50%; display:none; align-items:center; justify-content:center; color:white; font-size:0.5rem; font-weight:600; text-align:center; pointer-events:none; line-height:1.2;">Alterar<br>foto</div>
+                    <div id="spinnerAvatar" style="display:none; position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;">
+                            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="white" />
+                        </svg>
+                    </div>
+                </div>
+                <span class="nome" id="nomeCliente">Visitante</span>
+                <button class="logout" id="btnLogout">Sair</button>
+            </div>
+            <div class="header__right">
+                <img src="assets/img/logo.png" alt="SoLivia">
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MENU MOBILE (público) ==================== -->
+    <div class="mobile-menu" id="mobileMenuPublico">
+        <button class="mobile-menu__close" id="mobileClosePublico">✕</button>
+        <nav>
+            <a href="/">Home</a>
+            <a href="instalacao">Instalação</a>
+            <a href="consultoria">Consultoria</a>
+            <a href="blog">Blog</a>
+            <a href="contato">Contato</a>
+            <a href="area-cliente">Área do Cliente</a>
+        </nav>
+    </div>
+    <div class="mobile-overlay" id="mobileOverlayPublico"></div>
+
+    <!-- ==================== CONTEÚDO PÚBLICO ==================== -->
+    <div class="view-public">
+        <section class="hero-cliente">
+            <div class="container"></div>
+        </section>
+        <section class="login-section">
+            <div class="login-card">
+                <div class="logo-mini">
+                    <img src="assets/img/logo.png" alt="SoLivia" style="height: 45px;">
+                </div>
+                <h2>Acesse sua conta</h2>
+                <p class="subtitulo">Insira seus dados para visualizar seu painel</p>
+                <form id="formLogin" onsubmit="event.preventDefault(); handleLogin();">
+                    <div class="campo">
+                        <label for="email_login">E-mail</label>
+                        <input type="email" id="email_login" placeholder="seu@email.com" autocomplete="email" required>
+                    </div>
+                    <div class="campo">
+                        <label for="senha_login">Senha</label>
+                        <input type="password" id="senha_login" placeholder="••••••••" autocomplete="current-password" required>
+                    </div>
+                    <div id="loginErro" class="login-erro">E-mail ou senha inválidos.</div>
+                    <button type="submit" class="btn-entrar">Entrar</button>
+                </form>
+                <div class="links-rodape">
+                    <a id="esqueciSenha">Esqueceu a senha?</a>
+                    <a id="solicitarAcesso">Ainda não tem cadastro? Solicite acesso</a>
+                </div>
+                <div class="selo-seguranca">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <span>Dados protegidos com criptografia SSL</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ==================== CONTEÚDO LOGADO ==================== -->
+    <div class="view-logged">
+        <div class="dashboard-container">
+            <h1>Acompanhamento do seu projeto</h1>
+            <p class="sub" id="subDashboard">Carregando seus dados...</p>
+
+            <div class="cards-grid" id="cardsGrid">
+                <!-- Os cards serão gerados dinamicamente -->
+            </div>
+
+            <!-- Pós-Venda (horizontal) -->
+            <div class="card-posvenda" id="cardPosVenda">
+                <div class="card__imagem">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                    </svg>
+                    <span class="placeholder-text">imagem</span>
+                </div>
+                <div class="card__body">
+                    <div class="card__header">
+                        <span class="card__titulo">🛡️ Pós-Venda</span>
+                        <span class="card__status" id="statusPosvenda">Carregando...</span>
+                    </div>
+                    <div class="card__resumo" id="resumoPosvenda">Aguardando dados...</div>
+                </div>
+            </div>
+
+            <!-- Área de Detalhes -->
+            <div class="detalhes-area" id="detalhesArea">
+                <button class="voltar" onclick="fecharDetalhes()">Voltar</button>
+                <div id="detalhesConteudo"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FOOTER PÚBLICO ==================== -->
+    <footer class="footer-publico view-public">
+        <div class="footer__container">
+            <div class="footer__col">
+                <img src="assets/img/logo.png" alt="Logo" class="footer__logo">
+                <p class="footer__description">Soluções inteligentes em energia limpa.</p>
+            </div>
+            <div class="footer__col">
+                <h4 class="footer__title">Links Rápidos</h4>
+                <ul class="footer__links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="instalacao">Instalação</a></li>
+                    <li><a href="consultoria">Consultoria</a></li>
+                    <li><a href="blog">Blog</a></li>
+                    <li><a href="contato">Contato</a></li>
+                    <li><a href="area-cliente">Área do Cliente</a></li>
+                </ul>
+            </div>
+            <div class="footer__col">
+                <h4 class="footer__title">Contato</h4>
+                <div class="footer__contact">
+                    <p><strong>Telefone:</strong> (11) 5028-2426</p>
+                    <p><strong>WhatsApp:</strong> (11) 91686-6075</p>
+                    <p><strong>E-mail:</strong> contato@solivia.com.br</p>
+                </div>
+                <div class="footer__social">
+                    <a href="#" aria-label="Instagram"><svg width="20" height="20" fill="white" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8z"/></svg></a>
+                    <a href="#" aria-label="Facebook"><svg width="20" height="20" fill="white" viewBox="0 0 320 512"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg></a>
+                    <a href="#" aria-label="LinkedIn"><svg width="20" height="20" fill="white" viewBox="0 0 448 512"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/></svg></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer__bottom">
+            <div class="footer__bottom-container">
+                <p class="footer__copy">&copy; 2026 SoLivia Engenharia. Todos os direitos reservados.</p>
+                <p class="footer__cnpj">CNPJ: 49.972.976/0001-15</p>
+                <a href="https://solivia.com.br/termos-solivia/instalacao.html#10" class="footer__privacy">Política de Privacidade</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== FOOTER MINIMALISTA ==================== -->
+    <footer class="footer-minimal view-logged">
+        <span class="footer-text">
+            &copy; 2026 SoLivia Engenharia – Todos os direitos reservados | <a href="#">Política de Privacidade</a>
+        </span>
+    </footer>
+
+    <!-- ==================== WHATSAPP FLUTUANTE ==================== -->
+    <div id="whatsappFloatButton" class="whatsapp-float">
+        <svg width="32" height="32" fill="white" viewBox="0 0 448 512">
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
+        </svg>
+    </div>
+
+    <!-- ==================== MODAIS EXISTENTES ==================== -->
+    <div class="modal-aviso" id="modalDesenvolvimento">
+        <div class="conteudo">
+            <h3>Área em desenvolvimento</h3>
+            <p>Estamos preparando um painel completo para você acompanhar seu projeto, baixar laudos e solicitar manutenções. Em breve estará disponível!</p>
+            <button class="btn-modal" id="fecharDesenvolvimento">Entendi</button>
+        </div>
+    </div>
+
+    <div class="modal-aviso" id="modalEsqueciSenha">
+        <div class="conteudo">
+            <h3>Redefinir senha</h3>
+            <p>Informe seu e-mail cadastrado para receber as instruções de redefinição.</p>
+            <div class="campo-modal">
+                <label for="email_recuperar">E-mail</label>
+                <input type="email" id="email_recuperar" placeholder="seu@email.com">
+            </div>
+            <div>
+                <button class="btn-modal" id="enviarRecuperacao">Enviar</button>
+                <button class="btn-fechar-modal" id="fecharEsqueciSenha">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-aviso" id="modalSolicitarAcesso">
+        <div class="conteudo">
+            <h3>Solicitar acesso</h3>
+            <p>Preencha seus dados para solicitar acesso à área do cliente. Em breve nossa equipe entrará em contato.</p>
+            <div class="campo-modal">
+                <label for="nome_solicitacao">Nome completo</label>
+                <input type="text" id="nome_solicitacao" placeholder="Seu nome">
+            </div>
+            <div class="campo-modal">
+                <label for="email_solicitacao">E-mail</label>
+                <input type="email" id="email_solicitacao" placeholder="seu@email.com">
+            </div>
+            <div class="campo-modal">
+                <label for="telefone_solicitacao">Telefone (WhatsApp)</label>
+                <input type="tel" id="telefone_solicitacao" placeholder="(11) 99999-9999">
+            </div>
+            <div>
+                <button class="btn-modal" id="enviarSolicitacao">Enviar solicitação</button>
+                <button class="btn-fechar-modal" id="fecharSolicitarAcesso">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+        // ============================================================
+        // CONFIGURAÇÃO DA API
+        // ============================================================
+        const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec';
+
+        // ============================================================
+        // ESTADO GLOBAL
+        // ============================================================
+        const App = {
+            token: null,
+            cliente: null,
+            autenticado: false,
+            etapaAtual: 1,
+        };
+
+        // ============================================================
+        // SERVIÇO DE AUTENTICAÇÃO
+        // ============================================================
+        const AuthService = {
+            getToken() {
+                return localStorage.getItem('tokenCliente');
+            },
+            setToken(token) {
+                localStorage.setItem('tokenCliente', token);
+            },
+            removeToken() {
+                localStorage.removeItem('tokenCliente');
+            },
+            isLoggedIn() {
+                return !!this.getToken();
+            },
+            logout() {
+                this.removeToken();
+                App.token = null;
+                App.cliente = null;
+                App.autenticado = false;
+                document.documentElement.classList.remove('is-logged-in');
+                render(); // <-- CORREÇÃO: substituído location.reload() por render()
+            }
+        };
+
+        // ============================================================
+        // FUNÇÃO: LOGIN (com feedback visual)
+        // ============================================================
+        async function handleLogin() {
+            const email = document.getElementById('email_login').value.trim();
+            const senha = document.getElementById('senha_login').value.trim();
+            const loginErro = document.getElementById('loginErro');
+            const btnEntrar = document.querySelector('.login-card .btn-entrar');
+
+            loginErro.style.display = 'none';
+
+            if (!email || !senha) {
+                loginErro.textContent = 'Preencha e-mail e senha.';
+                loginErro.style.display = 'block';
+                return;
+            }
+
+            btnEntrar.disabled = true;
+            const originalText = btnEntrar.textContent;
+            btnEntrar.textContent = '⏳ Entrando...';
+
+            try {
+                console.log('📤 Enviando login para:', email);
+                const resp = await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    body: JSON.stringify({ acao: 'login', email, senha })
+                });
+                const resultado = await resp.json();
+                console.log('🔐 Resposta do login:', resultado);
+
+                if (resultado.success) {
+    AuthService.setToken(resultado.token);
+    App.token = resultado.token;
+    // Força recarregamento da página para carregar o dashboard
+    location.reload();
+} else {
+                    loginErro.textContent = resultado.error || 'E-mail ou senha inválidos.';
+                    loginErro.style.display = 'block';
+                    btnEntrar.disabled = false;
+                    btnEntrar.textContent = originalText;
+                }
+            } catch (err) {
+                console.error('❌ Erro no login:', err);
+                loginErro.textContent = 'Erro ao conectar ao servidor. Tente novamente.';
+                loginErro.style.display = 'block';
+                btnEntrar.disabled = false;
+                btnEntrar.textContent = originalText;
+            }
+        }
+
+        // ============================================================
+        // FUNÇÃO: CARREGAR DADOS DO CLIENTE
+        // ============================================================
+        async function carregarDadosCliente(token) {
+            console.log('🔄 Carregando dados com token:', token);
+            try {
+                const resp = await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    body: JSON.stringify({ acao: 'buscarDadosCliente', token })
+                });
+                const resultado = await resp.json();
+                console.log('📦 Dados do cliente:', resultado);
+
+                if (resultado.success) {
+                    App.cliente = resultado.cliente;
+                    App.autenticado = true;
+                    App.token = token;
+                    const mapaEtapa = { visita: 1, documentos: 2, instalacao: 3, homologacao: 4, posvenda: 5 };
+                    App.etapaAtual = mapaEtapa[App.cliente.etapa_atual] || 1;
+                    console.log('✅ Cliente logado:', App.cliente.nome, 'Etapa:', App.etapaAtual);
+                    document.documentElement.classList.add('is-logged-in');
+                    render();
+                } else {
+                    console.warn('⚠️ Token inválido ou expirado');
+                    AuthService.removeToken();
+                    App.autenticado = false;
+                    document.documentElement.classList.remove('is-logged-in');
+                    render();
+                    alert('Sessão expirada. Faça login novamente.');
+                }
+            } catch (err) {
+                console.error('❌ Erro ao carregar dados:', err);
+                AuthService.removeToken();
+                App.autenticado = false;
+                document.documentElement.classList.remove('is-logged-in');
+                render();
+                alert('Erro de conexão. Tente novamente.');
+            }
+        }
+
+        // ============================================================
+        // FUNÇÃO: RENDER
+        // ============================================================
+        function render() {
+            console.log('🔄 render() foi chamado');
+            console.log('🎨 Renderizando. Autenticado:', App.autenticado);
+            if (App.autenticado && App.cliente) {
+                const nome = App.cliente.nome || 'Cliente';
+                document.getElementById('nomeCliente').textContent = 'Olá, ' + nome;
+
+                // ===== FOTO DE PERFIL =====
+                const fotoUrl = App.cliente.foto_perfil || null;
+                const img = document.getElementById('fotoPerfil');
+                const inicial = document.getElementById('inicialAvatar');
+
+                if (fotoUrl) {
+                    img.src = fotoUrl + '?t=' + new Date().getTime();
+                    img.style.display = 'block';
+                    inicial.style.display = 'none';
+                    // Fallback: se a imagem falhar, mostra a inicial
+                    img.onerror = function() {
+                        img.style.display = 'none';
+                        inicial.style.display = 'flex';
+                        inicial.textContent = nome.charAt(0).toUpperCase();
+                    };
+                } else {
+                    img.style.display = 'none';
+                    inicial.style.display = 'flex';
+                    inicial.textContent = nome.charAt(0).toUpperCase();
+                }
+
+                document.getElementById('subDashboard').textContent = 'Acompanhe todas as etapas do seu projeto solar.';
+                gerarCards();
+                document.documentElement.classList.add('is-logged-in');
+            } else {
+                document.documentElement.classList.remove('is-logged-in');
+                document.getElementById('cardsGrid').innerHTML = '';
+                const btn = document.querySelector('.login-card .btn-entrar');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                }
+            }
+
+            // ===== CORREÇÃO: FORÇA O ESTADO VISUAL CORRETO =====
+            if (App.autenticado) {
+                document.documentElement.classList.add('is-logged-in');
+            } else {
+                document.documentElement.classList.remove('is-logged-in');
+            }
+
+            document.body.classList.add('ready');
+        }
+
+        // ============================================================
+        // FUNÇÃO: UPLOAD DE FOTO DE PERFIL
+        // ============================================================
+        function uploadFotoPerfil() {
+            if (!App.token) {
+                alert('Sessão expirada. Faça login novamente.');
+                return;
+            }
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            document.body.appendChild(input);
+
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) {
+                    document.body.removeChild(input);
+                    return;
+                }
+
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('❌ A imagem deve ter no máximo 2MB.');
+                    document.body.removeChild(input);
+                    return;
+                }
+
+                enviarFotoPerfil(file, input);
+            });
+
+            input.click();
+        }
+
+        async function enviarFotoPerfil(file, input) {
+            // Mostra o spinner
+            const spinner = document.getElementById('spinnerAvatar');
+            const img = document.getElementById('fotoPerfil');
+            const inicial = document.getElementById('inicialAvatar');
+
+            if (spinner) spinner.style.display = 'flex';
+            if (img) img.style.display = 'none';
+            if (inicial) inicial.style.display = 'none';
+
+            const avatar = document.getElementById('avatarCliente');
+            if (avatar) {
+                avatar.style.opacity = '0.7';
+                avatar.style.pointerEvents = 'none';
+            }
+
+            try {
+                const base64 = await fileParaBase64(file);
+                const resp = await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        acao: 'uploadFotoPerfil',
+                        token: App.token,
+                        nomeArquivo: file.name,
+                        base64: base64
+                    })
+                });
+                const resultado = await resp.json();
+
+                if (resultado.success) {
+                    // Troca silenciosa – apenas recarrega os dados
+                    await carregarDadosCliente(App.token);
+                    // A função render() já vai atualizar o avatar automaticamente
+                } else {
+                    alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
+                    // Restaura o avatar anterior
+                    const nome = App.cliente.nome || 'Cliente';
+                    if (inicial) {
+                        inicial.style.display = 'flex';
+                        inicial.textContent = nome.charAt(0).toUpperCase();
+                    }
+                }
+            } catch (err) {
+                alert('❌ Erro de rede: ' + err.message);
+                // Restaura o avatar anterior
+                const nome = App.cliente.nome || 'Cliente';
+                if (inicial) {
+                    inicial.style.display = 'flex';
+                    inicial.textContent = nome.charAt(0).toUpperCase();
+                }
+            } finally {
+                // Oculta o spinner e restaura opacidade
+                if (spinner) spinner.style.display = 'none';
+                if (avatar) {
+                    avatar.style.opacity = '1';
+                    avatar.style.pointerEvents = 'auto';
+                }
+                if (input && input.parentNode) {
+                    document.body.removeChild(input);
+                }
+            }
+        }
+
+        // ============================================================
+        // FUNÇÃO: GERAR CARDS DINAMICAMENTE
+        // ============================================================
+        function gerarCards() {
+            const grid = document.getElementById('cardsGrid');
+            const cliente = App.cliente;
+            const etapaAtual = App.etapaAtual;
+
+            const etapas = [
+                {
+                    id: 'visita',
+                    titulo: 'Visita Técnica',
+                    status: cliente.dados_visita?.resultado ? 'Concluído' : (cliente.dados_visita?.data_agendada ? 'Em andamento' : 'Pendente'),
+                    resumo: cliente.dados_visita?.data_realizacao ? 'Visita realizada em ' + cliente.dados_visita.data_realizacao : (cliente.dados_visita?.data_agendada ? 'Agendada para ' + cliente.dados_visita.data_agendada : 'Aguardando agendamento')
+                },
+                {
+                    id: 'documentos',
+                    titulo: 'Documentos',
+                    status: (() => {
+                        const d = cliente.documentos || {};
+                        const total = Object.keys(d).length;
+                        const enviados = Object.values(d).filter(doc => doc.status === 'enviado').length;
+                        return total > 0 && enviados === total ? 'Concluído' : (total > 0 ? 'Em andamento' : 'Pendente');
+                    })(),
+                    resumo: (() => {
+                        const d = cliente.documentos || {};
+                        const total = Object.keys(d).length;
+                        const enviados = Object.values(d).filter(doc => doc.status === 'enviado').length;
+                        return total > 0 ? `${enviados} de ${total} documentos enviados` : 'Nenhum documento enviado';
+                    })()
+                },
+                {
+                    id: 'instalacao',
+                    titulo: 'Instalação',
+                    status: cliente.dados_instalacao?.status || 'Pendente',
+                    resumo: cliente.dados_instalacao?.data_instalacao ? 'Instalação concluída em ' + cliente.dados_instalacao.data_instalacao : (cliente.dados_instalacao?.previsao_entrega ? 'Previsão: ' + cliente.dados_instalacao.previsao_entrega : 'Aguardando início')
+                },
+                {
+                    id: 'homologacao',
+                    titulo: 'Homologação',
+                    status: cliente.dados_homologacao?.resultado === 'Aprovado' ? 'Concluído' : (cliente.dados_homologacao?.protocolo ? 'Em andamento' : 'Pendente'),
+                    resumo: cliente.dados_homologacao?.data_liberacao ? 'Homologado em ' + cliente.dados_homologacao.data_liberacao : (cliente.dados_homologacao?.data_vistoria ? 'Vistoria em ' + cliente.dados_homologacao.data_vistoria : 'Aguardando homologação')
+                }
+            ];
+
+            const mapaStatus = { 'Concluído': 'status--concluido', 'Em andamento': 'status--andamento', 'Pendente': 'status--pendente' };
+            grid.innerHTML = '';
+
+            etapas.forEach((etapa, index) => {
+                const idx = index + 1;
+                const card = document.createElement('div');
+                card.className = 'card';
+                if (idx > etapaAtual) card.classList.add('bloqueado');
+                card.dataset.tipo = etapa.id;
+                card.dataset.step = idx;
+                card.onclick = function() {
+                    if (this.classList.contains('bloqueado')) {
+                        alert('⚠️ Esta etapa ainda não está disponível. Conclua as etapas anteriores primeiro.');
+                        return;
+                    }
+                    mostrarDetalhes(etapa.id);
+                };
+
+                const svgMap = {
+                    visita: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M10 11l2 2 4-4"/><path d="M16 16h-2a3 3 0 0 0-3 3v1"/>',
+                    documentos: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+                    instalacao: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M8 12l2 2 4-4"/><path d="M12 8v8"/>',
+                    homologacao: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+                };
+
+                card.innerHTML = `
+                    <div class="card__imagem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            ${svgMap[etapa.id] || ''}
+                        </svg>
+                        <span class="placeholder-text">imagem</span>
+                    </div>
+                    <div class="card__body">
+                        <div class="card__header">
+                            <span class="card__titulo">${etapa.titulo}</span>
+                            <span class="card__status ${mapaStatus[etapa.status] || 'status--pendente'}">${etapa.status}</span>
+                        </div>
+                        <div class="card__resumo">${etapa.resumo}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            const posVendaCard = document.getElementById('cardPosVenda');
+            if (etapaAtual === 5) {
+                posVendaCard.classList.add('ativo');
+                const posvenda = cliente.dados_posvenda || {};
+                document.getElementById('statusPosvenda').textContent = posvenda.ativo ? 'Ativo' : 'Inativo';
+                document.getElementById('resumoPosvenda').textContent = posvenda.geracao_atual ? `Geração: ${posvenda.geracao_atual} kWh/mês` : 'Monitoramento disponível';
+            } else {
+                posVendaCard.classList.remove('ativo');
+            }
+        }
+
+        // ============================================================
+        // FUNÇÃO: MOSTRAR DETALHES
+        // ============================================================
+        function mostrarDetalhes(tipo) {
+            const card = document.querySelector(`[data-tipo="${tipo}"]`);
+            if (card && card.classList.contains('bloqueado')) {
+                alert('⚠️ Esta etapa ainda não está disponível.');
+                return;
+            }
+
+            const grid = document.getElementById('cardsGrid');
+            const area = document.getElementById('detalhesArea');
+            const conteudo = document.getElementById('detalhesConteudo');
+
+            grid.classList.add('oculto');
+            if (document.getElementById('cardPosVenda').classList.contains('ativo')) {
+                document.getElementById('cardPosVenda').classList.add('oculto');
+            }
+
+            const cliente = App.cliente;
+            const v = cliente.dados_visita || {};
+            const d = cliente.documentos || {};
+            const i = cliente.dados_instalacao || {};
+            const h = cliente.dados_homologacao || {};
+            const p = cliente.dados_posvenda || {};
+
+            const titulos = {
+                visita: '🔍 Visita Técnica',
+                documentos: '📄 Documentos',
+                instalacao: '🔧 Instalação',
+                homologacao: '🏷️ Homologação',
+                posvenda: '🛡️ Pós-Venda'
+            };
+
+            let html = '';
+
+            switch (tipo) {
+                case 'visita':
+                    html = `
+                        <div class="conteudo">
+                            <div class="destaque">${v.data_realizacao ? '✅ Visita concluída em ' + v.data_realizacao : '⏳ ' + (v.data_agendada ? 'Agendada para ' + v.data_agendada : 'Aguardando agendamento')}</div>
+                            <div class="grid-2col">
+                                <div class="item"><strong>👨‍💻 Engenheiro:</strong> ${v.engenheiro || 'Não informado'}</div>
+                                <div class="item"><strong>📅 Data agendada:</strong> ${v.data_agendada || 'Não agendada'}</div>
+                                <div class="item"><strong>📌 Data realização:</strong> ${v.data_realizacao || 'Não realizada'}</div>
+                                <div class="item"><strong>📍 Endereço:</strong> ${cliente.endereco || 'Não informado'}</div>
+                            </div>
+                            <p><strong>📋 Checklist:</strong></p>
+                            <ul class="checklist">${v.checklist ? Object.entries(v.checklist).map(([k, val]) => `<li>${k} – <strong>${val}</strong></li>`).join('') : '<li>Nenhum item registrado</li>'}</ul>
+                            <p><strong>📝 Observações:</strong><br />${v.observacoes || 'Nenhuma observação'}</p>
+                            ${v.relatorio_url ? `<p><strong>📄 Relatório:</strong> <a href="${v.relatorio_url}" target="_blank" style="color:#0b2f5c;font-weight:600;">Baixar PDF</a></p>` : ''}
+                            <div class="destaque">${v.assinatura_data ? '✅ Aprovado em ' + v.assinatura_data : '⏳ Aguardando aprovação'}</div>
+                            <p><strong>Resultado:</strong> <span style="color:${v.resultado === 'Aprovado' ? '#0a6b3b' : '#b33636'}; font-weight:700;">${v.resultado || 'Pendente'}</span></p>
+                            ${v.relatorio_url ? `<button class="botao-acao" onclick="window.open('${v.relatorio_url}', '_blank')">Baixar relatório</button>` : ''}
+                        </div>
+                    `;
+                    break;
+
+                case 'documentos': {
+                    const tipos = ['rg', 'cpf', 'comprovante', 'fatura'];
+                    const labels = { rg: 'RG / CNH', cpf: 'CPF', comprovante: 'Comprovante de residência', fatura: 'Última fatura de energia' };
+                    let listaItens = '';
+                    tipos.forEach(tipoDoc => {
+                        const info = d[tipoDoc] || {};
+                        const status = info.status || 'pendente';
+                        const label = labels[tipoDoc] || tipoDoc.toUpperCase();
+                        const dataEnvio = info.data_envio || '';
+                        const url = info.url || '#';
+                        if (status === 'enviado') {
+                            listaItens += `<li>✅ ${label} – <strong>Enviado em ${dataEnvio}</strong> – <a href="${url}" target="_blank" style="color:#0b2f5c;">Visualizar</a></li>`;
+                        } else {
+                            listaItens += `<li>🔄 ${label} – <button onclick="uploadDocumento('${tipoDoc}')" style="background:#ffc400; border:none; padding:0.1rem 0.8rem; border-radius:30px; font-weight:600; font-size:0.7rem; cursor:pointer;">Enviar</button></li>`;
+                        }
+                    });
+                    html = `
+                        <div class="conteudo">
+                            <div class="destaque">${Object.keys(d).length > 0 ? `✅ ${Object.values(d).filter(doc => doc.status === 'enviado').length} de ${Object.keys(d).length} documentos enviados` : '📌 Nenhum documento enviado'}</div>
+                            <p><strong>📎 Documentos:</strong></p>
+                            <ul>${listaItens}</ul>
+                            <input type="file" id="uploadInput" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" />
+                            <button class="botao-acao" onclick="alert('📦 Função de download em desenvolvimento.')">Baixar todos</button>
+                        </div>
+                    `;
+                    break;
+                }
+
+                case 'instalacao': {
+                    const crono = i.cronograma || {};
+                    html = `
+                        <div class="conteudo">
+                            <div class="destaque">${i.status === 'Concluído' ? '✅ Instalação concluída em ' + i.data_instalacao : '⏳ ' + (i.status || 'Aguardando início')}</div>
+                            <div class="grid-2col">
+                                <div class="item"><strong>📦 Equipamentos:</strong> ${i.equipamentos || 'Não informado'}</div>
+                                <div class="item"><strong>📅 Data compra:</strong> ${i.data_compra || 'Não informada'}</div>
+                                <div class="item"><strong>🚚 Previsão entrega:</strong> ${i.previsao_entrega || 'Não informada'}</div>
+                                <div class="item"><strong>📦 Rastreio:</strong> ${i.codigo_rastreio ? `<a href="#" style="color:#0b2f5c;font-weight:600;">${i.codigo_rastreio}</a>` : 'Não informado'}</div>
+                            </div>
+                            <p><strong>📋 Cronograma:</strong></p>
+                            <ul class="checklist">${Object.entries(crono).length > 0 ? Object.entries(crono).map(([etapa, status]) => `<li>${etapa} – <strong>${status}</strong></li>`).join('') : '<li>Nenhum item registrado</li>'}</ul>
+                            <p><strong>👨‍🔧 Equipe:</strong> ${i.equipe || 'Não informada'}</p>
+                            ${i.codigo_rastreio ? `<button class="botao-acao" onclick="alert('Rastreamento: ${i.codigo_rastreio}')">Rastrear entrega</button>` : ''}
+                        </div>
+                    `;
+                    break;
+                }
+
+                case 'homologacao':
+                    html = `
+                        <div class="conteudo">
+                            <div class="destaque">${h.resultado === 'Aprovado' ? '✅ Sistema homologado e liberado em ' + h.data_liberacao : '⏳ Aguardando homologação'}</div>
+                            <div class="grid-2col">
+                                <div class="item"><strong>🏢 Concessionária:</strong> ${h.concessionaria || 'Não informada'}</div>
+                                <div class="item"><strong>📋 Protocolo:</strong> ${h.protocolo || 'Não informado'}</div>
+                                <div class="item"><strong>📅 Data envio:</strong> ${h.data_envio || 'Não informada'}</div>
+                                <div class="item"><strong>📌 Data vistoria:</strong> ${h.data_vistoria || 'Não informada'}</div>
+                            </div>
+                            <p><strong>Resultado da vistoria:</strong> <span style="color:${h.resultado === 'Aprovado' ? '#0a6b3b' : '#b33636'}; font-weight:700;">${h.resultado || 'Pendente'}</span></p>
+                            <p><strong>🔌 Medidor bidirecional:</strong> ${h.medidor || 'Não instalado'}</p>
+                            ${h.data_liberacao ? `<p><strong>⚡ Data de liberação:</strong> ${h.data_liberacao}</p>` : ''}
+                            ${h.laudo_url ? `<button class="botao-acao" onclick="window.open('${h.laudo_url}', '_blank')">Baixar laudo</button>` : ''}
+                        </div>
+                    `;
+                    break;
+
+                case 'posvenda':
+                    html = `
+                        <div class="conteudo">
+                            <div class="destaque">✅ Sistema em operação</div>
+                            <div class="grid-2col">
+                                <div class="item"><strong>⚡ Geração atual:</strong> ${p.geracao_atual || 'N/A'} kWh/mês</div>
+                                <div class="item"><strong>💰 Economia mensal:</strong> R$ ${p.economia_mensal || '0,00'}</div>
+                                <div class="item"><strong>📊 Plataforma:</strong> ${p.plataforma_url ? `<a href="${p.plataforma_url}" target="_blank" style="color:#0b2f5c;font-weight:600;">Acessar</a>` : 'Não configurada'}</div>
+                                <div class="item"><strong>📅 Última manutenção:</strong> ${p.ultima_manutencao || 'Não realizada'}</div>
+                            </div>
+                            <p><strong>🔧 Suporte e assistência:</strong></p>
+                            <ul>
+                                <li><strong>Solicitar manutenção:</strong> Abra um chamado.</li>
+                                <li><strong>Falar com suporte:</strong> Atendimento via WhatsApp.</li>
+                            </ul>
+                            <div class="destaque">📚 Manuais disponíveis.</div>
+                            <button class="botao-acao" onclick="alert('📞 Abrindo WhatsApp...')">Falar com suporte</button>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    html = '<p>Etapa não encontrada.</p>';
+            }
+
+            conteudo.innerHTML = `
+                <div class="titulo">${titulos[tipo] || 'Detalhes'}</div>
+                <div class="subtitulo">Informações detalhadas da etapa</div>
+                ${html}
+            `;
+            area.classList.add('ativo');
+            area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ============================================================
+        // FUNÇÃO: FECHAR DETALHES
+        // ============================================================
+        function fecharDetalhes() {
+            const grid = document.getElementById('cardsGrid');
+            const area = document.getElementById('detalhesArea');
+            area.classList.remove('ativo');
+            grid.classList.remove('oculto');
+            if (document.getElementById('cardPosVenda').classList.contains('ativo')) {
+                document.getElementById('cardPosVenda').classList.remove('oculto');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================================
+        // FUNÇÃO: UPLOAD DE DOCUMENTO
+        // ============================================================
+        function uploadDocumento(tipoDoc) {
+            if (!App.token) {
+                alert('Sessão expirada. Faça login novamente.');
+                return;
+            }
+            const input = document.getElementById('uploadInput');
+            if (!input) {
+                const newInput = document.createElement('input');
+                newInput.type = 'file';
+                newInput.id = 'uploadInput';
+                newInput.accept = '.pdf,.jpg,.jpeg,.png';
+                newInput.style.display = 'none';
+                document.body.appendChild(newInput);
+                newInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    enviarUpload(file, tipoDoc);
+                });
+                newInput.click();
+            } else {
+                input.value = '';
+                input.click();
+            }
+        }
+
+        async function enviarUpload(file, tipoDoc) {
+            if (!App.token) {
+                alert('Sessão expirada. Faça login novamente.');
+                return;
+            }
+
+            const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Enviando...';
+            }
+
+            try {
+                const base64 = await fileParaBase64(file);
+                const resp = await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        acao: 'uploadDocumento',
+                        token: App.token,
+                        nomeArquivo: file.name,
+                        base64: base64,
+                        tipoDoc: tipoDoc
+                    })
+                });
+                const resultado = await resp.json();
+                if (resultado.success) {
+                    alert('✅ Documento enviado com sucesso!');
+                    await carregarDadosCliente(App.token);
+                    fecharDetalhes();
+                    mostrarDetalhes('documentos');
+                } else {
+                    alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
+                }
+            } catch (err) {
+                alert('❌ Erro de rede: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Enviar';
+                }
+                const input = document.getElementById('uploadInput');
+                if (input) input.value = '';
+            }
+        }
+
+        function fileParaBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============================================================
+        // EVENTOS
+        // ============================================================
+        // NOTA: O evento do botão "Sair" foi movido para dentro do DOMContentLoaded
+        // para garantir que o elemento exista quando o evento for anexado.
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const area = document.getElementById('detalhesArea');
+                if (area.classList.contains('ativo')) {
+                    fecharDetalhes();
+                }
+            }
+        });
+
+        // ============================================================
+        // INICIALIZAÇÃO (COM O EVENTO DO BOTÃO "SAIR" MOVIDO PARA CÁ)
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = AuthService.getToken();
+            console.log('🚀 Inicializando. Token encontrado?', !!token);
+
+            // ===== EVENTO DO BOTÃO "SAIR" (MOVIDO PARA CÁ) =====
+            const btnLogout = document.getElementById('btnLogout');
+            if (btnLogout) {
+                btnLogout.addEventListener('click', function() {
+                    AuthService.logout();
+                });
+            }
+
+            if (token) {
+                carregarDadosCliente(token);
+            } else {
+                document.documentElement.classList.remove('is-logged-in');
+                render();
+            }
+        });
+
+        // ============================================================
+        // MENU MOBILE (público)
+        // ============================================================
+        const hamburgerPublico = document.getElementById('hamburgerPublico');
+        const mobileMenuPublico = document.getElementById('mobileMenuPublico');
+        const mobileClosePublico = document.getElementById('mobileClosePublico');
+        const mobileOverlayPublico = document.getElementById('mobileOverlayPublico');
+
+        function openMenuPublico() {
+            mobileMenuPublico.classList.add('active');
+            mobileOverlayPublico.classList.add('active');
+        }
+
+        function closeMenuPublico() {
+            mobileMenuPublico.classList.remove('active');
+            mobileOverlayPublico.classList.remove('active');
+        }
+
+        if (hamburgerPublico) hamburgerPublico.addEventListener('click', openMenuPublico);
+        if (mobileClosePublico) mobileClosePublico.addEventListener('click', closeMenuPublico);
+        if (mobileOverlayPublico) mobileOverlayPublico.addEventListener('click', closeMenuPublico);
+
+        // ============================================================
+        // MODAIS EXISTENTES
+        // ============================================================
+        function abrirModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        document.getElementById('fecharDesenvolvimento').addEventListener('click', function() {
+            fecharModal('modalDesenvolvimento');
+        });
+
+        document.getElementById('esqueciSenha').addEventListener('click', function(e) {
+            e.preventDefault();
+            abrirModal('modalEsqueciSenha');
+        });
+
+        document.getElementById('fecharEsqueciSenha').addEventListener('click', function() {
+            fecharModal('modalEsqueciSenha');
+        });
+
+        document.getElementById('enviarRecuperacao').addEventListener('click', function() {
+            const email = document.getElementById('email_recuperar').value.trim();
+            if (!email) { alert('Por favor, informe seu e-mail.'); return; }
+            alert('📩 Instruções de redefinição enviadas para ' + email + ' (simulação).');
+            fecharModal('modalEsqueciSenha');
+        });
+
+        document.getElementById('solicitarAcesso').addEventListener('click', function(e) {
+            e.preventDefault();
+            abrirModal('modalSolicitarAcesso');
+        });
+
+        document.getElementById('fecharSolicitarAcesso').addEventListener('click', function() {
+            fecharModal('modalSolicitarAcesso');
+        });
+
+        document.getElementById('enviarSolicitacao').addEventListener('click', function() {
+            const nome = document.getElementById('nome_solicitacao').value.trim();
+            const email = document.getElementById('email_solicitacao').value.trim();
+            const telefone = document.getElementById('telefone_solicitacao').value.trim();
+            if (!nome || !email || !telefone) {
+                alert('Preencha todos os campos.');
+                return;
+            }
+            alert('✅ Solicitação enviada! Entraremos em contato em breve.');
+            fecharModal('modalSolicitarAcesso');
+        });
+
+        document.querySelectorAll('.modal-aviso').forEach(function(modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+
+    <!-- ==================== COOKIE CONSENT ==================== -->
+    <div id="cookieConsent" style="position: fixed; bottom: 0; left: 0; right: 0; background: #0b2f5c; color: white; padding: 1rem; text-align: center; font-size: 0.85rem; z-index: 9999; display: none; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem; box-shadow: 0 -4px 12px rgba(0,0,0,0.1);">
+        <span>🍪 Usamos cookies para melhorar sua experiência, analisar tráfego e personalizar conteúdo. Ao clicar em "Aceitar", você concorda com nossa <a href="https://solivia.com.br/termos-solivia/instalacao.html#10" style="color: #ffc400; text-decoration: underline;" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span>
+        <div><button id="acceptCookies" style="background:#ffc400; border:none; color:#0b2f5c; padding:0.4rem 1.2rem; border-radius:50px; font-weight:bold; cursor:pointer;">Aceitar</button><button id="declineCookies" style="background:transparent; border:1px solid #ffc400; color:#ffc400; padding:0.4rem 1.2rem; border-radius:50px; cursor:pointer;">Apenas essenciais</button></div>
+    </div>
+    <script>
+        const userChoice = localStorage.getItem('cookieChoice');
+        function sendConsentToGTM(status) { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'consent_updated', 'analytics_storage': status, 'ad_storage': status }); }
+        if (userChoice === 'accepted') { sendConsentToGTM('granted'); document.getElementById('cookieConsent').style.display = 'none'; }
+        else if (!userChoice) document.getElementById('cookieConsent').style.display = 'flex';
+        else document.getElementById('cookieConsent').style.display = 'none';
+        document.getElementById('acceptCookies').addEventListener('click', () => { localStorage.setItem('cookieChoice', 'accepted'); document.getElementById('cookieConsent').style.display = 'none'; sendConsentToGTM('granted'); });
+        document.getElementById('declineCookies').addEventListener('click', () => { localStorage.setItem('cookieChoice', 'declined'); document.getElementById('cookieConsent').style.display = 'none'; sendConsentToGTM('denied'); });
+    </script>
+
+    <!-- ================================================================
+         TIDIO – AVATAR PERSONALIZADO
+         ================================================================ -->
+    <script src="//code.tidio.co/eq17rmmkjlvafv6ikg3eixnt7lkd4s76.js" async></script>
+    <style>
+        #tidio-chat-iframe { display: none !important; }
+        #avatar-livia {
+            position: fixed !important;
+            bottom: 20px; left: 20px;
+            width: 70px; height: 70px;
+            z-index: 2147483647 !important;
+            transform: translateZ(0) !important;
+            border: 3px solid #ffc400;
+            border-radius: 50%;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: none;
+        }
+        #avatar-livia img { width: 100%; height: 100%; object-fit: cover; }
+        #avatar-livia .close-btn {
+            position: absolute; top: -6px; right: -6px;
+            background: #e53e3e; color: white;
+            border-radius: 50%;
+            width: 22px; height: 22px;
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 2px solid white;
+            z-index: 100000;
+        }
+        @media (min-width: 769px) { #avatar-livia { width: 85px !important; height: 85px !important; bottom: 35px !important; } }
+        @media (max-width: 768px) { #avatar-livia { border-width: 2px !important; } }
+    </style>
+    <button id="avatar-livia" onclick="alternarChat(event)">
+        <img src="assets/img/avatar-livia.png" alt="LivIA" onerror="this.style.display='none'; document.getElementById('avatar-fallback').style.display='flex';">
+        <div id="avatar-fallback" style="display: none; width:100%; height:100%; background:#0b2f5c; color:#ffc400; font-size:2rem; font-weight:bold; align-items:center; justify-content:center;">IA</div>
+        <span class="close-btn" onclick="fecharAvatar(event)">✕</span>
+    </button>
+    <script>
+    (function() {
+        'use strict';
+        var CONFIG = { TEMPO_INICIAL: 20, TEMPO_VISIVEL: 30, INTERVALO_BASE: 40, INTERVALO_MAXIMO: 80, CICLOS_MAXIMO: 5, VERIFICAR_HORARIO_A_CADA: 59 * 60 * 1000 };
+        function isHorarioComercial() {
+            var agora = new Date();
+            var dia = agora.getDay();
+            var hora = agora.getHours();
+            var minuto = agora.getMinutes();
+            if (dia === 0 || dia === 6) return false;
+            if (dia === 5) { return (hora > 8 || (hora === 8 && minuto >= 0)) && (hora < 17 || (hora === 17 && minuto === 0)); }
+            return (hora > 8 || (hora === 8 && minuto >= 0)) && (hora < 18 || (hora === 18 && minuto === 0));
+        }
+        var avatar = document.getElementById('avatar-livia');
+        var whatsapp = document.getElementById('whatsappFloatButton');
+        if (!avatar) {
+            document.addEventListener('DOMContentLoaded', function() {
+                avatar = document.getElementById('avatar-livia');
+                whatsapp = document.getElementById('whatsappFloatButton');
+                if (!avatar) return;
+                iniciar();
+            });
+            return;
+        }
+        function iniciar() {
+            var estado = {
+                chatAberto: false,
+                tidioPronto: false,
+                cicloAtivo: false,
+                cicloCount: 0,
+                avatarVisivel: false,
+                whatsappVisivel: true,
+                timerAtual: null,
+                timerVisivel: null,
+                pausado: false,
+                avatarOcultoPorChat: false,
+                horarioComercial: isHorarioComercial()
+            };
+            function mostrarWhatsapp() { if (whatsapp) { whatsapp.style.display = 'flex'; estado.whatsappVisivel = true; } }
+            function esconderWhatsapp() { if (whatsapp) { whatsapp.style.display = 'none'; estado.whatsappVisivel = false; } }
+            function mostrarAvatar() {
+                if (!avatar) return;
+                if (estado.cicloCount >= CONFIG.CICLOS_MAXIMO && !estado.cicloAtivo) return;
+                if (!estado.horarioComercial) { esconderAvatar(false); return; }
+                avatar.style.display = 'block';
+                estado.avatarVisivel = true;
+                if (estado.tidioPronto && typeof tidioChatApi !== 'undefined') { tidioChatApi.show(); }
+                esconderWhatsapp();
+                if (estado.timerVisivel) clearTimeout(estado.timerVisivel);
+                estado.timerVisivel = setTimeout(function() {
+                    if (!estado.pausado && estado.avatarVisivel && !estado.avatarOcultoPorChat) { esconderAvatar(true); }
+                }, CONFIG.TEMPO_VISIVEL * 1000);
+            }
+            function esconderAvatar(avancarCiclo) {
+                if (!avatar) return;
+                avatar.style.display = 'none';
+                estado.avatarVisivel = false;
+                estado.avatarOcultoPorChat = false;
+                if (estado.tidioPronto && typeof tidioChatApi !== 'undefined') { tidioChatApi.hide(); }
+                if (!estado.chatAberto) { mostrarWhatsapp(); }
+                if (avancarCiclo === false) return;
+                estado.cicloCount++;
+                if (estado.cicloCount >= CONFIG.CICLOS_MAXIMO) { estado.cicloAtivo = false; return; }
+                var intervalo = CONFIG.INTERVALO_BASE + (estado.cicloCount - 1) * 20;
+                if (intervalo > CONFIG.INTERVALO_MAXIMO) intervalo = CONFIG.INTERVALO_MAXIMO;
+                estado.timerAtual = setTimeout(function() {
+                    if (!estado.pausado && estado.cicloAtivo) { mostrarAvatar(); }
+                }, intervalo * 1000);
+            }
+            function pausarCiclo() {
+                if (estado.pausado) return;
+                estado.pausado = true;
+                if (estado.timerAtual) { clearTimeout(estado.timerAtual); estado.timerAtual = null; }
+                if (estado.timerVisivel) { clearTimeout(estado.timerVisivel); estado.timerVisivel = null; }
+            }
+            function retomarCiclo() {
+                if (!estado.pausado) return;
+                estado.pausado = false;
+                if (estado.avatarOcultoPorChat) {
+                    estado.avatarOcultoPorChat = false;
+                    if (estado.cicloAtivo && estado.cicloCount < CONFIG.CICLOS_MAXIMO && estado.horarioComercial) { mostrarAvatar(); } else { mostrarWhatsapp(); }
+                    return;
+                }
+                if (estado.avatarVisivel) {
+                    if (estado.timerVisivel) clearTimeout(estado.timerVisivel);
+                    estado.timerVisivel = setTimeout(function() {
+                        if (!estado.pausado && estado.avatarVisivel && !estado.avatarOcultoPorChat) { esconderAvatar(true); }
+                    }, CONFIG.TEMPO_VISIVEL * 1000);
+                } else {
+                    if (estado.cicloAtivo && estado.cicloCount < CONFIG.CICLOS_MAXIMO && estado.horarioComercial) {
+                        var intervalo = CONFIG.INTERVALO_BASE + (estado.cicloCount - 1) * 20;
+                        if (intervalo > CONFIG.INTERVALO_MAXIMO) intervalo = CONFIG.INTERVALO_MAXIMO;
+                        estado.timerAtual = setTimeout(function() {
+                            if (!estado.pausado && estado.cicloAtivo) { mostrarAvatar(); }
+                        }, intervalo * 1000);
+                    }
+                }
+            }
+            window.alternarChat = function(event) {
+                if (event) event.stopPropagation();
+                if (!estado.tidioPronto || typeof tidioChatApi === 'undefined') {
+                    setTimeout(function() { if (typeof tidioChatApi !== 'undefined') { alternarChat(event); } }, 500);
+                    return;
+                }
+                if (estado.chatAberto) {
+                    tidioChatApi.close();
+                    estado.chatAberto = false;
+                    retomarCiclo();
+                } else {
+                    tidioChatApi.show();
+                    tidioChatApi.open();
+                    estado.chatAberto = true;
+                    pausarCiclo();
+                    if (window.innerWidth <= 768 && estado.avatarVisivel) {
+                        avatar.style.display = 'none';
+                        estado.avatarVisivel = false;
+                        estado.avatarOcultoPorChat = true;
+                    }
+                }
+            };
+            window.fecharAvatar = function(event) {
+                if (event) event.stopPropagation();
+                if (estado.avatarVisivel || estado.avatarOcultoPorChat) { esconderAvatar(true); }
+                if (estado.chatAberto) { tidioChatApi.close(); estado.chatAberto = false; }
+            };
+            function verificarHorario() {
+                var novoHorario = isHorarioComercial();
+                if (novoHorario !== estado.horarioComercial) {
+                    estado.horarioComercial = novoHorario;
+                    if (!novoHorario) {
+                        if (estado.avatarVisivel || estado.avatarOcultoPorChat) { esconderAvatar(true); }
+                        estado.cicloAtivo = false;
+                        if (estado.timerAtual) { clearTimeout(estado.timerAtual); estado.timerAtual = null; }
+                        if (estado.timerVisivel) { clearTimeout(estado.timerVisivel); estado.timerVisivel = null; }
+                        mostrarWhatsapp();
+                        if (typeof tidioChatApi !== 'undefined') { tidioChatApi.hide(); }
+                    } else {
+                        estado.cicloAtivo = true;
+                        estado.cicloCount = 0;
+                        if (!estado.chatAberto) {
+                            mostrarWhatsapp();
+                            if (estado.timerAtual) clearTimeout(estado.timerAtual);
+                            estado.timerAtual = setTimeout(function() {
+                                if (!estado.pausado && estado.cicloAtivo) { mostrarAvatar(); }
+                            }, CONFIG.TEMPO_INICIAL * 1000);
+                        }
+                    }
+                }
+            }
+            function onTidioReady() {
+                estado.tidioPronto = true;
+                tidioChatApi.hide();
+                if (!estado.horarioComercial) { mostrarWhatsapp(); return; }
+                if (estado.avatarVisivel) { tidioChatApi.show(); }
+                tidioChatApi.on("close", function() {
+                    estado.chatAberto = false;
+                    tidioChatApi.hide();
+                    if (estado.avatarOcultoPorChat) {
+                        if (estado.cicloAtivo && estado.cicloCount < CONFIG.CICLOS_MAXIMO && estado.horarioComercial) { mostrarAvatar(); } else { mostrarWhatsapp(); }
+                        estado.avatarOcultoPorChat = false;
+                    } else { retomarCiclo(); }
+                });
+                tidioChatApi.on("open", function() {
+                    estado.chatAberto = true;
+                    pausarCiclo();
+                    if (window.innerWidth <= 768 && estado.avatarVisivel) {
+                        avatar.style.display = 'none';
+                        estado.avatarVisivel = false;
+                        estado.avatarOcultoPorChat = true;
+                    }
+                });
+                if (estado.horarioComercial) {
+                    estado.cicloAtivo = true;
+                    estado.cicloCount = 0;
+                    mostrarWhatsapp();
+                    estado.timerAtual = setTimeout(function() {
+                        if (!estado.pausado && estado.cicloAtivo) { mostrarAvatar(); }
+                    }, CONFIG.TEMPO_INICIAL * 1000);
+                } else { mostrarWhatsapp(); }
+            }
+            if (typeof tidioChatApi !== 'undefined') {
+                tidioChatApi.on("ready", onTidioReady);
+                if (tidioChatApi._ready) { onTidioReady(); }
+            } else {
+                document.addEventListener("tidioChat-ready", onTidioReady);
+            }
+            setTimeout(function() {
+                if (!estado.tidioPronto) { estado.tidioPronto = true; onTidioReady(); }
+            }, 5000);
+            setInterval(verificarHorario, CONFIG.VERIFICAR_HORARIO_A_CADA);
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) { verificarHorario(); }
+            });
+        }
+        iniciar();
+    })();
+    </script>
+
+</body>
+</html>
