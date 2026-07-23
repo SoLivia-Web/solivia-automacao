@@ -264,7 +264,6 @@ def buscar_cliente_por_documento_id(document_id):
             if data.get('success'):
                 clientes = data.get('clientes', [])
                 for cliente_resumido in clientes:
-                    # Buscar dados completos do cliente
                     payload_cliente = {
                         "acao": "adminObterCliente",
                         "idCliente": cliente_resumido['id'],
@@ -322,7 +321,6 @@ def enviar_para_assinatura_autentique(
     if assinante_empresa is None:
         assinante_empresa = ASSINANTE_SOLIVIA
 
-    # Posições: x, y, z (z = página)
     if posicao_engenheiro is None:
         posicao_engenheiro = {"x": 200, "y": 400, "z": 1}
     if posicao_cliente is None:
@@ -419,10 +417,9 @@ def enviar_para_assinatura_autentique(
         return {"success": False, "error": response.text}
 
 # ============================================================
-# NOVA FUNÇÃO: BAIXAR PDF ASSINADO
+# FUNÇÃO: BAIXAR PDF ASSINADO
 # ============================================================
 def baixar_pdf_assinado(document_id, api_key):
-    # 1. Obter a URL assinada via Worker (GraphQL)
     query = """
     query DownloadDocument($id: UUID!) {
         document(id: $id) {
@@ -458,7 +455,6 @@ def baixar_pdf_assinado(document_id, api_key):
 
     print(f"📥 Baixando PDF via Worker: {signed_url}")
 
-    # 2. Baixar o PDF via Worker (passando a URL como parâmetro)
     pdf_response = requests.get(
         f"https://autentique-proxy.ncalves91.workers.dev/?url={signed_url}",
         timeout=60,
@@ -743,7 +739,7 @@ def api_enviar_para_assinatura():
         cliente_id = dados.get('cliente_id')
         pdf_base64 = dados.get('pdf_base64')
         nome_documento = dados.get('nome_documento', 'Contrato.pdf')
-        tipo_assinante = dados.get('tipo_assinante', 'empresa')  # 'empresa' ou 'engenheiro'
+        tipo_assinante = dados.get('tipo_assinante', 'empresa')
         posicao_engenheiro = dados.get('posicao_engenheiro')
         posicao_cliente = dados.get('posicao_cliente')
 
@@ -776,7 +772,6 @@ def api_enviar_para_assinatura():
         if resultado['success']:
             document_id = resultado['document_id']
 
-            # ===== SALVAR document_id NO CLIENTE =====
             try:
                 cliente_atual = buscar_cliente_por_id(cliente_id)
                 if cliente_atual:
@@ -829,7 +824,6 @@ def webhook_autentique():
         if event == 'document.finished' and document_status == 'signed':
             print(f"✅ Documento {document_id} foi assinado!")
 
-            # Buscar cliente pelo document_id
             cliente = buscar_cliente_por_documento_id(document_id)
             if not cliente:
                 print(f"⚠️ Cliente com document_id {document_id} não encontrado.")
@@ -838,7 +832,6 @@ def webhook_autentique():
             cliente_id = cliente['id']
             print(f"✅ Cliente encontrado: {cliente['nome']} (ID: {cliente_id})")
 
-            # ===== BAIXAR O PDF ASSINADO =====
             api_key = AUTENTIQUE_API_KEY_SOLIVIA
             pdf_assinado_bytes = baixar_pdf_assinado(document_id, api_key)
 
@@ -848,7 +841,6 @@ def webhook_autentique():
 
             print(f"✅ PDF assinado baixado: {len(pdf_assinado_bytes)} bytes")
 
-            # ===== SALVAR NO DRIVE =====
             nome_arquivo = f"Contrato_Assinado_{cliente['nome'].replace(' ', '_')}.pdf"
 
             payload = {
@@ -866,7 +858,6 @@ def webhook_autentique():
                     nova_url = result.get('url')
                     print(f"✅ PDF assinado salvo no Drive: {nova_url}")
 
-                    # ===== ATUALIZAR PLANILHA =====
                     cliente_atual = buscar_cliente_por_id(cliente_id)
                     if cliente_atual:
                         docs = cliente_atual.get('documentos', {})
@@ -918,7 +909,6 @@ def forcar_atualizacao_assinatura():
         cliente_id = cliente['id']
         print(f"✅ Cliente encontrado: {cliente['nome']} (ID: {cliente_id})")
 
-        # ===== BAIXAR O PDF ASSINADO =====
         print("🔍 Baixando PDF assinado...")
         api_key = AUTENTIQUE_API_KEY_SOLIVIA
         pdf_assinado_bytes = baixar_pdf_assinado(document_id, api_key)
@@ -929,7 +919,6 @@ def forcar_atualizacao_assinatura():
 
         print(f"✅ PDF assinado baixado: {len(pdf_assinado_bytes)} bytes")
 
-        # ===== SALVAR NO DRIVE =====
         print("🔍 Salvando PDF assinado no Drive...")
         nome_arquivo = f"Contrato_Assinado_{cliente['nome'].replace(' ', '_')}.pdf"
 
@@ -951,7 +940,6 @@ def forcar_atualizacao_assinatura():
                 nova_url = result.get('url')
                 print(f"✅ PDF assinado salvo no Drive: {nova_url}")
 
-                # ===== ATUALIZAR PLANILHA =====
                 print("🔍 Atualizando planilha...")
                 cliente_atual = buscar_cliente_por_id(cliente_id)
                 if cliente_atual:
@@ -1020,11 +1008,9 @@ def gerar_relatorio_conformidade():
 
         cliente_id = dados.get('cliente_id')
 
-        # ===== GERAR HASH =====
         hash_input = f"{cliente_id}{dados.get('data_visita', '')}{tipo}{datetime.now().isoformat()}"
         hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
 
-        # ===== GERAR PROTOCOLO SEQUENCIAL =====
         protocolo = None
         if cliente_id:
             try:
@@ -1056,7 +1042,6 @@ def gerar_relatorio_conformidade():
             except Exception as e:
                 print(f"⚠️ Erro ao gerar protocolo: {e}")
 
-        # ===== CONTEXTO BASE =====
         context = {
             'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
             'NOME_FANTASIA': 'SoLivia Engenharia',
@@ -1085,7 +1070,6 @@ def gerar_relatorio_conformidade():
             'OBSERVACOES_GERAIS': dados.get('observacoes_gerais', ''),
         }
 
-        # ===== CAMPOS ESPECÍFICOS =====
         if tipo == 'sem_adequacao':
             context.update({
                 'POTENCIA': dados.get('potencia', ''),
@@ -1131,19 +1115,16 @@ def gerar_relatorio_conformidade():
                 'OBSERVACOES': dados.get('observacoes', ''),
             })
 
-        # ===== IMAGENS =====
         imagens = dados.get('imagens', {})
         for key, value in imagens.items():
             if value:
                 context[key.upper()] = f"data:image/png;base64,{value}"
 
-        # ===== RENDERIZAR PDF =====
         html_rendered = render_template(template_file, **context)
         pdf_bytes = HTML(string=html_rendered).write_pdf()
 
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
-        # ===== ENVIAR PARA O APPS SCRIPT =====
         payload_script = {
             'token': TOKEN,
             'acao': 'salvar_pdf',
@@ -1163,7 +1144,6 @@ def gerar_relatorio_conformidade():
             if result.get('success'):
                 url = result.get('url')
 
-                # ===== SALVAR HASH NA PLANILHA =====
                 if cliente_id and hash_documento:
                     try:
                         cliente = buscar_cliente_por_id(cliente_id)
@@ -1375,10 +1355,17 @@ def gerar_proposta_final():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ROTA: GERAR CONTRATO (CLIENTE E PRESTADOR) – ATUALIZADA
+# ROTA: GERAR CONTRATO (CLIENTE E PRESTADOR) – CORRIGIDA
 # ============================================================
-@app.route('/gerar_contrato', methods=['POST'])
+@app.route('/gerar_contrato', methods=['POST', 'OPTIONS'])
 def gerar_contrato():
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        return response, 200
+
     try:
         dados = request.get_json()
         if not dados:
@@ -1387,7 +1374,7 @@ def gerar_contrato():
         tipo = dados.get('tipo', 'cliente')
 
         # ============================================================
-        # CASO: CONTRATO DO PRESTADOR
+        # CASO: CONTRATO DO PRESTADOR (com cliente_id)
         # ============================================================
         if tipo == 'prestador' or tipo == 'parceiro':
             prestador = dados.get('dados', {})
@@ -1398,6 +1385,8 @@ def gerar_contrato():
             faltando = [campo for campo in obrigatorios if not prestador.get(campo)]
             if faltando:
                 return jsonify({'success': False, 'error': f'Campos obrigatórios faltando: {", ".join(faltando)}'}), 400
+
+            cliente_id = dados.get('cliente_id')
 
             context = {
                 'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
@@ -1434,14 +1423,18 @@ def gerar_contrato():
             pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
             payload_script = {
-                'acao': 'salvarPdfPrestador',
-                'senhaAdmin': 'SoLiVi@64253798@',
-                'nome_prestador': prestador.get('nome', 'prestador'),
-                'pdf_base64': pdf_base64,
-                'nome_arquivo': f"Contrato_Prestador_{prestador.get('nome', '').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                'token': TOKEN,
+                'acao': 'salvar_pdf',
+                'dados': {
+                    'nome_cliente': prestador.get('nome', 'prestador'),
+                    'pdf_base64': pdf_base64,
+                    'cliente_id': cliente_id,
+                    'subpasta': 'Instalacao',
+                    'nome_arquivo': f"Contrato_Prestador_{prestador.get('nome', '').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                }
             }
 
-            response = requests.post(URL_AREA_CLIENTE, json=payload_script, timeout=60)
+            response = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
             if response.status_code == 200:
                 result = response.json()
                 if result.get('success'):
@@ -1463,13 +1456,26 @@ def gerar_contrato():
             if not cliente:
                 return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-            # Dados adicionais enviados pelo front-end (ajuste conforme necessário)
-            valor_contrato = dados.get('valor_contrato', '0,00')
-            prazo_execucao = dados.get('prazo_execucao', '60 dias')
-            condicao_pagamento = dados.get('condicao_pagamento', 'À vista')
-            observacoes = dados.get('observacoes', '')
+            # --- Dados do cliente ---
+            nome_cliente = cliente.get('nome', '')
+            email_cliente = cliente.get('email', '')
+            telefone_cliente = cliente.get('telefone', '')
+            endereco = cliente.get('endereco', '')
+            cpf_cnpj = cliente.get('cpf_cnpj', '')
 
-            # Prepara o contexto para o template do contrato (supondo que exista 'contrato_cliente.html')
+            dados_visita = cliente.get('dados_visita', {})
+            potencia = dados_visita.get('potencia') or dados_visita.get('potencia_kwp') or '0'
+            qtd_modulos = dados_visita.get('qtd_modulos') or dados_visita.get('modulos') or '0'
+            inversor = dados_visita.get('inversor') or 'Conforme projeto'
+            geracao = dados_visita.get('geracao') or dados_visita.get('geracao_estimada') or '0'
+            investimento = dados_visita.get('investimento') or 0
+            concessionaria = dados_visita.get('concessionaria') or cliente.get('concessionaria') or 'Concessionária local'
+
+            condicao_pagamento = dados.get('condicao_pagamento', 'À vista, cartão de crédito ou financiamento')
+            prazo_execucao = dados.get('prazo_execucao', '30 dias úteis')
+
+            num_contrato = f"CT-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
+
             context = {
                 'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
                 'NOME_FANTASIA': 'SoLivia Engenharia',
@@ -1479,90 +1485,116 @@ def gerar_contrato():
                 'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
                 'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
                 'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+                'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
                 'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
-                'NUM_CONTRATO': f'CT-{datetime.now().strftime("%Y%m%d")}-{cliente_id}',
+                'NUM_CONTRATO': num_contrato,
+                'NUM_PROPOSTA': dados_visita.get('num_proposta', ''),
+                'NOME_CLIENTE': nome_cliente,
+                'CPF_CNPJ': cpf_cnpj,
+                'ENDERECO': endereco,
+                'TELEFONE_CLIENTE': telefone_cliente,
+                'REPRESENTANTE_CLIENTE': nome_cliente,
+                'CARGO_CLIENTE': 'Proprietário',
                 'REPRESENTANTE': 'Nícolas Alves de Sá',
                 'CARGO_REPRESENTANTE': 'Sócio-Administrador',
-                'NOME_CLIENTE': cliente.get('nome', ''),
-                'CPF_CNPJ_CLIENTE': cliente.get('cpf_cnpj', ''),
-                'ENDERECO_CLIENTE': cliente.get('endereco', ''),
-                'VALOR_CONTRATO': format_moeda(valor_contrato),
+                'TIPO_SERVICO': 'Sistema Fotovoltaico',
+                'VALOR_FORMATADO': format_moeda(investimento),
+                'VALOR_EXTENSO': f"R$ {float(investimento):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                'COND_PAGAMENTO': condicao_pagamento,
                 'PRAZO_EXECUCAO': prazo_execucao,
-                'CONDICAO_PAGAMENTO': condicao_pagamento,
-                'OBSERVACOES': observacoes
-                # Adicione outros campos conforme o template exige
+                'FOTO_CAPA': None,
+                'POTENCIA': potencia,
+                'QTD_MODULOS': qtd_modulos,
+                'INVERSOR': inversor,
+                'GERACAO': geracao,
+                'CONCESSIONARIA': concessionaria
             }
 
-            # Gera o PDF do contrato
             html_rendered = render_template('contrato_cliente.html', **context)
             pdf_bytes = HTML(string=html_rendered).write_pdf()
-
-            # Salva o PDF no Drive (pasta Documentos do cliente)
             pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+            nome_arquivo = f"Contrato_{nome_cliente.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+
+            hash_input = f"{cliente_id}{datetime.now().isoformat()}"
+            hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
+
+            # Salva o PDF no Drive (pasta Documentos)
             payload_script = {
                 'token': TOKEN,
                 'acao': 'salvar_pdf',
                 'dados': {
-                    'nome_cliente': cliente.get('nome', 'cliente'),
+                    'nome_cliente': nome_cliente or 'cliente',
                     'pdf_base64': pdf_base64,
                     'cliente_id': cliente_id,
+                    'hash_documento': hash_documento,
                     'subpasta': 'Documentos',
-                    'nome_arquivo': f"Contrato_{cliente.get('nome', 'cliente').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                    'nome_arquivo': nome_arquivo
                 }
             }
-            resp = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
-            if resp.status_code != 200:
-                return jsonify({'success': False, 'error': 'Erro ao salvar PDF no Drive'}), 500
 
-            result_save = resp.json()
+            response = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
+            if response.status_code != 200:
+                return jsonify({'success': False, 'error': f'Erro ao salvar PDF no Drive: {response.status_code}'}), 500
+
+            result_save = response.json()
             if not result_save.get('success'):
-                return jsonify({'success': False, 'error': result_save.get('error', 'Erro ao salvar PDF')}), 500
+                return jsonify({'success': False, 'error': result_save.get('error', 'Erro ao salvar PDF no Drive')}), 500
 
             url_pdf = result_save.get('url')
 
-            # ===== ENVIAR PARA ASSINATURA AUTENTIQUE =====
-            resultado = enviar_para_assinatura_autentique(
+            # Envia para assinatura via Autentique
+            resultado_assinatura = enviar_para_assinatura_autentique(
                 pdf_bytes=pdf_bytes,
-                nome_documento=f"Contrato_{cliente.get('nome', 'cliente').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf",
-                cliente_email=cliente['email'],
-                cliente_nome=cliente['nome'],
-                assinante_empresa=ASSINANTE_SOLIVIA  # pode ser ASSINANTE_NICOLAS se desejado
+                nome_documento=nome_arquivo,
+                cliente_email=email_cliente,
+                cliente_nome=nome_cliente,
+                assinante_empresa=ASSINANTE_SOLIVIA
             )
 
-            if not resultado['success']:
-                return jsonify({'success': False, 'error': resultado['error']}), 500
+            if not resultado_assinatura.get('success'):
+                return jsonify({
+                    'success': False,
+                    'error': resultado_assinatura.get('error', 'Erro ao enviar para assinatura'),
+                    'url_pdf': url_pdf
+                }), 500
 
-            document_id = resultado['document_id']
-            link_assinatura = resultado['link_assinatura']
+            document_id = resultado_assinatura.get('document_id')
+            link_assinatura = resultado_assinatura.get('link_assinatura')
 
-            # ===== ATUALIZAR PLANILHA =====
-            cliente_atual = buscar_cliente_por_id(cliente_id)
-            if cliente_atual:
-                docs = cliente_atual.get('documentos', {})
-                docs['contrato'] = {
-                    'url': url_pdf,
-                    'document_id': document_id,
-                    'link_assinatura': link_assinatura,
-                    'status': 'enviado',
-                    'data_envio': datetime.now().isoformat()
-                }
-                payload_update = {
-                    "acao": "adminAtualizarCliente",
-                    "idCliente": str(cliente_id),
-                    "campos": {
-                        "documentos": docs,
-                        "etapa_atual": "documentos"
-                    },
-                    "senhaAdmin": "SoLiVi@64253798@"
-                }
-                requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
-                print(f"✅ Contrato enviado para assinatura. Document ID: {document_id}")
+            # Atualiza a planilha
+            try:
+                cliente_atual = buscar_cliente_por_id(cliente_id)
+                if cliente_atual:
+                    docs = cliente_atual.get('documentos', {})
+                    docs['contrato'] = {
+                        'url': url_pdf,
+                        'document_id': document_id,
+                        'link_assinatura': link_assinatura,
+                        'status': 'enviado',
+                        'data_envio': datetime.now().isoformat()
+                    }
+
+                    payload_update = {
+                        "acao": "adminAtualizarCliente",
+                        "idCliente": str(cliente_id),
+                        "campos": {
+                            "documentos": docs,
+                            "etapa_atual": "documentos"
+                        },
+                        "senhaAdmin": "SoLiVi@64253798@"
+                    }
+                    requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                    print(f"✅ Contrato enviado para assinatura. Document ID: {document_id}")
+            except Exception as e:
+                print(f"⚠️ Erro ao atualizar planilha: {e}")
 
             return jsonify({
                 'success': True,
-                'message': 'Contrato enviado para assinatura!',
+                'message': 'Contrato enviado para assinatura! O cliente receberá o link por e-mail.',
                 'link_assinatura': link_assinatura,
-                'document_id': document_id
+                'document_id': document_id,
+                'url_pdf': url_pdf
             })
 
         else:
