@@ -396,6 +396,14 @@
       display: block;
     }
 
+    /* sub-abas (instalação) */
+    .sub-tab-content {
+      display: none;
+    }
+    .sub-tab-content.active {
+      display: block;
+    }
+
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -818,7 +826,7 @@
 
       <!-- CONTEÚDO -->
       <div id="conteudoModal" style="display:none;">
-        <div class="titulo-modal" id="modalTitulo">Editar Cliente</div>
+        <div class="titulo-modal" id="modalTitulo">Cliente</div>
         <div class="subtitulo-modal" id="modalSubtitulo">Carregando...</div>
 
         <div class="tabs">
@@ -974,7 +982,7 @@
 
               <!-- RG / CNH -->
               <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">RG / CNH</label>
+                <label style="min-width:120px; font-weight:600;">RG / CNH<span style="color:#b91c1c;">*</span></label>
                 <select id="doc_rg_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
                   <option value="Pendente">Pendente</option>
                   <option value="Recebido">Recebido</option>
@@ -989,10 +997,10 @@
                   🔗 Abrir
                 </button>
               </div>
-
+              <div id="doc_rg_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
               <!-- CPF -->
               <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">CPF</label>
+                <label style="min-width:120px; font-weight:600;">CPF<span style="color:#b91c1c;">*</span></label>
                 <select id="doc_cpf_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
                   <option value="Pendente">Pendente</option>
                   <option value="Recebido">Recebido</option>
@@ -1007,10 +1015,10 @@
                   🔗 Abrir
                 </button>
               </div>
-
+              <div id="doc_cpf_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
               <!-- Comprovante de residência -->
               <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">Comprovante de residência</label>
+                <label style="min-width:120px; font-weight:600;">Comprovante de residência<span style="color:#b91c1c;">*</span></label>
                 <select id="doc_comprovante_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
                   <option value="Pendente">Pendente</option>
                   <option value="Recebido">Recebido</option>
@@ -1025,7 +1033,7 @@
                   🔗 Abrir
                 </button>
               </div>
-
+              <div id="doc_comprovante_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
               <!-- Última fatura -->
               <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
                 <label style="min-width:120px; font-weight:600;">Última fatura</label>
@@ -1068,55 +1076,594 @@
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:1rem;">
             <button class="btn-acao-aba" onclick="gerarPropostaFinal()">📄 Gerar Proposta Final</button>
             <button class="btn-acao-aba btn-acao-aba--secundario" onclick="gerarContratoCliente()">📜 Gerar Contrato</button>
-            <button class="btn-acao-aba" onclick="abrirModalContratoPrestador()">📜 Contrato Prestador</button>
-          </div>
+                      </div>
         </div>
 
-        <!-- ===== ABA INSTALAÇÃO ===== -->
+        <!-- ===== ABA INSTALAÇÃO (NOVA VERSÃO) ===== -->
         <div id="tabInstalacao" class="tab-content">
-          <div class="form-grid">
-            <div class="campo full"><label>Status da instalação</label><select id="instalacao_status"><option value="Concluído">Concluído</option><option value="Em andamento">Em andamento</option><option value="Aguardando material">Aguardando material</option><option value="Material em trânsito">Material em trânsito</option></select></div>
-            <div class="campo"><label>Equipamentos</label><input type="text" id="instalacao_equipamentos" /></div>
-            <div class="campo"><label>Data da compra</label><input type="date" id="instalacao_data_compra" /></div>
-            <div class="campo"><label>Previsão de entrega</label><input type="date" id="instalacao_previsao_entrega" /></div>
-            <div class="campo"><label>Código de rastreio</label><input type="text" id="instalacao_rastreio" /></div>
-            <div class="campo"><label>Equipe responsável</label><input type="text" id="instalacao_equipe" /></div>
-            <div class="campo full">
-              <label>Cronograma (itens)</label>
-              <div class="checklist-item"><input type="checkbox" id="crono_montagem" /> <label>Montagem estrutural</label></div>
-              <div class="checklist-item"><input type="checkbox" id="crono_cabos" /> <label>Passagem de cabos</label></div>
-              <div class="checklist-item"><input type="checkbox" id="crono_inversor" /> <label>Instalação do inversor</label></div>
-              <div class="checklist-item"><input type="checkbox" id="crono_conexao" /> <label>Conexão elétrica</label></div>
-              <div class="checklist-item"><input type="checkbox" id="crono_testes" /> <label>Testes e comissionamento</label></div>
+          <!-- ===== KPIs (sempre visíveis) ===== -->
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; margin-bottom:1.5rem;">
+            <div style="background:#f8fafc; padding:0.8rem 1rem; border-radius:12px; border-left:4px solid #0b2f5c;">
+              <div style="font-size:0.75rem; color:#5c7a6c; text-transform:uppercase; letter-spacing:0.5px;">Status da compra</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#0b2f5c;" id="kpi_status_compra">-</div>
+            </div>
+            <div style="background:#f8fafc; padding:0.8rem 1rem; border-radius:12px; border-left:4px solid #ffc400;">
+              <div style="font-size:0.75rem; color:#5c7a6c; text-transform:uppercase; letter-spacing:0.5px;">Código de rastreio</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#0b2f5c;" id="kpi_codigo_rastreio">-</div>
+            </div>
+            <div style="background:#f8fafc; padding:0.8rem 1rem; border-radius:12px; border-left:4px solid #10b981;">
+              <div style="font-size:0.75rem; color:#5c7a6c; text-transform:uppercase; letter-spacing:0.5px;">Data agendada</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#0b2f5c;" id="kpi_data_agendada">-</div>
+            </div>
+            <div style="background:#f8fafc; padding:0.8rem 1rem; border-radius:12px; border-left:4px solid #e11d48;">
+              <div style="font-size:0.75rem; color:#5c7a6c; text-transform:uppercase; letter-spacing:0.5px;">Status da instalação</div>
+              <div style="font-size:1.1rem; font-weight:700; color:#0b2f5c;" id="kpi_status_instalacao">-</div>
+            </div>
+          </div>
+
+          <!-- ===== SUB-ABAS ===== -->
+          <div style="display:flex; gap:0.5rem; border-bottom:1px solid #e2edf2; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+            <button class="tab-btn sub-tab-btn active" data-subtab="subCompra" onclick="abrirSubTab(this)">📦 Compra e Logística</button>
+            <button class="tab-btn sub-tab-btn" data-subtab="subAgendamento" onclick="abrirSubTab(this)">📅 Agendamento</button>
+            <button class="tab-btn sub-tab-btn" data-subtab="subExecucao" onclick="abrirSubTab(this)">🔧 Execução</button>
+          </div>
+
+          <!-- ===== SUB-ABA 1: COMPRA E LOGÍSTICA ===== -->
+          <div id="subCompra" class="sub-tab-content active">
+            <div class="form-grid">
+              <div class="campo">
+                <label>Status da compra *</label>
+                <select id="instalacao_status_compra">
+  <option value="">Selecione...</option>
+  <option value="Pendente">Pendente</option>
+  <option value="Realizada">Realizada</option>
+  <option value="Paga">Paga</option>
+  <option value="Cancelada">Cancelada</option>
+</select>
+              </div>
+              <div class="campo">
+                <label>Fornecedor</label>
+                <input type="text" id="instalacao_fornecedor" />
+              </div>
+              <div class="campo">
+                <label>Nota fiscal (número ou URL)</label>
+                <input type="text" id="instalacao_nota_fiscal" />
+              </div>
+              <div class="campo">
+                <label>Data da compra</label>
+                <input type="date" id="instalacao_data_compra" />
+              </div>
+              <div class="campo">
+                <label>Data prevista para entrega</label>
+                <input type="date" id="instalacao_previsao_entrega" />
+              </div>
+              <div class="campo">
+                <label>Data de entrega efetiva</label>
+                <input type="date" id="instalacao_data_entrega_efetiva" />
+              </div>
+              <div class="campo">
+                <label>Código de rastreio</label>
+                <input type="text" id="instalacao_codigo_rastreio" />
+              </div>
+              <div class="campo">
+                <label>Link para rastreio</label>
+                <input type="url" id="instalacao_link_rastreio" placeholder="https://..." />
+              </div>
+              <div class="campo">
+                <label>Equipamentos</label>
+                <input type="text" id="instalacao_equipamentos" placeholder="Descrição resumida dos equipamentos" />
+              </div>
+              <div class="campo full">
+                <label>Observações de compra</label>
+                <textarea rows="2" id="instalacao_obs_compra" placeholder="Anotações sobre a compra..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== SUB-ABA 2: AGENDAMENTO ===== -->
+          <div id="subAgendamento" class="sub-tab-content">
+            <div class="form-grid">
+              <div class="campo">
+                <label>Data agendada</label>
+                <input type="date" id="instalacao_data_agendada" />
+              </div>
+              <div class="campo">
+                <label>Horário</label>
+                <select id="instalacao_horario">
+                  <option value="">Selecione...</option>
+                  <option value="Manhã">Manhã (08h-12h)</option>
+                  <option value="Tarde">Tarde (13h-17h)</option>
+                  <option value="Integral">Integral (08h-17h)</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label>Cliente presente?</label>
+                <select id="instalacao_cliente_presente">
+                  <option value="A confirmar">A confirmar</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label>Equipe responsável</label>
+                <input type="text" id="instalacao_equipe" />
+              </div>
+              <div class="campo full">
+                <label>Observações de agendamento</label>
+                <textarea rows="2" id="instalacao_obs_agendamento" placeholder="Anotações sobre o agendamento..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== SUB-ABA 3: EXECUÇÃO ===== -->
+          <div id="subExecucao" class="sub-tab-content">
+            <div class="form-grid">
+              <div class="campo">
+                <label>Status da instalação *</label>
+                <select id="instalacao_status">
+  <option value="">Selecione...</option>
+  <option value="Aguardando material">Aguardando material</option>
+  <option value="Material em trânsito">Material em trânsito</option>
+  <option value="Agendada">Agendada</option>
+  <option value="Em andamento">Em andamento</option>
+  <option value="Concluída">Concluída</option>
+  <option value="Pausada">Pausada</option>
+</select>
+              </div>
+              <div class="campo">
+                <label>Data de início</label>
+                <input type="date" id="instalacao_data_inicio" />
+              </div>
+              <div class="campo">
+                <label>Data de conclusão</label>
+                <input type="date" id="instalacao_data_conclusao" />
+              </div>
+              <div class="campo full">
+                <label>Cronograma</label>
+                <div class="checklist-item"><input type="checkbox" id="crono_montagem" /> <label>Montagem estrutural</label></div>
+                <div class="checklist-item"><input type="checkbox" id="crono_cabos" /> <label>Passagem de cabos</label></div>
+                <div class="checklist-item"><input type="checkbox" id="crono_inversor" /> <label>Instalação do inversor</label></div>
+                <div class="checklist-item"><input type="checkbox" id="crono_conexao" /> <label>Conexão elétrica</label></div>
+                <div class="checklist-item"><input type="checkbox" id="crono_testes" /> <label>Testes e comissionamento</label></div>
+              </div>
+              <div class="campo full">
+                <label>Observações de execução</label>
+                <textarea rows="3" id="instalacao_obs_execucao" placeholder="Anotações sobre a execução da instalação..."></textarea>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- ===== ABA HOMOLOGAÇÃO ===== -->
+        <!-- ===== ABA HOMOLOGAÇÃO (NOVA VERSÃO) ===== -->
         <div id="tabHomologacao" class="tab-content">
-          <div class="form-grid">
-            <div class="campo"><label>Concessionária</label><input type="text" id="homologacao_concessionaria" /></div>
-            <div class="campo"><label>Nº do protocolo</label><input type="text" id="homologacao_protocolo" /></div>
-            <div class="campo"><label>Data de envio</label><input type="date" id="homologacao_data_envio" /></div>
-            <div class="campo"><label>Data da vistoria</label><input type="date" id="homologacao_data_vistoria" /></div>
-            <div class="campo"><label>Resultado da vistoria</label><select id="homologacao_resultado"><option value="Aprovado">Aprovado</option><option value="Exigências">Exigências</option><option value="Reprovado">Reprovado</option></select></div>
-            <div class="campo"><label>Medidor bidirecional</label><select id="homologacao_medidor"><option value="Instalado e configurado">Instalado e configurado</option><option value="Aguardando instalação">Aguardando instalação</option><option value="Não instalado">Não instalado</option></select></div>
-            <div class="campo full"><label>Data de liberação para operação</label><input type="date" id="homologacao_data_liberacao" /></div>
-            <div class="campo full"><label>Laudo de vistoria (URL)</label><input type="text" id="homologacao_laudo_url" placeholder="https://drive.google.com/..." /></div>
+          <!-- ===== SUB-ABAS ===== -->
+          <div style="display:flex; gap:0.5rem; border-bottom:1px solid #e2edf2; padding-bottom:0.5rem; margin-bottom:1.5rem;">
+            <button class="tab-btn sub-tab-btn active" data-subtab="subHomologacao" onclick="abrirSubTab(this)">🏷️ Homologação</button>
+            <button class="tab-btn sub-tab-btn" data-subtab="subComissionamento" onclick="abrirSubTab(this)">⚙️ Comissionamento</button>
+            <button class="tab-btn sub-tab-btn" data-subtab="subAnexosHomologacao" onclick="abrirSubTab(this)">📎 Documentos e Anexos</button>
           </div>
-          <button class="btn-acao-aba" onclick="abrirModalComissionamento()">📋 Relatório de Comissionamento</button>
+
+          <!-- ============================================================ -->
+          <!-- SUB-ABA 1: HOMOLOGAÇÃO (CONCESSIONÁRIA) -->
+          <!-- ============================================================ -->
+          <div id="subHomologacao" class="sub-tab-content active">
+            <div class="form-grid">
+              <div class="campo">
+                <label>Concessionária *</label>
+                <select id="homologacao_concessionaria">
+                  <option value="">Selecione...</option>
+                  <!-- As opções serão preenchidas pelo JavaScript -->
+                </select>
+              </div>
+              <div class="campo">
+                <label>Nº do protocolo</label>
+                <input type="text" id="homologacao_protocolo" />
+              </div>
+              <div class="campo">
+                <label>Data de envio</label>
+                <input type="date" id="homologacao_data_envio" />
+              </div>
+              <div class="campo">
+                <label>Data da vistoria</label>
+                <input type="date" id="homologacao_data_vistoria" />
+              </div>
+              <div class="campo">
+                <label>Resultado da vistoria</label>
+                <select id="homologacao_resultado">
+                  <option value="">Selecione...</option>
+                  <option value="Aprovado">✅ Aprovado</option>
+                  <option value="Exigências">⚠️ Exigências</option>
+                  <option value="Reprovado">❌ Reprovado</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label>Medidor bidirecional</label>
+                <select id="homologacao_medidor">
+                  <option value="">Selecione...</option>
+                  <option value="Instalado e configurado">Instalado e configurado</option>
+                  <option value="Aguardando instalação">Aguardando instalação</option>
+                  <option value="Não instalado">Não instalado</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label>Data de liberação para operação</label>
+                <input type="date" id="homologacao_data_liberacao" />
+              </div>
+              <div class="campo">
+                <label>Laudo de vistoria (URL)</label>
+                <input type="text" id="homologacao_laudo_url" placeholder="https://drive.google.com/..." />
+              </div>
+              <div class="campo full">
+                <label>Observações de homologação</label>
+                <textarea rows="3" id="homologacao_obs_homologacao" placeholder="Anotações sobre o processo de homologação..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================ -->
+          <!-- SUB-ABA 2: COMISSIONAMENTO -->
+          <!-- ============================================================ -->
+          <div id="subComissionamento" class="sub-tab-content">
+            <!-- Seção 2.1: Status e Responsáveis -->
+            <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #0b2f5c;">
+              <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">📋 Status e Responsáveis</h4>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                <div class="campo">
+                  <label>Status do comissionamento</label>
+                  <select id="comiss_status">
+                    <option value="">Selecione...</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Em andamento">Em andamento</option>
+                    <option value="Concluído">✅ Concluído</option>
+                    <option value="Com falhas">⚠️ Com falhas</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Data do comissionamento</label>
+                  <input type="date" id="comiss_data" />
+                </div>
+                <div class="campo">
+                  <label>Responsável técnico</label>
+                  <input type="text" id="comiss_responsavel" placeholder="Nícolas Alves de Sá" />
+                </div>
+                <div class="campo">
+                  <label>Login do inversor</label>
+                  <input type="text" id="comiss_login" />
+                </div>
+                <div class="campo">
+                  <label>Senha do inversor</label>
+                  <input type="password" id="comiss_senha" />
+                </div>
+                <div class="campo">
+                  <label>Plataforma de monitoramento</label>
+                  <input type="text" id="comiss_plataforma" placeholder="Ex: SolarEdge, Huawei, etc." />
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção 2.2: Dados do Sistema -->
+            <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #ffc400;">
+              <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">🔧 Dados do Sistema</h4>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
+                <div class="campo">
+                  <label>Potência instalada (kWp)</label>
+                  <input type="number" step="0.01" id="comiss_potencia_kwp" />
+                </div>
+                <div class="campo">
+                  <label>Quantidade de módulos</label>
+                  <input type="number" id="comiss_qtd_modulos" />
+                </div>
+                <div class="campo">
+                  <label>Marca dos módulos</label>
+                  <input type="text" id="comiss_marca_modulos" />
+                </div>
+                <div class="campo">
+                  <label>Potência do inversor</label>
+                  <input type="text" id="comiss_potencia_inversor" />
+                </div>
+                <div class="campo">
+                  <label>Marca do inversor</label>
+                  <input type="text" id="comiss_marca_inversor" />
+                </div>
+                <div class="campo">
+                  <label>Tipo de sistema</label>
+                  <input type="text" id="comiss_tipo_sistema" placeholder="Ex: On-grid" />
+                </div>
+                <div class="campo">
+                  <label>Número de strings</label>
+                  <input type="number" id="comiss_num_strings" />
+                </div>
+                <div class="campo">
+                  <label>Módulos por string</label>
+                  <input type="number" id="comiss_modulos_por_string" />
+                </div>
+                <div class="campo">
+                  <label>Tensão nominal</label>
+                  <input type="text" id="comiss_tensao_nominal" placeholder="Ex: 220V" />
+                </div>
+                <div class="campo">
+                  <label>Corrente nominal</label>
+                  <input type="text" id="comiss_corrente_nominal" placeholder="Ex: 10A" />
+                </div>
+                <div class="campo">
+                  <label>Frequência</label>
+                  <input type="text" id="comiss_frequencia" placeholder="Ex: 60Hz" />
+                </div>
+                <div class="campo">
+                  <label>Classe de isolamento</label>
+                  <input type="text" id="comiss_classe_isolamento" placeholder="Ex: II" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção 2.3: Verificações Elétricas -->
+            <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #10b981;">
+              <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">⚡ Verificações Elétricas</h4>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                <div class="campo">
+                  <label>Tensão CC (Vmp) - V</label>
+                  <input type="number" step="0.1" id="comiss_tensao_cc" />
+                </div>
+                <div class="campo">
+                  <label>Corrente CC (Imp) - A</label>
+                  <input type="number" step="0.1" id="comiss_corrente_cc" />
+                </div>
+                <div class="campo">
+                  <label>Tensão CA - V</label>
+                  <input type="number" step="0.1" id="comiss_tensao_ca" />
+                </div>
+                <div class="campo">
+                  <label>Frequência da rede - Hz</label>
+                  <input type="number" step="0.1" id="comiss_frequencia_rede" />
+                </div>
+                <div class="campo">
+                  <label>Teste de isolamento</label>
+                  <select id="comiss_teste_isolamento">
+                    <option value="">Selecione...</option>
+                    <option value="Aprovado">Aprovado</option>
+                    <option value="Reprovado">Reprovado</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Teste de aterramento</label>
+                  <select id="comiss_teste_aterramento">
+                    <option value="">Selecione...</option>
+                    <option value="Aprovado">Aprovado</option>
+                    <option value="Reprovado">Reprovado</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Identificação de polos</label>
+                  <select id="comiss_identificacao_polos">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Inversor ligou?</label>
+                  <select id="comiss_inversor_ligou">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Monitoramento configurado?</label>
+                  <select id="comiss_monitoramento_configurado">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Comunicação com app?</label>
+                  <select id="comiss_comunicacao_app">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Sistema gerando?</label>
+                  <select id="comiss_sistema_gerando">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção 2.4: Ensaios Elétricos -->
+            <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #e11d48;">
+              <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">📊 Ensaios Elétricos</h4>
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem;">
+                <div style="font-weight:600; font-size:0.8rem; color:#0b2f5c;">Ensaio</div>
+                <div style="font-weight:600; font-size:0.8rem; color:#0b2f5c;">Valor medido</div>
+                <div style="font-weight:600; font-size:0.8rem; color:#0b2f5c;">Resultado</div>
+              </div>
+              <!-- Ensaio 1 -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem; align-items:center;">
+                <div style="font-size:0.85rem;">Tensão em circuito aberto (Voc)</div>
+                <input type="text" id="comiss_ensaio_voc" placeholder="Valor" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+                <select id="comiss_ensaio_voc_resultado" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+                  <option value="">-</option>
+                  <option value="ok">✅ Aprovado</option>
+                  <option value="falha">❌ Reprovado</option>
+                </select>
+              </div>
+              <!-- Ensaio 2 -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem; align-items:center;">
+                <div style="font-size:0.85rem;">Corrente de curto-circuito (Isc)</div>
+                <input type="text" id="comiss_ensaio_isc" placeholder="Valor" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+                <select id="comiss_ensaio_isc_resultado" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+                  <option value="">-</option>
+                  <option value="ok">✅ Aprovado</option>
+                  <option value="falha">❌ Reprovado</option>
+                </select>
+              </div>
+              <!-- Ensaio 3 -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem; align-items:center;">
+                <div style="font-size:0.85rem;">Resistência de isolamento</div>
+                <input type="text" id="comiss_ensaio_isolamento" placeholder="Valor" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+                <select id="comiss_ensaio_isolamento_resultado" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+                  <option value="">-</option>
+                  <option value="ok">✅ Aprovado</option>
+                  <option value="falha">❌ Reprovado</option>
+                </select>
+              </div>
+              <!-- Ensaio 4 -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem; align-items:center;">
+                <div style="font-size:0.85rem;">Resistência de aterramento</div>
+                <input type="text" id="comiss_ensaio_aterramento" placeholder="Valor" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+                <select id="comiss_ensaio_aterramento_resultado" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+                  <option value="">-</option>
+                  <option value="ok">✅ Aprovado</option>
+                  <option value="falha">❌ Reprovado</option>
+                </select>
+              </div>
+              <!-- Ensaio 5 -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem; align-items:center;">
+                <div style="font-size:0.85rem;">Teste de continuidade</div>
+                <input type="text" id="comiss_ensaio_continuidade" placeholder="Valor" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+                <select id="comiss_ensaio_continuidade_resultado" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+                  <option value="">-</option>
+                  <option value="ok">✅ Aprovado</option>
+                  <option value="falha">❌ Reprovado</option>
+                </select>
+              </div>
+              <!-- Ensaio 6 -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; margin-bottom:0.5rem; align-items:center;">
+                <div style="font-size:0.85rem;">Teste de polaridade</div>
+                <input type="text" id="comiss_ensaio_polaridade" placeholder="Valor" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+                <select id="comiss_ensaio_polaridade_resultado" style="padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+                  <option value="">-</option>
+                  <option value="ok">✅ Aprovado</option>
+                  <option value="falha">❌ Reprovado</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Seção 2.5: Observações e Botão -->
+            <div class="form-grid">
+              <div class="campo full">
+                <label>Observações de ensaios</label>
+                <textarea rows="3" id="comiss_obs_ensaios" placeholder="Anotações sobre os ensaios realizados..."></textarea>
+              </div>
+              <div class="campo full">
+                <label>Observações finais</label>
+                <textarea rows="3" id="comiss_obs_finais" placeholder="Observações gerais sobre o comissionamento..."></textarea>
+              </div>
+            </div>
+            <div style="margin-top:1rem;">
+              <button class="btn-acao-aba" onclick="gerarRelatorioComissionamento()">📋 Gerar Relatório de Comissionamento</button>
+            </div>
+          </div>
+
+          <!-- ============================================================ -->
+          <!-- SUB-ABA 3: DOCUMENTOS E ANEXOS -->
+          <!-- ============================================================ -->
+          <div id="subAnexosHomologacao" class="sub-tab-content">
+            <div class="form-grid">
+              <div class="campo">
+                <label>Laudo de comissionamento (URL)</label>
+                <input type="text" id="homologacao_laudo_comiss_url" placeholder="https://drive.google.com/..." />
+              </div>
+              <div class="campo">
+                <label>ART (URL)</label>
+                <input type="text" id="homologacao_art_url" placeholder="https://drive.google.com/..." />
+              </div>
+            </div>
+
+            <hr style="margin:1.2rem 0; border-color:#e2edf2;" />
+            <h4 style="color:#0b2f5c; margin-bottom:0.8rem;">🖼️ Fotos da instalação</h4>
+            <p style="font-size:0.85rem; color:#5c7a6c; margin-bottom:0.8rem;">
+              Faça o upload das fotos para compor o relatório de comissionamento.
+            </p>
+
+            <!-- Fotos em grid 2 colunas -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+              <!-- Função auxiliar para gerar cada upload de foto -->
+              <div id="fotos_homologacao_container">
+                <!-- As fotos serão inseridas dinamicamente pelo JavaScript para evitar repetição -->
+              </div>
+            </div>
+            <div class="campo full" style="margin-top:1rem;">
+              <label>Observações de anexos</label>
+              <textarea rows="2" id="homologacao_obs_anexos" placeholder="Anotações sobre os anexos..."></textarea>
+            </div>
+          </div>
         </div>
 
-        <!-- ===== ABA PÓS-VENDA ===== -->
-        <div id="tabPosVenda" class="tab-content">
-          <div class="form-grid">
-            <div class="campo"><label>Geração atual (kWh/mês)</label><input type="text" id="posvenda_geracao" /></div>
-            <div class="campo"><label>Economia mensal (R$)</label><input type="text" id="posvenda_economia" /></div>
-            <div class="campo"><label>Plataforma de monitoramento (URL)</label><input type="text" id="posvenda_plataforma" /></div>
-            <div class="campo"><label>Última manutenção</label><input type="date" id="posvenda_ultima_manutencao" /></div>
-            <div class="campo full"><label>Manuais (URLs)</label><input type="text" id="posvenda_manuais" placeholder="URLs separadas por vírgula" /></div>
-          </div>
-        </div>
+        <!-- ===== ABA PÓS-VENDA (NOVA VERSÃO) ===== -->
+<div id="tabPosVenda" class="tab-content">
+  <div class="form-grid">
+    <div class="campo">
+      <label>Geração estimada (kWh/mês)</label>
+      <input type="number" step="0.1" id="posvenda_geracao" placeholder="Ex: 450" />
+      <small style="color:#5c7a6c;">Valor estimado de geração mensal (para referência)</small>
+    </div>
+    <div class="campo">
+      <label>Economia estimada (R$)</label>
+      <input type="number" step="0.01" id="posvenda_economia" placeholder="Ex: 350.00" />
+      <small style="color:#5c7a6c;">Economia mensal estimada</small>
+    </div>
+    <div class="campo">
+      <label>Plataforma de monitoramento (URL)</label>
+      <input type="url" id="posvenda_plataforma" placeholder="https://..." />
+    </div>
+    <div class="campo">
+      <label>Última manutenção</label>
+      <input type="date" id="posvenda_ultima_manutencao" />
+    </div>
+    <div class="campo">
+      <label>Próxima manutenção</label>
+      <input type="date" id="posvenda_proxima_manutencao" />
+      <small style="color:#5c7a6c;">Data sugerida para a próxima revisão (ex: +1 ano)</small>
+    </div>
+    <div class="campo">
+      <label>Manuais (URLs)</label>
+      <input type="text" id="posvenda_manuais" placeholder="URL1, URL2, URL3..." />
+      <small style="color:#5c7a6c;">Separar múltiplas URLs por vírgula</small>
+    </div>
+    <div class="campo">
+      <label>Status do suporte</label>
+      <select id="posvenda_status_suporte">
+        <option value="Nenhum">Nenhum</option>
+        <option value="Em análise">Em análise</option>
+        <option value="Em andamento">Em andamento</option>
+        <option value="Resolvido">Resolvido</option>
+        <option value="Fechado">Fechado</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label>Último contato</label>
+      <input type="date" id="posvenda_ultimo_contato" />
+    </div>
+    <div class="campo">
+      <label>Plano de laudo</label>
+      <select id="posvenda_plano_laudo">
+        <option value="Nenhum">Nenhum</option>
+        <option value="Básico">Básico</option>
+        <option value="Essencial">Essencial</option>
+        <option value="Premium">Premium</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label>Data de início do plano</label>
+      <input type="date" id="posvenda_plano_inicio" />
+    </div>
+    <div class="campo">
+      <label>Data de fim do plano</label>
+      <input type="date" id="posvenda_plano_fim" />
+    </div>
+    <div class="campo full">
+      <label>Observações de pós-venda</label>
+      <textarea rows="4" id="posvenda_observacoes" placeholder="Anotações sobre o cliente, intercorrências, histórico de contato, etc..."></textarea>
+    </div>
+  </div>
+</div>
 
         <!-- BOTÕES DO MODAL -->
         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.5rem; justify-content:space-between; align-items:center;">
@@ -1127,7 +1674,7 @@
             </button>
             <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalEdicao()">Cancelar</button>
           </div>
-          <button class="btn-excluir" onclick="abrirModalExcluir()">🗑️ Excluir Cliente</button>
+          <button class="btn-excluir" onclick="abrirModalExcluir()" style="margin-top: 1.98rem; align-self:center;">🗑️ Excluir Cliente</button>
         </div>
       </div>
     </div>
@@ -1983,6 +2530,9 @@ function mascaraCPF(input) {
       const fileInput = document.getElementById(`doc_${tipo}_file`);
       const file = fileInput.files[0];
       if (!file) return;
+      // Esconde o erro se o documento for obrigatório
+const erroEl = document.getElementById(`doc_${tipo}_erro`);
+if (erroEl) erroEl.style.display = 'none';
 
       const clienteId = clienteEditando?.id;
       if (!clienteId) {
@@ -2009,12 +2559,12 @@ function mascaraCPF(input) {
         const result = await response.json();
 
         if (result.success) {
-          document.getElementById(`doc_${tipo}_url`).value = result.url;
-          atualizarBotaoAbrir(tipo);
-          alert('✅ Documento enviado com sucesso!');
-        } else {
-          alert('❌ Erro no upload: ' + (result.error || ''));
-        }
+  document.getElementById(`doc_${tipo}_url`).value = result.url;
+  atualizarBotaoAbrir(tipo);
+  // O botão "Abrir" já fica azul automaticamente
+} else {
+  alert('❌ Erro no upload: ' + (result.error || ''));
+}
       } catch (err) {
         alert('❌ Erro de conexão: ' + err.message);
       } finally {
@@ -2034,11 +2584,11 @@ function mascaraCPF(input) {
     }
 
     // ============================================================
-    // PREENCHER MODAL (ATUALIZADO PARA DOCUMENTOS)
+    // PREENCHER MODAL (ATUALIZADO PARA DOCUMENTOS, NOVA INSTALAÇÃO E NOVA HOMOLOGAÇÃO)
     // ============================================================
     function preencherModal(cliente) {
-      document.getElementById('modalTitulo').textContent = `Editar Cliente – ${cliente.nome}`;
-      document.getElementById('modalSubtitulo').textContent = `${cliente.nome} — ${cliente.email}`;
+      document.getElementById('modalTitulo').textContent = `${cliente.nome}`;
+      document.getElementById('modalSubtitulo').textContent = cliente.endereco || 'Endereço não informado';
 
       const v = cliente.dados_visita || {};
       document.getElementById('visita_engenheiro').value = v.engenheiro || '';
@@ -2085,6 +2635,9 @@ function mascaraCPF(input) {
       function preencherDoc(prefixo, dadosDoc) {
         const statusEl = document.getElementById(`doc_${prefixo}_status`);
         const urlEl = document.getElementById(`doc_${prefixo}_url`);
+        // Esconde o erro ao carregar o cliente
+const erroEl = document.getElementById(`doc_${prefixo}_erro`);
+if (erroEl) erroEl.style.display = 'none';
         if (statusEl) statusEl.value = dadosDoc?.status || 'Pendente';
         if (urlEl) urlEl.value = dadosDoc?.url || '';
         atualizarBotaoAbrir(prefixo);
@@ -2096,13 +2649,35 @@ function mascaraCPF(input) {
       preencherDoc('fatura', d.fatura);
       preencherDoc('renda', d.renda);
 
+      // --- Instalação (nova estrutura) ---
       const i = cliente.dados_instalacao || {};
-      document.getElementById('instalacao_status').value = i.status || 'Em andamento';
-      document.getElementById('instalacao_equipamentos').value = i.equipamentos || '';
+
+      // SUB-ABA 1: Compra e Logística
+      document.getElementById('instalacao_status_compra').value = i.status_compra || '';
+      document.getElementById('instalacao_fornecedor').value = i.fornecedor || '';
+      document.getElementById('instalacao_nota_fiscal').value = i.nota_fiscal || '';
       document.getElementById('instalacao_data_compra').value = i.data_compra || '';
       document.getElementById('instalacao_previsao_entrega').value = i.previsao_entrega || '';
-      document.getElementById('instalacao_rastreio').value = i.codigo_rastreio || '';
+      document.getElementById('instalacao_data_entrega_efetiva').value = i.data_entrega_efetiva || '';
+      document.getElementById('instalacao_codigo_rastreio').value = i.codigo_rastreio || '';
+      document.getElementById('instalacao_link_rastreio').value = i.link_rastreio || '';
+      document.getElementById('instalacao_equipamentos').value = i.equipamentos || '';
+      document.getElementById('instalacao_obs_compra').value = i.obs_compra || '';
+
+      // SUB-ABA 2: Agendamento
+      document.getElementById('instalacao_data_agendada').value = i.data_agendada || '';
+      document.getElementById('instalacao_horario').value = i.horario || '';
+      document.getElementById('instalacao_cliente_presente').value = i.cliente_presente || 'A confirmar';
       document.getElementById('instalacao_equipe').value = i.equipe || '';
+      document.getElementById('instalacao_obs_agendamento').value = i.obs_agendamento || '';
+
+      // SUB-ABA 3: Execução
+      document.getElementById('instalacao_status').value = i.status || '';
+      document.getElementById('instalacao_data_inicio').value = i.data_inicio || '';
+      document.getElementById('instalacao_data_conclusao').value = i.data_conclusao || '';
+      document.getElementById('instalacao_obs_execucao').value = i.obs_execucao || '';
+
+      // Cronograma
       const crono = i.cronograma || {};
       document.getElementById('crono_montagem').checked = crono.montagem === 'Concluído';
       document.getElementById('crono_cabos').checked = crono.cabos === 'Concluído';
@@ -2110,22 +2685,107 @@ function mascaraCPF(input) {
       document.getElementById('crono_conexao').checked = crono.conexao === 'Concluído';
       document.getElementById('crono_testes').checked = crono.testes === 'Concluído';
 
+      // ===== ATUALIZAR KPIs =====
+      document.getElementById('kpi_status_compra').textContent = i.status_compra || '-';
+      document.getElementById('kpi_codigo_rastreio').textContent = i.codigo_rastreio || '-';
+      document.getElementById('kpi_data_agendada').textContent = i.data_agendada ? new Date(i.data_agendada).toLocaleDateString('pt-BR') : '-';
+      document.getElementById('kpi_status_instalacao').textContent = i.status || '-';
+
+      // --- Homologação (nova estrutura com comissionamento) ---
       const h = cliente.dados_homologacao || {};
+
+      // Sub-aba 1: Homologação
       document.getElementById('homologacao_concessionaria').value = h.concessionaria || '';
       document.getElementById('homologacao_protocolo').value = h.protocolo || '';
       document.getElementById('homologacao_data_envio').value = h.data_envio || '';
       document.getElementById('homologacao_data_vistoria').value = h.data_vistoria || '';
-      document.getElementById('homologacao_resultado').value = h.resultado || 'Aprovado';
-      document.getElementById('homologacao_medidor').value = h.medidor || 'Não instalado';
+      document.getElementById('homologacao_resultado').value = h.resultado || '';
+      document.getElementById('homologacao_medidor').value = h.medidor || '';
       document.getElementById('homologacao_data_liberacao').value = h.data_liberacao || '';
       document.getElementById('homologacao_laudo_url').value = h.laudo_url || '';
+      document.getElementById('homologacao_obs_homologacao').value = h.obs_homologacao || '';
 
-      const p = cliente.dados_posvenda || {};
-      document.getElementById('posvenda_geracao').value = p.geracao_atual || '';
-      document.getElementById('posvenda_economia').value = p.economia_mensal || '';
-      document.getElementById('posvenda_plataforma').value = p.plataforma_url || '';
-      document.getElementById('posvenda_ultima_manutencao').value = p.ultima_manutencao || '';
-      document.getElementById('posvenda_manuais').value = p.manuais_urls ? p.manuais_urls.join(', ') : '';
+      // Sub-aba 2: Comissionamento
+      const c = h.comissionamento || {};
+
+      // Status e responsáveis
+      document.getElementById('comiss_status').value = c.status || '';
+      document.getElementById('comiss_data').value = c.data || '';
+      document.getElementById('comiss_responsavel').value = c.responsavel || '';
+      document.getElementById('comiss_login').value = c.login || '';
+      document.getElementById('comiss_senha').value = c.senha || '';
+      document.getElementById('comiss_plataforma').value = c.plataforma || '';
+
+      // Dados do sistema
+      document.getElementById('comiss_potencia_kwp').value = c.potencia_kwp || '';
+      document.getElementById('comiss_qtd_modulos').value = c.qtd_modulos || '';
+      document.getElementById('comiss_marca_modulos').value = c.marca_modulos || '';
+      document.getElementById('comiss_potencia_inversor').value = c.potencia_inversor || '';
+      document.getElementById('comiss_marca_inversor').value = c.marca_inversor || '';
+      document.getElementById('comiss_tipo_sistema').value = c.tipo_sistema || '';
+      document.getElementById('comiss_num_strings').value = c.num_strings || '';
+      document.getElementById('comiss_modulos_por_string').value = c.modulos_por_string || '';
+      document.getElementById('comiss_tensao_nominal').value = c.tensao_nominal || '';
+      document.getElementById('comiss_corrente_nominal').value = c.corrente_nominal || '';
+      document.getElementById('comiss_frequencia').value = c.frequencia || '';
+      document.getElementById('comiss_classe_isolamento').value = c.classe_isolamento || '';
+
+      // Verificações elétricas
+      document.getElementById('comiss_tensao_cc').value = c.tensao_cc || '';
+      document.getElementById('comiss_corrente_cc').value = c.corrente_cc || '';
+      document.getElementById('comiss_tensao_ca').value = c.tensao_ca || '';
+      document.getElementById('comiss_frequencia_rede').value = c.frequencia_rede || '';
+      document.getElementById('comiss_teste_isolamento').value = c.teste_isolamento || '';
+      document.getElementById('comiss_teste_aterramento').value = c.teste_aterramento || '';
+      document.getElementById('comiss_identificacao_polos').value = c.identificacao_polos || '';
+      document.getElementById('comiss_inversor_ligou').value = c.inversor_ligou || '';
+      document.getElementById('comiss_monitoramento_configurado').value = c.monitoramento_configurado || '';
+      document.getElementById('comiss_comunicacao_app').value = c.comunicacao_app || '';
+      document.getElementById('comiss_sistema_gerando').value = c.sistema_gerando || '';
+
+      // Ensaios
+      document.getElementById('comiss_ensaio_voc').value = c.ensaio_voc || '';
+      document.getElementById('comiss_ensaio_voc_resultado').value = c.ensaio_voc_resultado || '';
+      document.getElementById('comiss_ensaio_isc').value = c.ensaio_isc || '';
+      document.getElementById('comiss_ensaio_isc_resultado').value = c.ensaio_isc_resultado || '';
+      document.getElementById('comiss_ensaio_isolamento').value = c.ensaio_isolamento || '';
+      document.getElementById('comiss_ensaio_isolamento_resultado').value = c.ensaio_isolamento_resultado || '';
+      document.getElementById('comiss_ensaio_aterramento').value = c.ensaio_aterramento || '';
+      document.getElementById('comiss_ensaio_aterramento_resultado').value = c.ensaio_aterramento_resultado || '';
+      document.getElementById('comiss_ensaio_continuidade').value = c.ensaio_continuidade || '';
+      document.getElementById('comiss_ensaio_continuidade_resultado').value = c.ensaio_continuidade_resultado || '';
+      document.getElementById('comiss_ensaio_polaridade').value = c.ensaio_polaridade || '';
+      document.getElementById('comiss_ensaio_polaridade_resultado').value = c.ensaio_polaridade_resultado || '';
+      document.getElementById('comiss_obs_ensaios').value = c.obs_ensaios || '';
+      document.getElementById('comiss_obs_finais').value = c.obs_finais || '';
+
+      // Sub-aba 3: Documentos e Anexos
+      document.getElementById('homologacao_laudo_comiss_url').value = h.laudo_comiss_url || '';
+      document.getElementById('homologacao_art_url').value = h.art_url || '';
+      document.getElementById('homologacao_obs_anexos').value = h.obs_anexos || '';
+
+      // Fotos - preencher URLs e atualizar botões
+      FOTOS_COMISSIONAMENTO.forEach(foto => {
+        const url = h.fotos && h.fotos[foto.id] ? h.fotos[foto.id] : '';
+        document.getElementById(`foto_${foto.id}_url`).value = url;
+        atualizarBotaoAbrirFoto(foto.id);
+      });
+
+      // --- Pós-Venda (nova estrutura) ---
+const p = cliente.dados_posvenda || {};
+
+document.getElementById('posvenda_geracao').value = p.geracao_estimada || '';
+document.getElementById('posvenda_economia').value = p.economia_estimada || '';
+document.getElementById('posvenda_plataforma').value = p.plataforma_url || '';
+document.getElementById('posvenda_ultima_manutencao').value = p.ultima_manutencao || '';
+document.getElementById('posvenda_proxima_manutencao').value = p.proxima_manutencao || '';
+document.getElementById('posvenda_manuais').value = p.manuais_urls ? p.manuais_urls.join(', ') : '';
+document.getElementById('posvenda_status_suporte').value = p.status_suporte || 'Nenhum';
+document.getElementById('posvenda_ultimo_contato').value = p.ultimo_contato || '';
+document.getElementById('posvenda_plano_laudo').value = p.plano_laudo || 'Nenhum';
+document.getElementById('posvenda_plano_inicio').value = p.plano_inicio || '';
+document.getElementById('posvenda_plano_fim').value = p.plano_fim || '';
+document.getElementById('posvenda_observacoes').value = p.observacoes || '';
 
       sincronizarDataVisita();
       setTimeout(validarDataRealizacao, 100);
@@ -2150,6 +2810,164 @@ function mascaraCPF(input) {
       aba.classList.add('active');
       const btnCorrespondente = document.querySelector(`.tab-btn[data-tab="${abaId}"]`);
       if (btnCorrespondente) btnCorrespondente.classList.add('active');
+    }
+
+    // ============================================================
+    // LISTA DE FOTOS PARA COMISSIONAMENTO
+    // ============================================================
+    const FOTOS_COMISSIONAMENTO = [
+      { id: 'foto_estrutura_antes', label: 'Estrutura antes da instalação' },
+      { id: 'foto_aterramento_sistema', label: 'Aterramento do sistema' },
+      { id: 'foto_quadros', label: 'Quadros instalados' },
+      { id: 'foto_conexoes', label: 'Conexões elétricas' },
+      { id: 'foto_quadro_rede', label: 'Quadro da rede' },
+      { id: 'foto_aterramento_carcacas', label: 'Aterramento carcaças' },
+      { id: 'foto_inspecao_local', label: 'Inspeção local' },
+      { id: 'foto_fachada', label: 'Foto da fachada' },
+      { id: 'foto_identificacao_disjuntores', label: 'Identificação disjuntores' },
+      { id: 'foto_etiquetas_circuitos', label: 'Etiquetas circuitos' },
+      { id: 'foto_tensao_circuitos', label: 'Tensão circuitos' },
+      { id: 'foto_corrente_circuitos', label: 'Corrente circuitos' },
+      { id: 'foto_epi', label: 'EPI e EPC utilizados' },
+      { id: 'foto_aplicativo', label: 'Aplicativo de monitoramento' },
+      { id: 'foto_sistema', label: 'Visão geral do sistema' },
+      { id: 'foto_quadro_completo', label: 'Quadro completo identificado' }
+    ];
+
+    // ============================================================
+    // GERAR CAMPOS DE UPLOAD DE FOTOS
+    // ============================================================
+    function gerarCamposFotos() {
+      const container = document.getElementById('fotos_homologacao_container');
+      container.innerHTML = '';
+      FOTOS_COMISSIONAMENTO.forEach(foto => {
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex; flex-direction:column; gap:0.3rem; margin-bottom:0.3rem;';
+        div.innerHTML = `
+          <label style="font-weight:600; font-size:0.8rem; color:#0b2f5c;">${foto.label}</label>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <button id="foto_${foto.id}_btn_upload" onclick="selecionarFoto('${foto.id}')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.3rem 1rem; cursor:pointer; font-size:0.8rem; white-space:nowrap;">
+              📎 Selecionar arquivo
+            </button>
+            <input type="file" id="foto_${foto.id}_file" accept=".jpg,.jpeg,.png" style="display:none;" onchange="uploadFoto('${foto.id}')" />
+            <input type="hidden" id="foto_${foto.id}_url" value="" />
+            <button id="foto_${foto.id}_btn_abrir" onclick="abrirFoto('${foto.id}')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.3rem 0.8rem; cursor:default; font-size:0.8rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
+              🔗 Abrir
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // ============================================================
+    // FUNÇÕES PARA FOTOS (COMISSIONAMENTO)
+    // ============================================================
+    function selecionarFoto(id) {
+      document.getElementById(`foto_${id}_file`).click();
+    }
+
+    async function uploadFoto(id) {
+      const fileInput = document.getElementById(`foto_${id}_file`);
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const clienteId = clienteEditando?.id;
+      if (!clienteId) {
+        alert('Nenhum cliente selecionado. Salve o cliente primeiro.');
+        fileInput.value = '';
+        return;
+      }
+
+      const btnUpload = document.getElementById(`foto_${id}_btn_upload`);
+      const originalText = btnUpload.textContent;
+      btnUpload.disabled = true;
+      btnUpload.textContent = '⏳ Enviando...';
+
+      const formData = new FormData();
+      formData.append('cliente_id', clienteId);
+      formData.append('tipo_doc', `foto_${id}`);
+      formData.append('arquivo', file);
+
+      try {
+        const response = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          document.getElementById(`foto_${id}_url`).value = result.url;
+          atualizarBotaoAbrirFoto(id);
+        } else {
+          alert('❌ Erro no upload: ' + (result.error || ''));
+        }
+      } catch (err) {
+        alert('❌ Erro de conexão: ' + err.message);
+      } finally {
+        btnUpload.disabled = false;
+        btnUpload.textContent = originalText;
+        fileInput.value = '';
+      }
+    }
+
+    function atualizarBotaoAbrirFoto(id) {
+      const url = document.getElementById(`foto_${id}_url`).value;
+      const btnAbrir = document.getElementById(`foto_${id}_btn_abrir`);
+      if (url && url.trim() !== '') {
+        btnAbrir.style.background = '#0b2f5c';
+        btnAbrir.style.color = 'white';
+        btnAbrir.style.cursor = 'pointer';
+        btnAbrir.style.opacity = '1';
+        btnAbrir.style.pointerEvents = 'auto';
+        btnAbrir.textContent = '📄 Abrir';
+      } else {
+        btnAbrir.style.background = '#eef2f6';
+        btnAbrir.style.color = '#5c7a6c';
+        btnAbrir.style.cursor = 'default';
+        btnAbrir.style.opacity = '0.5';
+        btnAbrir.style.pointerEvents = 'none';
+        btnAbrir.textContent = '🔗 Abrir';
+      }
+    }
+
+    function abrirFoto(id) {
+      const url = document.getElementById(`foto_${id}_url`).value;
+      if (url && url.trim() !== '') {
+        window.open(url.trim(), '_blank');
+      } else {
+        alert('Nenhuma foto enviada ainda.');
+      }
+    }
+
+    // ============================================================
+    // PREENCHER CONCESSIONÁRIAS (HOMOLOGAÇÃO)
+    // ============================================================
+    function preencherConcessionariasHomologacao() {
+      const select = document.getElementById('homologacao_concessionaria');
+      const lista = [
+        'Enel SP','Enel RJ','Enel GO','CPFL Paulista','CPFL Piratininga','CPFL Sul Paulista',
+        'CEMIG','CELESC','COPEL','EDP São Paulo','EDP Espírito Santo','Light',
+        'Equatorial Maranhão','Equatorial Pará','Equatorial Piauí','Equatorial Alagoas',
+        'Neoenergia Coelba','Neoenergia Pernambuco','Neoenergia Cosern','Neoenergia Elektro',
+        'Energisa Mato Grosso','Energisa Mato Grosso do Sul','Energisa Paraíba',
+        'Energisa Rondônia','Energisa Sergipe','Energisa Tocantins','Energisa Acre',
+        'Energisa Minas Gerais','RGE Sul','RGE','CEEE','Celesc',
+        'Amazonas Energia','Boavista Energia','Cerrado','CFO','Coelce','Cemar',
+        'Cepisa','Certeja','CPEE','Eletroacre','Eletrobras Distribuição Amazonas',
+        'Eletrobras Distribuição Roraima','Enercan','Energia Borborema','Energisa',
+        'Engep','ESCELSA','Furnas','Hidropan','Iguacu','Jaguari','Luz e Força',
+        'Muxfeldt','Nacional','Norte Brasil','Pantanal','Paranapanema','Paulista',
+        'Piratininga','Rio Grande Energia','Santa Maria','Santo Antônio','Sulgipe',
+        'Sulmatogrossense'
+      ];
+      select.innerHTML = '<option value="">Selecione...</option>';
+      lista.forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome;
+        opt.textContent = nome;
+        select.appendChild(opt);
+      });
     }
 
     // ============================================================
@@ -2319,12 +3137,29 @@ function mascaraCPF(input) {
           }
         },
         dados_instalacao: {
-          status: document.getElementById('instalacao_status').value,
-          equipamentos: document.getElementById('instalacao_equipamentos').value,
+          // Compra e Logística
+          status_compra: document.getElementById('instalacao_status_compra').value,
+          fornecedor: document.getElementById('instalacao_fornecedor').value,
+          nota_fiscal: document.getElementById('instalacao_nota_fiscal').value,
           data_compra: document.getElementById('instalacao_data_compra').value,
           previsao_entrega: document.getElementById('instalacao_previsao_entrega').value,
-          codigo_rastreio: document.getElementById('instalacao_rastreio').value,
+          data_entrega_efetiva: document.getElementById('instalacao_data_entrega_efetiva').value,
+          codigo_rastreio: document.getElementById('instalacao_codigo_rastreio').value,
+          link_rastreio: document.getElementById('instalacao_link_rastreio').value,
+          equipamentos: document.getElementById('instalacao_equipamentos').value,
+          obs_compra: document.getElementById('instalacao_obs_compra').value,
+          // Agendamento
+          data_agendada: document.getElementById('instalacao_data_agendada').value,
+          horario: document.getElementById('instalacao_horario').value,
+          cliente_presente: document.getElementById('instalacao_cliente_presente').value,
           equipe: document.getElementById('instalacao_equipe').value,
+          obs_agendamento: document.getElementById('instalacao_obs_agendamento').value,
+          // Execução
+          status: document.getElementById('instalacao_status').value,
+          data_inicio: document.getElementById('instalacao_data_inicio').value,
+          data_conclusao: document.getElementById('instalacao_data_conclusao').value,
+          obs_execucao: document.getElementById('instalacao_obs_execucao').value,
+          // Cronograma
           cronograma: {
             montagem: document.getElementById('crono_montagem').checked ? 'Concluído' : 'Pendente',
             cabos: document.getElementById('crono_cabos').checked ? 'Concluído' : 'Pendente',
@@ -2334,6 +3169,7 @@ function mascaraCPF(input) {
           }
         },
         dados_homologacao: {
+          // Sub-aba 1: Homologação
           concessionaria: document.getElementById('homologacao_concessionaria').value,
           protocolo: document.getElementById('homologacao_protocolo').value,
           data_envio: document.getElementById('homologacao_data_envio').value,
@@ -2342,14 +3178,93 @@ function mascaraCPF(input) {
           medidor: document.getElementById('homologacao_medidor').value,
           data_liberacao: document.getElementById('homologacao_data_liberacao').value,
           laudo_url: document.getElementById('homologacao_laudo_url').value,
+          obs_homologacao: document.getElementById('homologacao_obs_homologacao').value,
+
+          // Sub-aba 2: Comissionamento
+          comissionamento: {
+            // Status e responsáveis
+            status: document.getElementById('comiss_status').value,
+            data: document.getElementById('comiss_data').value,
+            responsavel: document.getElementById('comiss_responsavel').value,
+            login: document.getElementById('comiss_login').value,
+            senha: document.getElementById('comiss_senha').value,
+            plataforma: document.getElementById('comiss_plataforma').value,
+
+            // Dados do sistema
+            potencia_kwp: document.getElementById('comiss_potencia_kwp').value,
+            qtd_modulos: document.getElementById('comiss_qtd_modulos').value,
+            marca_modulos: document.getElementById('comiss_marca_modulos').value,
+            potencia_inversor: document.getElementById('comiss_potencia_inversor').value,
+            marca_inversor: document.getElementById('comiss_marca_inversor').value,
+            tipo_sistema: document.getElementById('comiss_tipo_sistema').value,
+            num_strings: document.getElementById('comiss_num_strings').value,
+            modulos_por_string: document.getElementById('comiss_modulos_por_string').value,
+            tensao_nominal: document.getElementById('comiss_tensao_nominal').value,
+            corrente_nominal: document.getElementById('comiss_corrente_nominal').value,
+            frequencia: document.getElementById('comiss_frequencia').value,
+            classe_isolamento: document.getElementById('comiss_classe_isolamento').value,
+
+            // Verificações elétricas
+            tensao_cc: document.getElementById('comiss_tensao_cc').value,
+            corrente_cc: document.getElementById('comiss_corrente_cc').value,
+            tensao_ca: document.getElementById('comiss_tensao_ca').value,
+            frequencia_rede: document.getElementById('comiss_frequencia_rede').value,
+            teste_isolamento: document.getElementById('comiss_teste_isolamento').value,
+            teste_aterramento: document.getElementById('comiss_teste_aterramento').value,
+            identificacao_polos: document.getElementById('comiss_identificacao_polos').value,
+            inversor_ligou: document.getElementById('comiss_inversor_ligou').value,
+            monitoramento_configurado: document.getElementById('comiss_monitoramento_configurado').value,
+            comunicacao_app: document.getElementById('comiss_comunicacao_app').value,
+            sistema_gerando: document.getElementById('comiss_sistema_gerando').value,
+
+            // Ensaios
+            ensaio_voc: document.getElementById('comiss_ensaio_voc').value,
+            ensaio_voc_resultado: document.getElementById('comiss_ensaio_voc_resultado').value,
+            ensaio_isc: document.getElementById('comiss_ensaio_isc').value,
+            ensaio_isc_resultado: document.getElementById('comiss_ensaio_isc_resultado').value,
+            ensaio_isolamento: document.getElementById('comiss_ensaio_isolamento').value,
+            ensaio_isolamento_resultado: document.getElementById('comiss_ensaio_isolamento_resultado').value,
+            ensaio_aterramento: document.getElementById('comiss_ensaio_aterramento').value,
+            ensaio_aterramento_resultado: document.getElementById('comiss_ensaio_aterramento_resultado').value,
+            ensaio_continuidade: document.getElementById('comiss_ensaio_continuidade').value,
+            ensaio_continuidade_resultado: document.getElementById('comiss_ensaio_continuidade_resultado').value,
+            ensaio_polaridade: document.getElementById('comiss_ensaio_polaridade').value,
+            ensaio_polaridade_resultado: document.getElementById('comiss_ensaio_polaridade_resultado').value,
+            obs_ensaios: document.getElementById('comiss_obs_ensaios').value,
+            obs_finais: document.getElementById('comiss_obs_finais').value,
+          },
+
+          // Sub-aba 3: Documentos e Anexos
+          laudo_comiss_url: document.getElementById('homologacao_laudo_comiss_url').value,
+          art_url: document.getElementById('homologacao_art_url').value,
+          obs_anexos: document.getElementById('homologacao_obs_anexos').value,
+
+          // Fotos - coletar URLs
+          fotos: (() => {
+            const fotosObj = {};
+            FOTOS_COMISSIONAMENTO.forEach(foto => {
+              const url = document.getElementById(`foto_${foto.id}_url`).value;
+              if (url) fotosObj[foto.id] = url;
+            });
+            return fotosObj;
+          })()
         },
         dados_posvenda: {
-          geracao_atual: document.getElementById('posvenda_geracao').value,
-          economia_mensal: document.getElementById('posvenda_economia').value,
-          plataforma_url: document.getElementById('posvenda_plataforma').value,
-          ultima_manutencao: document.getElementById('posvenda_ultima_manutencao').value,
-          manuais_urls: document.getElementById('posvenda_manuais').value.split(',').map(s => s.trim()).filter(Boolean),
-        }
+  // Campos renomeados
+  geracao_estimada: document.getElementById('posvenda_geracao').value,
+  economia_estimada: document.getElementById('posvenda_economia').value,
+  plataforma_url: document.getElementById('posvenda_plataforma').value,
+  ultima_manutencao: document.getElementById('posvenda_ultima_manutencao').value,
+  proxima_manutencao: document.getElementById('posvenda_proxima_manutencao').value,
+  manuais_urls: document.getElementById('posvenda_manuais').value.split(',').map(s => s.trim()).filter(Boolean),
+  // Novos campos
+  status_suporte: document.getElementById('posvenda_status_suporte').value,
+  ultimo_contato: document.getElementById('posvenda_ultimo_contato').value,
+  plano_laudo: document.getElementById('posvenda_plano_laudo').value,
+  plano_inicio: document.getElementById('posvenda_plano_inicio').value,
+  plano_fim: document.getElementById('posvenda_plano_fim').value,
+  observacoes: document.getElementById('posvenda_observacoes').value,
+}
       };
 
       try {
@@ -2516,6 +3431,18 @@ function mascaraCPF(input) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // ============================================================
+    // FUNÇÃO PARA SUB-ABAS (INSTALAÇÃO)
+    // ============================================================
+    function abrirSubTab(btn) {
+      const subTabId = btn.dataset.subtab;
+      const parent = btn.closest('.tab-content');
+      parent.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+      parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(subTabId).classList.add('active');
       btn.classList.add('active');
     }
 
@@ -3068,53 +3995,152 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
     // GERAR PROPOSTA FINAL
     // ============================================================
     async function gerarPropostaFinal() {
-      if (!clienteEditando) { alert('Nenhum cliente selecionado.'); return; }
-      const btn = event.target;
-      btn.disabled = true;
-      btn.textContent = '⏳ Gerando...';
-      try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cliente_id: clienteEditando.id })
-        });
-        const resultado = await resp.json();
-        if (resultado.success) {
-          alert('✅ Proposta final gerada com sucesso!');
-          if (resultado.url) window.open(resultado.url, '_blank');
-          carregarClientes();
-        } else {
-          alert('❌ Erro: ' + (resultado.error || 'Erro desconhecido'));
-        }
-      } catch (err) { alert('❌ Erro de conexão: ' + err.message); }
-      finally { btn.disabled = false; btn.textContent = '📄 Gerar Proposta Final'; }
-    }
+  if (!clienteEditando) {
+    exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de gerar a proposta final.', '⚠️', '#b91c1c', null);
+    return;
+  }
+  // ===== VALIDAÇÃO: SÓ PERMITE GERAR SE HOUVER VISITA TÉCNICA =====
+  const dadosVisita = clienteEditando.dados_visita || {};
+  const temVisita = dadosVisita.data_realizacao || dadosVisita.engenheiro || dadosVisita.resultado;
+  if (!temVisita) {
+    exibirModalComAcao(
+      'Visita técnica necessária',
+      'Para gerar a proposta final, primeiro realize e finalize a visita técnica do cliente.',
+      '⚠️',
+      '#b91c1c',
+      null
+    );
+    return;
+  }
+  const btn = event.target;
+  const textoOriginal = btn.textContent;
+  
+  // Desabilitar e aplicar opacidade
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.textContent = '⏳ Gerando...';
+
+  try {
+    const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cliente_id: clienteEditando.id })
+    });
+    const resultado = await resp.json();
+
+    if (resultado.success) {
+  const modalSucesso = document.getElementById('modalSucesso');
+  const msg = document.getElementById('modalSucessoMsg');
+  const btnAbrir = document.getElementById('modalSucessoAbrir');
+  const btnFechar = document.getElementById('modalSucessoFechar');
+
+  msg.innerHTML = 'Clique no botão abaixo para visualizar a proposta final.';
+  btnAbrir.textContent = '📄 Visualizar';
+  btnAbrir.onclick = function() {
+    if (resultado.url) window.open(resultado.url, '_blank');
+    modalSucesso.classList.remove('active');
+  };
+  btnFechar.textContent = 'Fechar';
+  btnFechar.onclick = function() {
+    modalSucesso.classList.remove('active');
+  };
+  modalSucesso.classList.add('active');
+  carregarClientes();
+} else {
+  exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+}
+  } catch (err) {
+    exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
+  } finally {
+    // Restaurar
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.textContent = textoOriginal;
+  }
+}
 
     // ============================================================
     // GERAR CONTRATO CLIENTE
     // ============================================================
     async function gerarContratoCliente() {
-      if (!clienteEditando) { alert('Nenhum cliente selecionado.'); return; }
-      const btn = event.target;
-      btn.disabled = true;
-      btn.textContent = '⏳ Gerando...';
-      try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
-        });
-        const resultado = await resp.json();
-        if (resultado.success) {
-          alert('✅ Contrato gerado com sucesso!');
-          if (resultado.url) window.open(resultado.url, '_blank');
-          carregarClientes();
-        } else {
-          alert('❌ Erro: ' + (resultado.error || 'Erro desconhecido'));
-        }
-      } catch (err) { alert('❌ Erro de conexão: ' + err.message); }
-      finally { btn.disabled = false; btn.textContent = '📜 Gerar Contrato'; }
+  if (!clienteEditando) {
+    exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de gerar o contrato.', '⚠️', '#b91c1c', null);
+    return;
+  }
+
+  // ===== LIMPAR ERROS ANTERIORES =====
+  const docsObrigatorios = ['rg', 'cpf', 'comprovante'];
+  docsObrigatorios.forEach(doc => {
+    const erroEl = document.getElementById(`doc_${doc}_erro`);
+    if (erroEl) erroEl.style.display = 'none';
+  });
+
+  // ===== VALIDAÇÃO INDIVIDUAL =====
+  const docs = [
+    { id: 'rg', label: 'RG / CNH' },
+    { id: 'cpf', label: 'CPF' },
+    { id: 'comprovante', label: 'Comprovante de residência' }
+  ];
+
+  let temErro = false;
+  docs.forEach(doc => {
+    const status = document.getElementById(`doc_${doc.id}_status`)?.value;
+    const url = document.getElementById(`doc_${doc.id}_url`)?.value?.trim();
+    const erroEl = document.getElementById(`doc_${doc.id}_erro`);
+
+    if (!status || (status !== 'Recebido' && status !== 'Validado') || !url) {
+      if (erroEl) {
+        erroEl.textContent = `⚠️ Documento pendente. Status atual: ${status || 'não definido'}${!url ? ' (URL vazia)' : ''}`;
+        erroEl.style.display = 'block';
+      }
+      temErro = true;
+    } else {
+      if (erroEl) erroEl.style.display = 'none';
     }
+  });
+
+  if (temErro) {
+    return; // Impede a geração do contrato
+  }
+
+  // ===== GERAR CONTRATO =====
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando...';
+
+  try {
+    const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
+    });
+    const resultado = await resp.json();
+
+    if (resultado.success) {
+      const msg = resultado.link_assinatura
+        ? `O contrato foi gerado e enviado para assinatura. O cliente receberá o link por e-mail.<br><br><strong>Link de assinatura:</strong><br><a href="${resultado.link_assinatura}" target="_blank">${resultado.link_assinatura}</a>`
+        : 'O contrato foi gerado com sucesso!';
+      exibirModalComAcao(
+        '✅ Contrato gerado!',
+        msg,
+        '📜',
+        '#0b2f5c',
+        function() {
+          if (resultado.link_assinatura) window.open(resultado.link_assinatura, '_blank');
+          if (resultado.url) window.open(resultado.url, '_blank');
+        }
+      );
+      carregarClientes();
+    } else {
+      exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+    }
+  } catch (err) {
+    exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📜 Gerar Contrato';
+  }
+}
 
     // ============================================================
     // CONTRATO PRESTADOR
@@ -3151,7 +4177,8 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
   banco: document.getElementById('prestador_banco').value.trim(),
   agencia: document.getElementById('prestador_agencia').value.trim(),
   conta: document.getElementById('prestador_conta').value.trim(),
-  pix: document.getElementById('prestador_pix').value.trim()
+  pix: document.getElementById('prestador_pix').value.trim(),
+  cliente_id: clienteEditando.id  // <--- ADICIONE ESTA LINHA
 };
       if (!dados.nome || !dados.cpf) { alert('Preencha pelo menos Nome e CPF.'); return; }
       const btn = event.target;
@@ -3184,54 +4211,30 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
     }
 
     // ============================================================
-    // COMISSIONAMENTO
+    // COMISSIONAMENTO (ATUALIZADO PARA NOVOS IDs)
     // ============================================================
-    let clienteComissAtual = null;
-    function abrirModalComissionamento() {
-      if (clienteEditando) {
-        clienteComissAtual = clienteEditando;
-        document.getElementById('comissClienteNome').textContent = clienteEditando.nome;
-      } else {
-        alert('Abra um cliente para edição antes de gerar o comissionamento.');
-        return;
-      }
-      document.getElementById('modalComissionamento').classList.add('active');
-      document.body.style.overflow = 'hidden';
-      document.getElementById('statusComiss').textContent = '';
-    }
-    function fecharModalComissionamento() {
-      document.getElementById('modalComissionamento').classList.remove('active');
-      document.body.style.overflow = '';
-      clienteComissAtual = null;
-    }
-    document.getElementById('modalComissionamento').addEventListener('click', function(e) {
-      if (e.target === this) fecharModalComissionamento();
-    });
-
     async function gerarRelatorioComissionamento() {
-      if (!clienteComissAtual && !clienteEditando) {
+      if (!clienteEditando) {
         alert('Nenhum cliente associado. Abra um cliente antes de gerar o relatório.');
         return;
       }
-      const cliente = clienteComissAtual || clienteEditando;
-      const clienteId = cliente.id;
+      const clienteId = clienteEditando.id;
       const comissao = {
-        potencia_kwp: document.getElementById('comiss_potencia').value || null,
+        potencia_kwp: document.getElementById('comiss_potencia_kwp').value || null,
         qtd_modulos: document.getElementById('comiss_qtd_modulos').value || null,
       };
       if (!comissao.potencia_kwp || !comissao.qtd_modulos) {
-        alert('Preencha pelo menos a Potência e a Quantidade de módulos.');
+        alert('Preencha pelo menos a Potência instalada (kWp) e a Quantidade de módulos.');
         return;
       }
-      const btn = document.getElementById('btnGerarComiss');
-      const status = document.getElementById('statusComiss');
+      const btn = event.target;
       btn.disabled = true;
-      status.textContent = '⏳ Gerando...';
+      btn.textContent = '⏳ Gerando...';
       const payload = {
         cliente_id: clienteId,
         comissionamento: comissao,
-        engenheiro: document.getElementById('comiss_engenheiro').value || 'Nícolas Alves de Sá',
-        crea: document.getElementById('comiss_crea').value || '5071237870'
+        engenheiro: document.getElementById('comiss_responsavel').value || 'Nícolas Alves de Sá',
+        crea: '5071237870' // Pode ser substituído por um campo se desejar
       };
       try {
         const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_comissionamento', {
@@ -3241,21 +4244,17 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
         });
         const resultado = await resp.json();
         if (resultado.success) {
-          status.textContent = '✅ Relatório gerado!';
           alert('✅ Relatório de comissionamento gerado com sucesso!');
           if (resultado.url) window.open(resultado.url, '_blank');
-          fecharModalComissionamento();
           carregarClientes();
         } else {
-          status.textContent = '❌ Erro: ' + (resultado.error || '');
-          alert('❌ Erro ao gerar relatório: ' + (resultado.error || ''));
+          alert('❌ Erro: ' + (resultado.error || ''));
         }
       } catch (err) {
-        status.textContent = '❌ Erro de conexão';
         alert('❌ Erro de conexão: ' + err.message);
       } finally {
         btn.disabled = false;
-        setTimeout(() => { status.textContent = ''; }, 5000);
+        btn.textContent = '📋 Gerar Relatório de Comissionamento';
       }
     }
 
@@ -3398,6 +4397,8 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
 
     (function init() {
       vtPreencherConcessionarias();
+      preencherConcessionariasHomologacao();
+      gerarCamposFotos();
       const tokenSalvo = localStorage.getItem('adminToken');
       if (tokenSalvo) {
         adminToken = tokenSalvo;
