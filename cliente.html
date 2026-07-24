@@ -5,20 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Área do Cliente - SoLivia Engenharia</title>
 
-    <!-- ===== VERIFICAÇÃO DE TOKEN (BLOQUEANTE - ELIMINA O FLICKER) ===== -->
+    <!-- ===== VERIFICAÇÃO DE TOKEN ===== -->
     <script>
         (function() {
             const token = localStorage.getItem('tokenCliente');
             if (token) {
                 document.documentElement.classList.add('is-logged-in');
-                console.log('🔑 Token encontrado no localStorage. Estado: LOGADO');
+                console.log('🔑 Token encontrado. Estado: LOGADO');
             } else {
-                console.log('🔓 Nenhum token encontrado. Estado: PÚBLICO');
+                console.log('🔓 Nenhum token. Estado: PÚBLICO');
             }
         })();
     </script>
 
-    <!-- ===== CSS ===== -->
+    <!-- ===== FONTE INTER ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- ===== CSS (MANTIDO) ===== -->
     <style>
         /* ===== RESET E BASE ===== */
         html, body {
@@ -41,26 +46,15 @@
             visibility: visible;
         }
 
-        /* ===== CONTROLE DE VISIBILIDADE POR ESTADO ===== */
+        /* ===== CONTROLE DE VISIBILIDADE ===== */
         .view-public { display: block; }
-.view-logged { display: none; }
-
-.is-logged-in .view-public { display: none !important; }
-.is-logged-in .view-logged {
-    display: flex !important;
-    flex-direction: column;
-    flex: 1;
-}
-
+        .view-logged { display: none; }
         .is-logged-in .view-public { display: none !important; }
         .is-logged-in .view-logged {
             display: flex !important;
             flex-direction: column;
             flex: 1;
         }
-
-        /* ===== CORREÇÃO: FORÇA OCULTAÇÃO DA ÁREA LOGADA QUANDO NÃO ESTIVER LOGADO ===== */
-        
 
         /* ===== HEADER PÚBLICO ===== */
         .header-publico {
@@ -118,7 +112,7 @@
             border-radius: 2px;
         }
 
-        /* ===== HEADER MINIMALISTA – COMPACTO ===== */
+        /* ===== HEADER MINIMALISTA ===== */
         .header-minimal {
             background: #0b2f5c;
             padding: 0.5rem 1.5rem;
@@ -220,7 +214,7 @@
             display: block;
         }
 
-        /* ===== MOBILE MENU (público) ===== */
+        /* ===== MOBILE MENU ===== */
         .mobile-menu {
             position: fixed;
             top: 0;
@@ -300,7 +294,7 @@
             margin: 0 auto;
         }
 
-        /* ===== CARD DE LOGIN ===== */
+        /* ===== LOGIN ===== */
         .login-section {
             padding: 1rem 1.5rem 4rem;
             display: flex;
@@ -436,15 +430,14 @@
             display: none;
         }
 
-        /* ===== DASHBOARD – OCUPA O MÁXIMO DE ALTURA ===== */
+        /* ===== DASHBOARD ===== */
         .dashboard-container {
             max-width: 1400px !important;
             margin: 0 auto !important;
             flex: 1 !important;
-            padding: 4rem 2rem 6rem !important;
+            padding: 2rem 2rem 6rem !important;
             min-height: 85vh !important;
             animation: fadeSlide 0.5s ease !important;
-            padding-bottom: 0 !important;
         }
         @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(20px); }
@@ -463,17 +456,12 @@
             font-size: 1rem;
             text-align: center;
         }
-        .dashboard-container h1,
-        .dashboard-container .sub {
-            transform: translateY(8rem);
-        }
 
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 1.5rem;
             margin-bottom: 2rem;
-            margin-top: 14cap;
             transition: opacity 0.3s ease;
         }
         .cards-grid.oculto {
@@ -509,7 +497,6 @@
             transform: none !important;
             box-shadow: none !important;
         }
-
         .card:not(.bloqueado):hover {
             transform: translateY(-4px);
             box-shadow: 0 16px 32px rgba(0,0,0,0.08);
@@ -581,7 +568,7 @@
             flex: 1;
         }
 
-        /* ===== PÓS-VENDA (horizontal) ===== */
+        /* ===== PÓS-VENDA ===== */
         .card-posvenda {
             background: white;
             border-radius: 1.5rem;
@@ -601,6 +588,9 @@
             transform: translateY(-4px);
             box-shadow: 0 16px 32px rgba(0,0,0,0.08);
         }
+        .card-posvenda.oculto {
+    display: none !important;
+}
         .card-posvenda .card__imagem {
             width: 180px;
             min-height: 140px;
@@ -614,15 +604,6 @@
             font-size: 0.9rem;
             font-weight: 500;
             position: relative;
-        }
-        .card-posvenda .card__imagem svg {
-            width: 48px;
-            height: 48px;
-            fill: none;
-            stroke: #0b2f5c;
-            stroke-width: 1.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
         }
         .card-posvenda .card__body {
             padding: 1.2rem 1.5rem 1.5rem;
@@ -663,99 +644,718 @@
             display: block;
         }
         .detalhes-area .voltar {
-            display: inline-block;
-            margin-bottom: 1.2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            border: none;
             color: #0b2f5c;
             font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
-            background: none;
-            border: none;
-            font-size: 0.95rem;
-            padding: 0.4rem 0.8rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 30px;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
+            z-index: 10;
+            position: relative;
         }
         .detalhes-area .voltar:hover {
             background: #eef2f6;
         }
-        .detalhes-area .voltar::before {
-            content: "← ";
-        }
-        .detalhes-area .titulo {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0b2f5c;
-            margin-bottom: 0.3rem;
-        }
-        .detalhes-area .subtitulo {
-            color: #5c7a6c;
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
-        }
-        .detalhes-area .conteudo p {
-            margin-bottom: 0.8rem;
-            line-height: 1.6;
-        }
-        .detalhes-area .conteudo ul,
-        .detalhes-area .conteudo .checklist {
-            list-style: none;
-            padding: 0;
-        }
-        .detalhes-area .conteudo ul li::before {
-            content: "•";
-            color: #ffc400;
-            font-weight: 700;
-        }
-        .detalhes-area .conteudo .checklist li::before {
-            content: "✅";
-            font-weight: 700;
-        }
-        .detalhes-area .destaque {
-            background: #f0f4fa;
-            padding: 0.8rem 1.2rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            font-weight: 600;
-            color: #0b2f5c;
-        }
-        .detalhes-area .botao-acao {
-            background: #0b2f5c;
-            color: white;
-            border: none;
-            padding: 0.7rem 2rem;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 1rem;
-            margin-right: 0.5rem;
-        }
-        .detalhes-area .botao-acao:hover {
-            background: #1a4a7a;
-        }
-        .detalhes-area .botao-acao--secundario {
-            background: transparent;
-            color: #0b2f5c;
-            border: 1px solid #dce3ea;
-        }
-        .detalhes-area .botao-acao--secundario:hover {
-            background: #eef2f6;
-        }
-        .detalhes-area .grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin: 1rem 0;
-        }
-        .detalhes-area .grid-2col .item {
-            background: #f8fafc;
-            padding: 0.8rem 1rem;
-            border-radius: 12px;
-            border: 1px solid #eef2f6;
+        .detalhes-area .voltar:active {
+            transform: scale(0.96);
         }
 
-        /* ===== FOOTER PÚBLICO ===== */
+        /* ============================================================
+           REDESIGN DA ÁREA INTERNA DOS DETALHES
+           ============================================================ */
+        #detalhesConteudo {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .detail-hero-modern {
+            border-radius: 1.5rem;
+            padding: 1.4rem;
+            background:
+                radial-gradient(circle at top right, rgba(255,196,0,0.22), transparent 28%),
+                linear-gradient(135deg, #0b2f5c 0%, #16416f 100%);
+            color: white;
+            box-shadow: 0 12px 30px rgba(11,47,92,0.20);
+        }
+
+        .detail-hero-modern__top {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.2rem;
+        }
+
+        .detail-hero-modern__eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.7rem;
+        }
+
+        .detail-hero-modern h2 {
+            margin: 0 0 0.35rem 0;
+            font-size: 1.7rem;
+            line-height: 1.15;
+            color: #fff;
+        }
+
+        .detail-hero-modern p {
+            margin: 0;
+            color: rgba(255,255,255,0.86);
+            line-height: 1.5;
+            max-width: 720px;
+        }
+
+        .detail-hero-modern__status {
+            flex-shrink: 0;
+        }
+
+        .metric-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.9rem;
+        }
+
+        .metric-card {
+            display: flex;
+            gap: 0.85rem;
+            align-items: flex-start;
+            padding: 1rem;
+            border-radius: 1.1rem;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.10);
+            backdrop-filter: blur(8px);
+        }
+
+        .metric-card__icon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+        }
+
+        .metric-card__body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+        }
+
+        .metric-card__label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.72);
+            font-weight: 700;
+        }
+
+        .metric-card__value {
+            font-size: 1rem;
+            color: #fff;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .metric-card__value .ui-badge {
+            margin-top: 0.1rem;
+        }
+
+        .metric-card__extra {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.72);
+            line-height: 1.4;
+        }
+
+        .detail-sections-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .detail-section-card {
+            background: #fff;
+            border: 1px solid #e8eef5;
+            border-radius: 1.35rem;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        }
+
+        .detail-section-card__head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.15rem 1.2rem;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .detail-section-card__head h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            color: #0b2f5c;
+            font-weight: 700;
+        }
+
+        .detail-section-card__head p {
+            margin: 0.25rem 0 0 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .detail-section-card__actions {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .detail-section-card__body {
+            padding: 1.15rem 1.2rem 1.25rem;
+        }
+
+        .info-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.8rem;
+        }
+
+        .info-grid-modern.compacta {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .info-row-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.9rem 1rem;
+            border-radius: 1rem;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+        }
+
+        .info-row-modern__label {
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .info-row-modern__value {
+            color: #0f172a;
+            font-weight: 600;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .ui-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.34rem 0.78rem;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+
+        .ui-badge--success { background: #dcfce7; color: #166534; }
+        .ui-badge--info    { background: #dbeafe; color: #1d4ed8; }
+        .ui-badge--warning { background: #fef3c7; color: #92400e; }
+        .ui-badge--danger  { background: #fee2e2; color: #b91c1c; }
+        .ui-badge--neutral { background: #e2e8f0; color: #475569; }
+
+        .timeline-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            position: relative;
+        }
+
+        .timeline-modern__item {
+            position: relative;
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 0.8rem;
+            align-items: start;
+        }
+
+        .timeline-modern__item:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 22px;
+            bottom: -14px;
+            width: 2px;
+            background: #dbe4ef;
+        }
+
+        .timeline-modern__dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            border: 4px solid #f8fafc;
+            box-shadow: 0 0 0 1px #dbe4ef;
+            margin-top: 1px;
+        }
+
+        .timeline-modern__content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            padding: 0.05rem 0 0.4rem;
+        }
+
+        .timeline-modern__content strong {
+            color: #0b2f5c;
+            font-size: 0.96rem;
+        }
+
+        .timeline-modern__content span {
+            color: #64748b;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .timeline-modern__item.is-done .timeline-modern__dot {
+            background: #16a34a;
+            box-shadow: 0 0 0 1px #bbf7d0;
+        }
+
+        .timeline-modern__item.is-pending .timeline-modern__dot {
+            background: #f59e0b;
+            box-shadow: 0 0 0 1px #fde68a;
+        }
+
+        .timeline-modern__item.is-danger .timeline-modern__dot {
+            background: #dc2626;
+            box-shadow: 0 0 0 1px #fecaca;
+        }
+
+        .check-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .check-grid-modern.three-cols {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .check-pill {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.6rem;
+            align-items: center;
+            padding: 0.85rem 0.95rem;
+            border-radius: 1rem;
+            border: 1px solid #e8eef5;
+            background: #fff;
+        }
+
+        .check-pill span {
+            color: #334155;
+            font-size: 0.9rem;
+        }
+
+        .check-pill strong {
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .check-pill--success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .check-pill--success strong { color: #166534; }
+
+        .check-pill--warning {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+        .check-pill--warning strong { color: #92400e; }
+
+        .check-pill--danger {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        .check-pill--danger strong { color: #b91c1c; }
+
+        .check-pill--neutral {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+        .check-pill--neutral strong { color: #475569; }
+
+        .note-box-modern {
+            margin-top: 0.9rem;
+            padding: 1rem 1.05rem;
+            border-radius: 1rem;
+            background: #f8fafc;
+            border-left: 4px solid #ffc400;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .note-box-modern--soft {
+            background: #fefce8;
+            border-left-color: #eab308;
+        }
+
+        .progress-card-modern {
+            padding: 1rem 1rem 0.95rem;
+            border-radius: 1rem;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            margin-bottom: 1rem;
+        }
+
+        .progress-card-modern__top {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.7rem;
+            color: #0b2f5c;
+            font-weight: 700;
+        }
+
+        .progress-card-modern__top span {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar-modern {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-modern span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #ffc400 0%, #f59e0b 100%);
+        }
+
+        .doc-grid-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .doc-card-modern {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid #e8eef5;
+            background: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .doc-card-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(15,23,42,0.05);
+        }
+
+        .doc-card-modern.is-done {
+            background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+            border-color: #bbf7d0;
+        }
+
+        .doc-card-modern.is-pending {
+            background: linear-gradient(180deg, #fffdf6 0%, #ffffff 100%);
+            border-color: #fde68a;
+        }
+
+        .doc-card-modern__main {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-width: 0;
+        }
+
+        .doc-card-modern__icon {
+            width: 46px;
+            height: 46px;
+            min-width: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: #f8fafc;
+            font-size: 1.1rem;
+        }
+
+        .doc-card-modern__text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.18rem;
+            min-width: 0;
+        }
+
+        .doc-card-modern__text strong {
+            color: #0b2f5c;
+            font-size: 0.96rem;
+        }
+
+        .doc-card-modern__text span {
+            color: #64748b;
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .doc-card-modern__side {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .contract-highlight {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            padding: 1.1rem 1.15rem;
+            border-radius: 1.2rem;
+            background: linear-gradient(135deg, #0b2f5c 0%, #153d6a 100%);
+            color: white;
+        }
+
+        .contract-highlight__label {
+            display: inline-block;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.72);
+            margin-bottom: 0.3rem;
+        }
+
+        .contract-highlight h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .contract-highlight p {
+            margin: 0;
+            color: rgba(255,255,255,0.82);
+            line-height: 1.45;
+        }
+
+        .contract-highlight__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: flex-end;
+        }
+
+        .table-wrap-modern {
+            overflow-x: auto;
+            margin-top: 1rem;
+            border: 1px solid #e8eef5;
+            border-radius: 1rem;
+        }
+
+        .tabela-ensaios.modernizada {
+            margin: 0;
+            min-width: 720px;
+        }
+
+        .table-status.ok {
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .table-status.falha {
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
+        .stack-list-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            margin-top: 1rem;
+        }
+
+        .stack-list-modern__item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.85rem 0.95rem;
+            border-radius: 1rem;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+        }
+
+        .stack-list-modern__item span {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .subsection-title-modern {
+            margin: 1rem 0 0.75rem;
+            color: #0b2f5c;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .manual-links-modern {
+            display: flex;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+        }
+
+        .text-link-modern {
+            color: #0b2f5c;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .text-link-modern:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state-inline {
+            padding: 1rem;
+            border: 1px dashed #cbd5e1;
+            border-radius: 1rem;
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+        }
+
+        @media (max-width: 1100px) {
+            .metric-grid-modern {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .info-grid-modern.compacta {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .check-grid-modern.three-cols {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .detalhes-area {
+                padding: 1.1rem;
+                border-radius: 1.2rem;
+            }
+            .detail-hero-modern {
+                padding: 1.1rem;
+            }
+            .detail-hero-modern__top,
+            .detail-section-card__head,
+            .doc-card-modern,
+            .contract-highlight {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .metric-grid-modern,
+            .info-grid-modern,
+            .info-grid-modern.compacta,
+            .check-grid-modern,
+            .check-grid-modern.three-cols {
+                grid-template-columns: 1fr;
+            }
+            .doc-card-modern__side,
+            .contract-highlight__actions,
+            .detail-section-card__actions {
+                justify-content: flex-start;
+            }
+            .progress-card-modern__top,
+            .stack-list-modern__item,
+            .check-pill {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* ===== RESPONSIVO GERAL ===== */
+        @media (max-width: 1024px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.2rem;
+            }
+            .card-posvenda {
+                flex-direction: column;
+            }
+            .card-posvenda .card__imagem {
+                width: 100%;
+                height: 140px;
+            }
+        }
+        @media (max-width: 768px) {
+            .header-publico .header__nav {
+                display: none;
+            }
+            .header-publico .header__hamburger {
+                display: flex;
+            }
+            .hero-cliente {
+                min-height: 300px;
+            }
+            .login-card {
+                padding: 1.8rem 1.2rem;
+            }
+            .dashboard-container {
+                padding: 1rem 1rem 4rem !important;
+            }
+            .dashboard-container h1 {
+                font-size: 1.4rem;
+            }
+            .footer-publico .footer__container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+        @media (max-width: 640px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .detalhes-area {
+                padding: 1.2rem;
+            }
+            .tabela-ensaios {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* ===== FOOTER ===== */
         .footer-publico {
             background: #0b2f5c;
             color: rgba(255,255,255,0.7);
@@ -854,7 +1454,6 @@
             color: #ffc400;
         }
 
-        /* ===== FOOTER MINIMALISTA – TEXTO MAIOR E UMA LINHA ===== */
         .footer-minimal {
             background: #0b2f5c;
             color: rgba(255,255,255,0.7);
@@ -873,7 +1472,6 @@
             margin: 0 !important;
             min-width: max-content;
         }
-
         .footer-minimal a {
             color: #ffc400;
             text-decoration: none;
@@ -882,7 +1480,7 @@
             display: inline-block !important;
         }
 
-        /* ===== WHATSAPP FLUTUANTE – FIXO SEM CRIAR ESPAÇO ===== */
+        /* ===== WHATSAPP FLUTUANTE ===== */
         .whatsapp-float {
             position: fixed !important;
             bottom: 25px;
@@ -907,103 +1505,6 @@
             width: 32px;
             height: 32px;
             fill: white;
-        }
-
-        /* ===== RESPONSIVO ===== */
-        @media (max-width: 1024px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.2rem;
-            }
-            .detalhes-area .grid-2col {
-                grid-template-columns: 1fr;
-            }
-            .card-posvenda {
-                flex-direction: column;
-            }
-            .card-posvenda .card__imagem {
-                width: 100%;
-                height: 140px;
-            }
-        }
-        @media (max-width: 768px) {
-            .header-publico .header__nav {
-                display: none;
-            }
-            .header-publico .header__hamburger {
-                display: flex;
-            }
-            .hero-cliente {
-                min-height: 300px;
-            }
-            .login-card {
-                padding: 1.8rem 1.2rem;
-            }
-            .login-card .links-rodape {
-                flex-direction: column;
-                align-items: center;
-                gap: 0.5rem;
-            }
-            .dashboard-container h1 {
-                font-size: 1.4rem;
-            }
-            .footer-publico .footer__container {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-            .footer-publico .footer__logo {
-                margin: 0 auto 1rem;
-            }
-            .footer-publico .footer__social {
-                justify-content: center;
-            }
-            .footer-publico .footer__bottom-container {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-        @media (max-width: 640px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            .card__imagem,
-            .card-posvenda .card__imagem {
-                height: 100px;
-            }
-            .detalhes-area {
-                padding: 1.2rem;
-            }
-            .detalhes-area .titulo {
-                font-size: 1.4rem;
-            }
-        }
-        @media (max-width: 480px) {
-            .hero-cliente {
-                min-height: 220px;
-            }
-            .whatsapp-float {
-                width: 50px;
-                height: 50px;
-                bottom: 15px;
-                right: 15px;
-            }
-            .whatsapp-float svg {
-                width: 28px;
-                height: 28px;
-            }
-            .footer-minimal {
-                flex-wrap: wrap;
-                font-size: 0.75rem;
-                padding: 0.2rem 0.5rem;
-            }
-        }
-        @media (max-width: 400px) {
-            .footer-minimal {
-                font-size: 0.6rem;
-                padding: 0.1rem 0.3rem;
-                gap: 0.1rem;
-            }
         }
 
         /* ===== MODAIS ===== */
@@ -1098,7 +1599,7 @@
             background: #f1f5f9;
         }
 
-        /* ===== OCULTA BOTÃO PADRÃO DO TIDIO ===== */
+        /* ===== TIDIO ===== */
         #tidio-chat-button,
         .tidio-chat-button,
         [id^="tidio-chat-button"],
@@ -1108,10 +1609,42 @@
             opacity: 0 !important;
             pointer-events: none !important;
         }
+        #tidio-chat-iframe { display: none !important; }
+        #avatar-livia {
+            position: fixed !important;
+            bottom: 20px; left: 20px;
+            width: 70px; height: 70px;
+            z-index: 2147483647 !important;
+            transform: translateZ(0) !important;
+            border: 3px solid #ffc400;
+            border-radius: 50%;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: none;
+        }
+        #avatar-livia img { width: 100%; height: 100%; object-fit: cover; }
+        #avatar-livia .close-btn {
+            position: absolute; top: -6px; right: -6px;
+            background: #e53e3e; color: white;
+            border-radius: 50%;
+            width: 22px; height: 22px;
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 2px solid white;
+            z-index: 100000;
+        }
+        @media (min-width: 769px) { #avatar-livia { width: 85px !important; height: 85px !important; bottom: 35px !important; } }
+        @media (max-width: 768px) { #avatar-livia { border-width: 2px !important; } }
     </style>
 
     <!-- =========================================================
-         REDIRECIONAMENTO CONDICIONAL (apenas em produção)
+         REDIRECIONAMENTO CONDICIONAL
          ========================================================= -->
     <script>
         if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
@@ -1143,7 +1676,7 @@
         </div>
     </header>
 
-    <!-- ==================== HEADER MINIMALISTA (COMPACTO) ==================== -->
+    <!-- ==================== HEADER MINIMALISTA ==================== -->
     <header class="header-minimal view-logged">
         <div class="header__container">
             <div class="header__left">
@@ -1166,7 +1699,7 @@
         </div>
     </header>
 
-    <!-- ==================== MENU MOBILE (público) ==================== -->
+    <!-- ==================== MENU MOBILE ==================== -->
     <div class="mobile-menu" id="mobileMenuPublico">
         <button class="mobile-menu__close" id="mobileClosePublico">✕</button>
         <nav>
@@ -1226,8 +1759,8 @@
                 <!-- Os cards serão gerados dinamicamente -->
             </div>
 
-            <!-- Pós-Venda (horizontal) -->
-            <div class="card-posvenda" id="cardPosVenda">
+            <!-- Pós-Venda -->
+            <div class="card-posvenda" id="cardPosVenda" onclick="mostrarDetalhes('posvenda')">
                 <div class="card__imagem">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -1244,9 +1777,11 @@
                 </div>
             </div>
 
-            <!-- Área de Detalhes -->
+            <!-- Área de Detalhes (CORRIGIDA) -->
             <div class="detalhes-area" id="detalhesArea">
-                <button class="voltar" onclick="fecharDetalhes()">Voltar</button>
+                <button class="voltar" onclick="fecharDetalhes()" style="display:inline-flex; align-items:center; gap:0.5rem; background:transparent; border:none; color:#0b2f5c; font-weight:600; font-size:1rem; cursor:pointer; padding:0.6rem 1.2rem; border-radius:30px; transition:background 0.2s; z-index:10; position:relative;">
+                    <span style="font-size:1.2rem; line-height:1;">←</span> Voltar
+                </button>
                 <div id="detalhesConteudo"></div>
             </div>
         </div>
@@ -1278,7 +1813,7 @@
                     <p><strong>E-mail:</strong> contato@solivia.com.br</p>
                 </div>
                 <div class="footer__social">
-                    <a href="#" aria-label="Instagram"><svg width="20" height="20" fill="white" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8z"/></svg></a>
+                    <a href="#" aria-label="Instagram"><svg width="20" height="20" fill="white" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.5 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8z"/></svg></a>
                     <a href="#" aria-label="Facebook"><svg width="20" height="20" fill="white" viewBox="0 0 320 512"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg></a>
                     <a href="#" aria-label="LinkedIn"><svg width="20" height="20" fill="white" viewBox="0 0 448 512"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/></svg></a>
                 </div>
@@ -1303,11 +1838,11 @@
     <!-- ==================== WHATSAPP FLUTUANTE ==================== -->
     <div id="whatsappFloatButton" class="whatsapp-float">
         <svg width="32" height="32" fill="white" viewBox="0 0 448 512">
-            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
         </svg>
     </div>
 
-    <!-- ==================== MODAIS EXISTENTES ==================== -->
+    <!-- ==================== MODAIS ==================== -->
     <div class="modal-aviso" id="modalDesenvolvimento">
         <div class="conteudo">
             <h3>Área em desenvolvimento</h3>
@@ -1393,12 +1928,12 @@
                 App.cliente = null;
                 App.autenticado = false;
                 document.documentElement.classList.remove('is-logged-in');
-                render(); // <-- CORREÇÃO: substituído location.reload() por render()
+                render();
             }
         };
 
         // ============================================================
-        // FUNÇÃO: LOGIN (com feedback visual)
+        // FUNÇÃO: LOGIN
         // ============================================================
         async function handleLogin() {
             const email = document.getElementById('email_login').value.trim();
@@ -1419,20 +1954,17 @@
             btnEntrar.textContent = '⏳ Entrando...';
 
             try {
-                console.log('📤 Enviando login para:', email);
                 const resp = await fetch(URL_SCRIPT, {
                     method: 'POST',
                     body: JSON.stringify({ acao: 'login', email, senha })
                 });
                 const resultado = await resp.json();
-                console.log('🔐 Resposta do login:', resultado);
 
                 if (resultado.success) {
-    AuthService.setToken(resultado.token);
-    App.token = resultado.token;
-    // Força recarregamento da página para carregar o dashboard
-    location.reload();
-} else {
+                    AuthService.setToken(resultado.token);
+                    App.token = resultado.token;
+                    location.reload();
+                } else {
                     loginErro.textContent = resultado.error || 'E-mail ou senha inválidos.';
                     loginErro.style.display = 'block';
                     btnEntrar.disabled = false;
@@ -1451,14 +1983,12 @@
         // FUNÇÃO: CARREGAR DADOS DO CLIENTE
         // ============================================================
         async function carregarDadosCliente(token) {
-            console.log('🔄 Carregando dados com token:', token);
             try {
                 const resp = await fetch(URL_SCRIPT, {
                     method: 'POST',
                     body: JSON.stringify({ acao: 'buscarDadosCliente', token })
                 });
                 const resultado = await resp.json();
-                console.log('📦 Dados do cliente:', resultado);
 
                 if (resultado.success) {
                     App.cliente = resultado.cliente;
@@ -1466,11 +1996,9 @@
                     App.token = token;
                     const mapaEtapa = { visita: 1, documentos: 2, instalacao: 3, homologacao: 4, posvenda: 5 };
                     App.etapaAtual = mapaEtapa[App.cliente.etapa_atual] || 1;
-                    console.log('✅ Cliente logado:', App.cliente.nome, 'Etapa:', App.etapaAtual);
                     document.documentElement.classList.add('is-logged-in');
                     render();
                 } else {
-                    console.warn('⚠️ Token inválido ou expirado');
                     AuthService.removeToken();
                     App.autenticado = false;
                     document.documentElement.classList.remove('is-logged-in');
@@ -1491,13 +2019,10 @@
         // FUNÇÃO: RENDER
         // ============================================================
         function render() {
-            console.log('🔄 render() foi chamado');
-            console.log('🎨 Renderizando. Autenticado:', App.autenticado);
             if (App.autenticado && App.cliente) {
                 const nome = App.cliente.nome || 'Cliente';
                 document.getElementById('nomeCliente').textContent = 'Olá, ' + nome;
 
-                // ===== FOTO DE PERFIL =====
                 const fotoUrl = App.cliente.foto_perfil || null;
                 const img = document.getElementById('fotoPerfil');
                 const inicial = document.getElementById('inicialAvatar');
@@ -1506,7 +2031,6 @@
                     img.src = fotoUrl + '?t=' + new Date().getTime();
                     img.style.display = 'block';
                     inicial.style.display = 'none';
-                    // Fallback: se a imagem falhar, mostra a inicial
                     img.onerror = function() {
                         img.style.display = 'none';
                         inicial.style.display = 'flex';
@@ -1520,6 +2044,9 @@
 
                 document.getElementById('subDashboard').textContent = 'Acompanhe todas as etapas do seu projeto solar.';
                 gerarCards();
+                // Garante que a área de detalhes fique oculta
+                const area = document.getElementById('detalhesArea');
+                if (area) area.classList.remove('ativo');
                 document.documentElement.classList.add('is-logged-in');
             } else {
                 document.documentElement.classList.remove('is-logged-in');
@@ -1530,14 +2057,6 @@
                     btn.textContent = 'Entrar';
                 }
             }
-
-            // ===== CORREÇÃO: FORÇA O ESTADO VISUAL CORRETO =====
-            if (App.autenticado) {
-                document.documentElement.classList.add('is-logged-in');
-            } else {
-                document.documentElement.classList.remove('is-logged-in');
-            }
-
             document.body.classList.add('ready');
         }
 
@@ -1562,13 +2081,11 @@
                     document.body.removeChild(input);
                     return;
                 }
-
                 if (file.size > 2 * 1024 * 1024) {
                     alert('❌ A imagem deve ter no máximo 2MB.');
                     document.body.removeChild(input);
                     return;
                 }
-
                 enviarFotoPerfil(file, input);
             });
 
@@ -1576,7 +2093,6 @@
         }
 
         async function enviarFotoPerfil(file, input) {
-            // Mostra o spinner
             const spinner = document.getElementById('spinnerAvatar');
             const img = document.getElementById('fotoPerfil');
             const inicial = document.getElementById('inicialAvatar');
@@ -1605,12 +2121,9 @@
                 const resultado = await resp.json();
 
                 if (resultado.success) {
-                    // Troca silenciosa – apenas recarrega os dados
                     await carregarDadosCliente(App.token);
-                    // A função render() já vai atualizar o avatar automaticamente
                 } else {
                     alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
-                    // Restaura o avatar anterior
                     const nome = App.cliente.nome || 'Cliente';
                     if (inicial) {
                         inicial.style.display = 'flex';
@@ -1619,14 +2132,12 @@
                 }
             } catch (err) {
                 alert('❌ Erro de rede: ' + err.message);
-                // Restaura o avatar anterior
                 const nome = App.cliente.nome || 'Cliente';
                 if (inicial) {
                     inicial.style.display = 'flex';
                     inicial.textContent = nome.charAt(0).toUpperCase();
                 }
             } finally {
-                // Oculta o spinner e restaura opacidade
                 if (spinner) spinner.style.display = 'none';
                 if (avatar) {
                     avatar.style.opacity = '1';
@@ -1638,48 +2149,64 @@
             }
         }
 
+        function fileParaBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
         // ============================================================
-        // FUNÇÃO: GERAR CARDS DINAMICAMENTE
+        // FUNÇÃO: GERAR CARDS (PRINCIPAL)
         // ============================================================
         function gerarCards() {
             const grid = document.getElementById('cardsGrid');
             const cliente = App.cliente;
             const etapaAtual = App.etapaAtual;
 
+            const v = cliente.dados_visita || {};
+            const d = cliente.documentos || {};
+            const i = cliente.dados_instalacao || {};
+            const h = cliente.dados_homologacao || {};
+            const p = cliente.dados_posvenda || {};
+
             const etapas = [
                 {
                     id: 'visita',
                     titulo: 'Visita Técnica',
-                    status: cliente.dados_visita?.resultado ? 'Concluído' : (cliente.dados_visita?.data_agendada ? 'Em andamento' : 'Pendente'),
-                    resumo: cliente.dados_visita?.data_realizacao ? 'Visita realizada em ' + cliente.dados_visita.data_realizacao : (cliente.dados_visita?.data_agendada ? 'Agendada para ' + cliente.dados_visita.data_agendada : 'Aguardando agendamento')
+                    status: v.resultado ? 'Concluído' : (v.data_agendada ? 'Em andamento' : 'Pendente'),
+                    resumo: v.data_realizacao ? 'Visita realizada em ' + new Date(v.data_realizacao).toLocaleDateString('pt-BR') : (v.data_agendada ? 'Agendada para ' + new Date(v.data_agendada).toLocaleDateString('pt-BR') : 'Aguardando agendamento')
                 },
                 {
                     id: 'documentos',
                     titulo: 'Documentos',
                     status: (() => {
-                        const d = cliente.documentos || {};
-                        const total = Object.keys(d).length;
-                        const enviados = Object.values(d).filter(doc => doc.status === 'enviado').length;
-                        return total > 0 && enviados === total ? 'Concluído' : (total > 0 ? 'Em andamento' : 'Pendente');
+                        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
+                        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
+                        return enviados === tipos.length ? 'Concluído' : (enviados > 0 ? 'Em andamento' : 'Pendente');
                     })(),
                     resumo: (() => {
-                        const d = cliente.documentos || {};
-                        const total = Object.keys(d).length;
-                        const enviados = Object.values(d).filter(doc => doc.status === 'enviado').length;
-                        return total > 0 ? `${enviados} de ${total} documentos enviados` : 'Nenhum documento enviado';
+                        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
+                        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
+                        return `${enviados} de ${tipos.length} documentos enviados`;
                     })()
                 },
                 {
                     id: 'instalacao',
                     titulo: 'Instalação',
-                    status: cliente.dados_instalacao?.status || 'Pendente',
-                    resumo: cliente.dados_instalacao?.data_instalacao ? 'Instalação concluída em ' + cliente.dados_instalacao.data_instalacao : (cliente.dados_instalacao?.previsao_entrega ? 'Previsão: ' + cliente.dados_instalacao.previsao_entrega : 'Aguardando início')
+                    status: (i.status === 'Concluída' ? 'Concluído' : (i.status_compra === 'Realizada' || i.status_compra === 'Paga' ? 'Em andamento' : 'Pendente')),
+                    resumo: i.data_conclusao ? 'Concluída em ' + new Date(i.data_conclusao).toLocaleDateString('pt-BR') : (i.data_agendada ? 'Agendada para ' + new Date(i.data_agendada).toLocaleDateString('pt-BR') : (i.status_compra || 'Aguardando compra'))
                 },
                 {
                     id: 'homologacao',
                     titulo: 'Homologação',
-                    status: cliente.dados_homologacao?.resultado === 'Aprovado' ? 'Concluído' : (cliente.dados_homologacao?.protocolo ? 'Em andamento' : 'Pendente'),
-                    resumo: cliente.dados_homologacao?.data_liberacao ? 'Homologado em ' + cliente.dados_homologacao.data_liberacao : (cliente.dados_homologacao?.data_vistoria ? 'Vistoria em ' + cliente.dados_homologacao.data_vistoria : 'Aguardando homologação')
+                    status: h.resultado === 'Aprovado' ? 'Concluído' : (h.protocolo ? 'Em andamento' : 'Pendente'),
+                    resumo: h.data_liberacao ? 'Homologado em ' + new Date(h.data_liberacao).toLocaleDateString('pt-BR') : (h.data_vistoria ? 'Vistoria em ' + new Date(h.data_vistoria).toLocaleDateString('pt-BR') : 'Aguardando homologação')
                 }
             ];
 
@@ -1708,39 +2235,197 @@
                     homologacao: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
                 };
 
-                card.innerHTML = `
-                    <div class="card__imagem">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            ${svgMap[etapa.id] || ''}
-                        </svg>
-                        <span class="placeholder-text">imagem</span>
-                    </div>
-                    <div class="card__body">
-                        <div class="card__header">
-                            <span class="card__titulo">${etapa.titulo}</span>
-                            <span class="card__status ${mapaStatus[etapa.status] || 'status--pendente'}">${etapa.status}</span>
-                        </div>
-                        <div class="card__resumo">${etapa.resumo}</div>
-                    </div>
-                `;
+                // ===== IMAGENS DOS CARDS =====
+const imagensMap = {
+    visita: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
+    documentos: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-documento.webp',
+    instalacao: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
+    homologacao: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
+};
+
+card.innerHTML = `
+    <div class="card__imagem" style="overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f0f4fa; border-radius:12px 12px 0 0;">
+        <img src="${imagensMap[etapa.id] || 'https://i.imgur.com/placeholder.jpg'}" 
+             alt="${etapa.titulo}" 
+             style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
+    </div>
+    <div class="card__body">
+        <div class="card__header">
+            <span class="card__titulo">${etapa.titulo}</span>
+            <span class="card__status ${mapaStatus[etapa.status] || 'status--pendente'}">${etapa.status}</span>
+        </div>
+        <div class="card__resumo">${etapa.resumo}</div>
+    </div>
+`;
                 grid.appendChild(card);
             });
 
+            // Pós-Venda
             const posVendaCard = document.getElementById('cardPosVenda');
             if (etapaAtual === 5) {
                 posVendaCard.classList.add('ativo');
-                const posvenda = cliente.dados_posvenda || {};
-                document.getElementById('statusPosvenda').textContent = posvenda.ativo ? 'Ativo' : 'Inativo';
-                document.getElementById('resumoPosvenda').textContent = posvenda.geracao_atual ? `Geração: ${posvenda.geracao_atual} kWh/mês` : 'Monitoramento disponível';
+                document.getElementById('statusPosvenda').textContent = 'Ativo';
+                document.getElementById('resumoPosvenda').textContent = p.geracao_estimada ? `Geração: ${p.geracao_estimada} kWh/mês` : 'Monitoramento disponível';
             } else {
                 posVendaCard.classList.remove('ativo');
             }
         }
 
         // ============================================================
-        // FUNÇÃO: MOSTRAR DETALHES
+        // HELPERS PARA RENDERIZAÇÃO DOS DETALHES
+        // ============================================================
+        function formatDate(value) {
+            if (!value) return 'Não informado';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return 'Não informado';
+            return d.toLocaleDateString('pt-BR');
+        }
+
+        function safeValue(value, fallback = 'Não informado') {
+            if (value === null || value === undefined || value === '') return fallback;
+            return value;
+        }
+
+        function statusVariant(status = '') {
+            const s = String(status).toLowerCase();
+
+            if ([
+                'concluído', 'concluída', 'aprovado', 'aprovada',
+                'realizada', 'recebido', 'validado', 'ativo',
+                'paga', 'pago', 'resolvido', 'fechado'
+            ].some(k => s.includes(k))) return 'success';
+
+            if ([
+                'em andamento', 'agendada', 'agendado', 'enviado'
+            ].some(k => s.includes(k))) return 'info';
+
+            if ([
+                'pendente', 'aguardando', 'não iniciado', 'nenhum'
+            ].some(k => s.includes(k))) return 'warning';
+
+            if ([
+                'reprovado', 'erro', 'falha', 'cancelado'
+            ].some(k => s.includes(k))) return 'danger';
+
+            return 'neutral';
+        }
+
+        function renderBadge(text) {
+            return `<span class="ui-badge ui-badge--${statusVariant(text)}">${safeValue(text, 'Pendente')}</span>`;
+        }
+
+        function renderMetric(icon, label, value, extra = '') {
+            return `
+                <div class="metric-card">
+                    <div class="metric-card__icon">${icon}</div>
+                    <div class="metric-card__body">
+                        <span class="metric-card__label">${label}</span>
+                        <strong class="metric-card__value">${value}</strong>
+                        ${extra ? `<span class="metric-card__extra">${extra}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderInfoRow(label, value) {
+            return `
+                <div class="info-row-modern">
+                    <span class="info-row-modern__label">${label}</span>
+                    <span class="info-row-modern__value">${value}</span>
+                </div>
+            `;
+        }
+
+        function renderSection(title, subtitle, body, actions = '') {
+            return `
+                <section class="detail-section-card">
+                    <div class="detail-section-card__head">
+                        <div>
+                            <h3>${title}</h3>
+                            ${subtitle ? `<p>${subtitle}</p>` : ''}
+                        </div>
+                        ${actions ? `<div class="detail-section-card__actions">${actions}</div>` : ''}
+                    </div>
+                    <div class="detail-section-card__body">${body}</div>
+                </section>
+            `;
+        }
+
+        function renderTimeline(items) {
+            return `
+                <div class="timeline-modern">
+                    ${items.map(item => `
+                        <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''}">
+                            <div class="timeline-modern__dot"></div>
+                            <div class="timeline-modern__content">
+                                <strong>${item.title}</strong>
+                                <span>${item.description || 'Sem atualização'}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderChecklist(items = {}) {
+            const entries = Object.entries(items || {});
+            if (!entries.length) {
+                return '<div class="empty-state-inline">Nenhum item registrado até o momento.</div>';
+            }
+
+            return `
+                <div class="check-grid-modern">
+                    ${entries.map(([label, value]) => {
+                        const state = String(value || '').toLowerCase();
+                        const cls = state.includes('ok')
+                            ? 'success'
+                            : state.includes('aten')
+                            ? 'warning'
+                            : state.includes('reprov')
+                            ? 'danger'
+                            : 'neutral';
+
+                        return `
+                            <div class="check-pill check-pill--${cls}">
+                                <span>${label}</span>
+                                <strong>${value}</strong>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderDocumentItem(tipoDoc, label, info) {
+            const status = info.status || 'Pendente';
+            const dataEnvio = info.data_envio ? formatDate(info.data_envio) : '';
+            const url = info.url || '';
+            const isDone = ['enviado', 'recebido', 'validado'].includes(String(status).toLowerCase());
+
+            return `
+                <div class="doc-card-modern ${isDone ? 'is-done' : 'is-pending'}">
+                    <div class="doc-card-modern__main">
+                        <div class="doc-card-modern__icon">${isDone ? '✅' : '📄'}</div>
+                        <div class="doc-card-modern__text">
+                            <strong>${label}</strong>
+                            <span>${isDone ? (dataEnvio ? `Enviado em ${dataEnvio}` : 'Documento recebido') : 'Aguardando envio do cliente'}</span>
+                        </div>
+                    </div>
+                    <div class="doc-card-modern__side">
+                        ${renderBadge(status)}
+                        ${isDone && url ? `<a href="${url}" target="_blank" class="text-link-modern">Visualizar</a>` : ''}
+                        ${!isDone ? `<button onclick="uploadDocumento('${tipoDoc}')" style="background:#0b2f5c; color:white; border:none; padding:0.5rem 1.2rem; border-radius:50px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition:background 0.2s;">📄 Enviar arquivo</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // FUNÇÃO: MOSTRAR DETALHES (NOVA VERSÃO)
         // ============================================================
         function mostrarDetalhes(tipo) {
+            console.log('🖱️ Clicou em:', tipo);
+
             const card = document.querySelector(`[data-tipo="${tipo}"]`);
             if (card && card.classList.contains('bloqueado')) {
                 alert('⚠️ Esta etapa ainda não está disponível.');
@@ -1750,161 +2435,401 @@
             const grid = document.getElementById('cardsGrid');
             const area = document.getElementById('detalhesArea');
             const conteudo = document.getElementById('detalhesConteudo');
+            const posVenda = document.getElementById('cardPosVenda');
 
-            grid.classList.add('oculto');
-            if (document.getElementById('cardPosVenda').classList.contains('ativo')) {
-                document.getElementById('cardPosVenda').classList.add('oculto');
-            }
+            if (grid) grid.classList.add('oculto');
+            if (posVenda) {
+    posVenda.classList.add('oculto');
+}
 
             const cliente = App.cliente;
             const v = cliente.dados_visita || {};
             const d = cliente.documentos || {};
             const i = cliente.dados_instalacao || {};
             const h = cliente.dados_homologacao || {};
+            const c = h.comissionamento || {};
             const p = cliente.dados_posvenda || {};
+            const contrato = d.contrato || {};
 
-            const titulos = {
-                visita: '🔍 Visita Técnica',
-                documentos: '📄 Documentos',
-                instalacao: '🔧 Instalação',
-                homologacao: '🏷️ Homologação',
-                posvenda: '🛡️ Pós-Venda'
+            const config = {
+                visita: { icon: '🔍', title: 'Visita Técnica', intro: 'Tudo o que foi levantado na vistoria inicial para validar a instalação do seu sistema.' },
+                documentos: { icon: '📄', title: 'Documentos', intro: 'Acompanhe os arquivos necessários para evolução do projeto e assinatura contratual.' },
+                instalacao: { icon: '🔧', title: 'Instalação', intro: 'Veja o andamento da compra, logística, agendamento e execução em campo.' },
+                homologacao: { icon: '🏷️', title: 'Homologação', intro: 'Painel de liberação junto à concessionária e testes de comissionamento.' },
+                posvenda: { icon: '🛡️', title: 'Pós-venda', intro: 'Monitoramento, suporte e próximos cuidados com o seu sistema solar.' }
             };
 
-            let html = '';
+            let heroStatus = 'Pendente';
+            let heroMeta = [];
+            let sections = '';
 
             switch (tipo) {
-                case 'visita':
-                    html = `
-                        <div class="conteudo">
-                            <div class="destaque">${v.data_realizacao ? '✅ Visita concluída em ' + v.data_realizacao : '⏳ ' + (v.data_agendada ? 'Agendada para ' + v.data_agendada : 'Aguardando agendamento')}</div>
-                            <div class="grid-2col">
-                                <div class="item"><strong>👨‍💻 Engenheiro:</strong> ${v.engenheiro || 'Não informado'}</div>
-                                <div class="item"><strong>📅 Data agendada:</strong> ${v.data_agendada || 'Não agendada'}</div>
-                                <div class="item"><strong>📌 Data realização:</strong> ${v.data_realizacao || 'Não realizada'}</div>
-                                <div class="item"><strong>📍 Endereço:</strong> ${cliente.endereco || 'Não informado'}</div>
-                            </div>
-                            <p><strong>📋 Checklist:</strong></p>
-                            <ul class="checklist">${v.checklist ? Object.entries(v.checklist).map(([k, val]) => `<li>${k} – <strong>${val}</strong></li>`).join('') : '<li>Nenhum item registrado</li>'}</ul>
-                            <p><strong>📝 Observações:</strong><br />${v.observacoes || 'Nenhuma observação'}</p>
-                            ${v.relatorio_url ? `<p><strong>📄 Relatório:</strong> <a href="${v.relatorio_url}" target="_blank" style="color:#0b2f5c;font-weight:600;">Baixar PDF</a></p>` : ''}
-                            <div class="destaque">${v.assinatura_data ? '✅ Aprovado em ' + v.assinatura_data : '⏳ Aguardando aprovação'}</div>
-                            <p><strong>Resultado:</strong> <span style="color:${v.resultado === 'Aprovado' ? '#0a6b3b' : '#b33636'}; font-weight:700;">${v.resultado || 'Pendente'}</span></p>
-                            ${v.relatorio_url ? `<button class="botao-acao" onclick="window.open('${v.relatorio_url}', '_blank')">Baixar relatório</button>` : ''}
-                        </div>
-                    `;
+                case 'visita': {
+                    heroStatus = v.resultado || (v.data_agendada ? 'Em andamento' : 'Pendente');
+                    heroMeta = [
+                        renderMetric('📅', 'Agendamento', formatDate(v.data_agendada), v.data_agendada ? 'Data prevista da visita' : 'Aguardando definição'),
+                        renderMetric('🧑‍🔧', 'Responsável', safeValue(v.engenheiro), 'Técnico responsável'),
+                        renderMetric('📍', 'Endereço', safeValue(cliente.endereco, 'Endereço não informado')),
+                        renderMetric('✅', 'Resultado', renderBadge(v.resultado || 'Pendente'), v.resultado ? 'Status final da análise' : 'Ainda sem conclusão')
+                    ].join('');
+
+                    sections = [
+                        renderSection(
+                            'Linha do tempo da visita',
+                            'Resumo rápido da etapa',
+                            renderTimeline([
+                                { title: 'Visita agendada', description: v.data_agendada ? formatDate(v.data_agendada) : 'Aguardando agendamento', state: v.data_agendada ? 'done' : 'pending' },
+                                { title: 'Visita realizada', description: v.data_realizacao ? formatDate(v.data_realizacao) : 'Ainda não realizada', state: v.data_realizacao ? 'done' : 'pending' },
+                                { title: 'Aprovação', description: v.assinatura_data ? formatDate(v.assinatura_data) : 'Pendente', state: v.assinatura_data ? 'done' : 'pending' }
+                            ])
+                        ),
+                        renderSection(
+                            'Checklist técnico',
+                            'Itens verificados durante a vistoria',
+                            renderChecklist(v.checklist)
+                        ),
+                        renderSection(
+                            'Observações da equipe',
+                            'Anotações relevantes para o andamento do projeto',
+                            `<div class="note-box-modern">${safeValue(v.observacoes, 'Nenhuma observação registrada até o momento.')}</div>`,
+                            v.relatorio_url ? `<button class="botao-acao" onclick="baixarRelatorio('${v.relatorio_url}')" style="background:#0b2f5c; color:white; border:none; padding:0.6rem 1.8rem; border-radius:50px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-top:0.5rem; margin-right:0.5rem;">📄 Baixar relatório</button>` : ''
+                        )
+                    ].join('');
                     break;
+                }
 
                 case 'documentos': {
-                    const tipos = ['rg', 'cpf', 'comprovante', 'fatura'];
-                    const labels = { rg: 'RG / CNH', cpf: 'CPF', comprovante: 'Comprovante de residência', fatura: 'Última fatura de energia' };
-                    let listaItens = '';
-                    tipos.forEach(tipoDoc => {
-                        const info = d[tipoDoc] || {};
-                        const status = info.status || 'pendente';
-                        const label = labels[tipoDoc] || tipoDoc.toUpperCase();
-                        const dataEnvio = info.data_envio || '';
-                        const url = info.url || '#';
-                        if (status === 'enviado') {
-                            listaItens += `<li>✅ ${label} – <strong>Enviado em ${dataEnvio}</strong> – <a href="${url}" target="_blank" style="color:#0b2f5c;">Visualizar</a></li>`;
-                        } else {
-                            listaItens += `<li>🔄 ${label} – <button onclick="uploadDocumento('${tipoDoc}')" style="background:#ffc400; border:none; padding:0.1rem 0.8rem; border-radius:30px; font-weight:600; font-size:0.7rem; cursor:pointer;">Enviar</button></li>`;
-                        }
-                    });
-                    html = `
-                        <div class="conteudo">
-                            <div class="destaque">${Object.keys(d).length > 0 ? `✅ ${Object.values(d).filter(doc => doc.status === 'enviado').length} de ${Object.keys(d).length} documentos enviados` : '📌 Nenhum documento enviado'}</div>
-                            <p><strong>📎 Documentos:</strong></p>
-                            <ul>${listaItens}</ul>
-                            <input type="file" id="uploadInput" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" />
-                            <button class="botao-acao" onclick="alert('📦 Função de download em desenvolvimento.')">Baixar todos</button>
-                        </div>
-                    `;
+                    const todosTipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
+const tipos = todosTipos.filter(t => {
+    if (t === 'renda') {
+        // Só exibe se o campo visivel for true (ou se não existir, assume true)
+        return d.renda && d.renda.visivel !== false;
+    }
+    return true;
+});
+                    const labels = {
+                        rg: 'RG / CNH',
+                        cpf: 'CPF',
+                        comprovante: 'Comprovante de residência',
+                        fatura: 'Última fatura de energia',
+                        renda: 'Comprovante de renda'
+                    };
+
+                    const enviados = tipos.filter(t => d[t] && ['recebido', 'validado'].includes(String(d[t].status || '').toLowerCase())).length;
+                    const progresso = Math.round((enviados / tipos.length) * 100);
+
+                    heroStatus = enviados === tipos.length ? 'Concluído' : (enviados > 0 ? 'Em andamento' : 'Pendente');
+                    heroMeta = [
+                        renderMetric('📦', 'Documentos enviados', `${enviados} de ${tipos.length}`, 'Progresso do envio'),
+                        renderMetric('📈', 'Conclusão', `${progresso}%`, 'Percentual concluído'),
+                        renderMetric('✍️', 'Contrato', contrato.status ? renderBadge(contrato.status) : 'Aguardando contrato', 'Situação contratual'),
+                        renderMetric('🔐', 'Validação', enviados === tipos.length ? 'Documentação completa' : 'Envios pendentes', 'Status da pasta documental')
+                    ].join('');
+
+                    const docsHtml = tipos.map(tipoDoc =>
+                        renderDocumentItem(tipoDoc, labels[tipoDoc], d[tipoDoc] || {})
+                    ).join('');
+
+                    const contractHtml = (contrato.url || contrato.link_assinatura || contrato.status)
+                        ? `
+                            <div class="contract-highlight">
+                                <div>
+                                    <span class="contract-highlight__label">Contrato do projeto</span>
+                                    <h4>Central de contrato e assinatura</h4>
+                                    <p>Aqui ficam reunidos o PDF, o link de assinatura e o status atualizado do contrato.</p>
+                                </div>
+                                <div class="contract-highlight__actions">
+                                    ${contrato.url ? `<a href="${contrato.url}" target="_blank" class="botao-acao botao-acao--secundario">📄 Visualizar PDF</a>` : ''}
+                                    ${contrato.link_assinatura ? `<a href="${contrato.link_assinatura}" target="_blank" class="botao-acao">✍️ Assinar contrato</a>` : ''}
+                                    ${contrato.status ? renderBadge(contrato.status) : ''}
+                                </div>
+                            </div>
+                        `
+                        : '<div class="empty-state-inline">Contrato ainda não disponibilizado.</div>';
+
+                    sections = [
+                        renderSection(
+                            'Progresso documental',
+                            'Envie e acompanhe cada arquivo solicitado',
+                            `
+                                <div class="progress-card-modern">
+                                    <div class="progress-card-modern__top">
+                                        <strong>${enviados} de ${tipos.length} documentos recebidos</strong>
+                                        <span>${progresso}% concluído</span>
+                                    </div>
+                                    <div class="progress-bar-modern"><span style="width:${progresso}%"></span></div>
+                                </div>
+                                <div class="doc-grid-modern">${docsHtml}</div>
+                                <input type="file" id="uploadInput" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" />
+                            `,
+                            `<button style="background:#0b2f5c; color:white; border:none; padding:0.5rem 1.2rem; border-radius:50px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition:background 0.2s;" onclick="alert('📦 Função de download em desenvolvimento.')">📦 Baixar todos</button>`
+                        ),
+                        renderSection('Contrato', 'Documento comercial e assinatura eletrônica', contractHtml)
+                    ].join('');
                     break;
                 }
 
                 case 'instalacao': {
                     const crono = i.cronograma || {};
-                    html = `
-                        <div class="conteudo">
-                            <div class="destaque">${i.status === 'Concluído' ? '✅ Instalação concluída em ' + i.data_instalacao : '⏳ ' + (i.status || 'Aguardando início')}</div>
-                            <div class="grid-2col">
-                                <div class="item"><strong>📦 Equipamentos:</strong> ${i.equipamentos || 'Não informado'}</div>
-                                <div class="item"><strong>📅 Data compra:</strong> ${i.data_compra || 'Não informada'}</div>
-                                <div class="item"><strong>🚚 Previsão entrega:</strong> ${i.previsao_entrega || 'Não informada'}</div>
-                                <div class="item"><strong>📦 Rastreio:</strong> ${i.codigo_rastreio ? `<a href="#" style="color:#0b2f5c;font-weight:600;">${i.codigo_rastreio}</a>` : 'Não informado'}</div>
-                            </div>
-                            <p><strong>📋 Cronograma:</strong></p>
-                            <ul class="checklist">${Object.entries(crono).length > 0 ? Object.entries(crono).map(([etapa, status]) => `<li>${etapa} – <strong>${status}</strong></li>`).join('') : '<li>Nenhum item registrado</li>'}</ul>
-                            <p><strong>👨‍🔧 Equipe:</strong> ${i.equipe || 'Não informada'}</p>
-                            ${i.codigo_rastreio ? `<button class="botao-acao" onclick="alert('Rastreamento: ${i.codigo_rastreio}')">Rastrear entrega</button>` : ''}
-                        </div>
-                    `;
+                    heroStatus = i.status === 'Concluída' ? 'Concluído' : ((i.status_compra === 'Realizada' || i.status_compra === 'Paga') ? 'Em andamento' : 'Pendente');
+                    heroMeta = [
+                        renderMetric('🛒', 'Compra', renderBadge(i.status_compra || 'Pendente'), safeValue(i.fornecedor, 'Fornecedor não informado')),
+                        renderMetric('🚚', 'Entrega', formatDate(i.previsao_entrega), i.codigo_rastreio ? `Rastreio: ${i.codigo_rastreio}` : 'Sem rastreio disponível'),
+                        renderMetric('📆', 'Agendamento', formatDate(i.data_agendada), safeValue(i.horario, 'Horário não definido')),
+                        renderMetric('🔧', 'Execução', renderBadge(i.status || 'Aguardando material'), i.data_conclusao ? `Concluída em ${formatDate(i.data_conclusao)}` : 'Instalação ainda em aberto')
+                    ].join('');
+
+                    const cronogramaHtml = Object.entries(crono).length
+                        ? `<div class="stack-list-modern">${Object.entries(crono).map(([etapa, status]) => `<div class="stack-list-modern__item"><span>${etapa}</span>${renderBadge(status)}</div>`).join('')}</div>`
+                        : '<div class="empty-state-inline">Cronograma ainda não preenchido.</div>';
+
+                    sections = [
+                        renderSection(
+                            'Compra e logística',
+                            'Acompanhe materiais, nota fiscal e entrega',
+                            `
+                                <div class="info-grid-modern">
+                                    ${renderInfoRow('Fornecedor', safeValue(i.fornecedor))}
+                                    ${renderInfoRow('Nota fiscal', safeValue(i.nota_fiscal))}
+                                    ${renderInfoRow('Data da compra', formatDate(i.data_compra))}
+                                    ${renderInfoRow('Previsão de entrega', formatDate(i.previsao_entrega))}
+                                    ${renderInfoRow('Entrega efetiva', formatDate(i.data_entrega_efetiva))}
+                                    ${renderInfoRow('Equipamentos', safeValue(i.equipamentos))}
+                                    ${renderInfoRow('Rastreio', i.link_rastreio ? `<a href="${i.link_rastreio}" target="_blank" class="text-link-modern">${safeValue(i.codigo_rastreio, 'Abrir rastreio')}</a>` : safeValue(i.codigo_rastreio))}
+                                </div>
+                                ${i.obs_compra ? `<div class="note-box-modern">${i.obs_compra}</div>` : ''}
+                            `
+                        ),
+                        renderSection(
+                            'Agendamento da instalação',
+                            'Data, equipe e combinados com o cliente',
+                            `
+                                <div class="info-grid-modern">
+                                    ${renderInfoRow('Data agendada', formatDate(i.data_agendada))}
+                                    ${renderInfoRow('Horário', safeValue(i.horario))}
+                                    ${renderInfoRow('Cliente presente', safeValue(i.cliente_presente, 'A confirmar'))}
+                                    ${renderInfoRow('Equipe', safeValue(i.equipe))}
+                                </div>
+                                ${i.obs_agendamento ? `<div class="note-box-modern">${i.obs_agendamento}</div>` : ''}
+                            `
+                        ),
+                        renderSection(
+                            'Execução em campo',
+                            'Status operacional e cronograma técnico',
+                            `
+                                <div class="info-grid-modern">
+                                    ${renderInfoRow('Status', renderBadge(i.status || 'Aguardando material'))}
+                                    ${renderInfoRow('Data de início', formatDate(i.data_inicio))}
+                                    ${renderInfoRow('Data de conclusão', formatDate(i.data_conclusao))}
+                                </div>
+                                ${cronogramaHtml}
+                                ${i.obs_execucao ? `<div class="note-box-modern">${i.obs_execucao}</div>` : ''}
+                            `
+                        )
+                    ].join('');
                     break;
                 }
 
-                case 'homologacao':
-                    html = `
-                        <div class="conteudo">
-                            <div class="destaque">${h.resultado === 'Aprovado' ? '✅ Sistema homologado e liberado em ' + h.data_liberacao : '⏳ Aguardando homologação'}</div>
-                            <div class="grid-2col">
-                                <div class="item"><strong>🏢 Concessionária:</strong> ${h.concessionaria || 'Não informada'}</div>
-                                <div class="item"><strong>📋 Protocolo:</strong> ${h.protocolo || 'Não informado'}</div>
-                                <div class="item"><strong>📅 Data envio:</strong> ${h.data_envio || 'Não informada'}</div>
-                                <div class="item"><strong>📌 Data vistoria:</strong> ${h.data_vistoria || 'Não informada'}</div>
-                            </div>
-                            <p><strong>Resultado da vistoria:</strong> <span style="color:${h.resultado === 'Aprovado' ? '#0a6b3b' : '#b33636'}; font-weight:700;">${h.resultado || 'Pendente'}</span></p>
-                            <p><strong>🔌 Medidor bidirecional:</strong> ${h.medidor || 'Não instalado'}</p>
-                            ${h.data_liberacao ? `<p><strong>⚡ Data de liberação:</strong> ${h.data_liberacao}</p>` : ''}
-                            ${h.laudo_url ? `<button class="botao-acao" onclick="window.open('${h.laudo_url}', '_blank')">Baixar laudo</button>` : ''}
-                        </div>
-                    `;
-                    break;
+                case 'homologacao': {
+                    heroStatus = h.resultado || (h.protocolo ? 'Em andamento' : 'Pendente');
+                    heroMeta = [
+                        renderMetric('🏢', 'Concessionária', safeValue(h.concessionaria), h.protocolo ? `Protocolo ${h.protocolo}` : 'Sem protocolo ainda'),
+                        renderMetric('📤', 'Envio', formatDate(h.data_envio), 'Data de submissão'),
+                        renderMetric('🧪', 'Vistoria', formatDate(h.data_vistoria), safeValue(h.medidor, 'Medidor não instalado')),
+                        renderMetric('⚡', 'Liberação', h.data_liberacao ? formatDate(h.data_liberacao) : renderBadge(heroStatus), 'Situação da homologação')
+                    ].join('');
 
-                case 'posvenda':
-                    html = `
-                        <div class="conteudo">
-                            <div class="destaque">✅ Sistema em operação</div>
-                            <div class="grid-2col">
-                                <div class="item"><strong>⚡ Geração atual:</strong> ${p.geracao_atual || 'N/A'} kWh/mês</div>
-                                <div class="item"><strong>💰 Economia mensal:</strong> R$ ${p.economia_mensal || '0,00'}</div>
-                                <div class="item"><strong>📊 Plataforma:</strong> ${p.plataforma_url ? `<a href="${p.plataforma_url}" target="_blank" style="color:#0b2f5c;font-weight:600;">Acessar</a>` : 'Não configurada'}</div>
-                                <div class="item"><strong>📅 Última manutenção:</strong> ${p.ultima_manutencao || 'Não realizada'}</div>
+                    const ensaios = [
+                        ['Tensão em circuito aberto (Voc)', c.ensaio_voc, c.ensaio_voc_resultado],
+                        ['Corrente de curto-circuito (Isc)', c.ensaio_isc, c.ensaio_isc_resultado],
+                        ['Resistência de isolamento', c.ensaio_isolamento, c.ensaio_isolamento_resultado],
+                        ['Resistência de aterramento', c.ensaio_aterramento, c.ensaio_aterramento_resultado],
+                        ['Teste de continuidade', c.ensaio_continuidade, c.ensaio_continuidade_resultado],
+                        ['Teste de polaridade', c.ensaio_polaridade, c.ensaio_polaridade_resultado]
+                    ];
+
+                    const comissionamentoExiste = !!c.status;
+
+                    const ensaiosHtml = ensaios.some(item => item[1] || item[2])
+                        ? `
+                            <div class="table-wrap-modern">
+                                <table class="tabela-ensaios modernizada">
+                                    <thead><tr><th>Ensaio</th><th>Valor</th><th>Resultado</th></tr></thead>
+                                    <tbody>
+                                        ${ensaios.map(([nome, valor, resultado]) => `
+                                            <tr>
+                                                <td>${nome}</td>
+                                                <td>${valor || '-'}</td>
+                                                <td>${resultado === 'ok' ? '<span class="table-status ok">✅ Aprovado</span>' : resultado === 'falha' ? '<span class="table-status falha">❌ Reprovado</span>' : '-'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
                             </div>
-                            <p><strong>🔧 Suporte e assistência:</strong></p>
-                            <ul>
-                                <li><strong>Solicitar manutenção:</strong> Abra um chamado.</li>
-                                <li><strong>Falar com suporte:</strong> Atendimento via WhatsApp.</li>
-                            </ul>
-                            <div class="destaque">📚 Manuais disponíveis.</div>
-                            <button class="botao-acao" onclick="alert('📞 Abrindo WhatsApp...')">Falar com suporte</button>
-                        </div>
-                    `;
+                        `
+                        : '<div class="empty-state-inline">Ensaios ainda não registrados.</div>';
+
+                    sections = [
+                        renderSection(
+                            'Andamento com a concessionária',
+                            'Protocolo, vistoria e status final',
+                            `
+                                ${renderTimeline([
+                                    { title: 'Documentação enviada', description: h.data_envio ? formatDate(h.data_envio) : 'Aguardando envio', state: h.data_envio ? 'done' : 'pending' },
+                                    { title: 'Vistoria agendada/realizada', description: h.data_vistoria ? formatDate(h.data_vistoria) : 'Sem data definida', state: h.data_vistoria ? 'done' : 'pending' },
+                                    { title: 'Resultado da homologação', description: h.resultado || 'Pendente', state: h.resultado === 'Aprovado' ? 'done' : (h.resultado === 'Reprovado' ? 'danger' : 'pending') },
+                                    { title: 'Liberação do sistema', description: h.data_liberacao ? formatDate(h.data_liberacao) : 'Aguardando liberação', state: h.data_liberacao ? 'done' : 'pending' }
+                                ])}
+                                <div class="info-grid-modern" style="margin-top:1rem;">
+                                    ${renderInfoRow('Concessionária', safeValue(h.concessionaria))}
+                                    ${renderInfoRow('Protocolo', safeValue(h.protocolo))}
+                                    ${renderInfoRow('Medidor bidirecional', safeValue(h.medidor, 'Não instalado'))}
+                                    ${renderInfoRow('Laudo', h.laudo_url ? `<a href="${h.laudo_url}" target="_blank" class="text-link-modern">Visualizar laudo</a>` : 'Não disponível')}
+                                </div>
+                                ${h.obs_homologacao ? `<div class="note-box-modern">${h.obs_homologacao}</div>` : ''}
+                            `
+                        ),
+                        renderSection(
+                            'Comissionamento',
+                            'Validação técnica do sistema após a instalação',
+                            !comissionamentoExiste
+                                ? '<div class="empty-state-inline">Comissionamento ainda não iniciado.</div>'
+                                : `
+                                    <div class="info-grid-modern">
+                                        ${renderInfoRow('Status', renderBadge(c.status || 'Pendente'))}
+                                        ${renderInfoRow('Data', formatDate(c.data))}
+                                        ${renderInfoRow('Responsável', safeValue(c.responsavel))}
+                                        ${renderInfoRow('Plataforma', safeValue(c.plataforma))}
+                                        ${renderInfoRow('Login do inversor', safeValue(c.login))}
+                                        ${renderInfoRow('Senha do inversor', c.senha ? '••••••••' : 'Não informada')}
+                                    </div>
+                                    <div class="subsection-title-modern">Dados do sistema</div>
+                                    <div class="info-grid-modern compacta">
+                                        ${renderInfoRow('Potência instalada', c.potencia_kwp ? `${c.potencia_kwp} kWp` : 'N/A')}
+                                        ${renderInfoRow('Módulos', safeValue(c.qtd_modulos, 'N/A'))}
+                                        ${renderInfoRow('Marca módulos', safeValue(c.marca_modulos, 'N/A'))}
+                                        ${renderInfoRow('Inversor', c.potencia_inversor ? `${c.potencia_inversor} ${c.marca_inversor ? `(${c.marca_inversor})` : ''}` : 'N/A')}
+                                        ${renderInfoRow('Strings', c.num_strings ? `${c.num_strings} (${safeValue(c.modulos_por_string, 'N/A')} mód/string)` : 'N/A')}
+                                        ${renderInfoRow('Tensão nominal', safeValue(c.tensao_nominal, 'N/A'))}
+                                        ${renderInfoRow('Corrente nominal', safeValue(c.corrente_nominal, 'N/A'))}
+                                        ${renderInfoRow('Frequência', safeValue(c.frequencia, 'N/A'))}
+                                        ${renderInfoRow('Classe isolamento', safeValue(c.classe_isolamento, 'N/A'))}
+                                    </div>
+                                    <div class="subsection-title-modern">Verificações elétricas</div>
+                                    <div class="check-grid-modern three-cols">
+                                        <div class="check-pill check-pill--${statusVariant(c.teste_isolamento)}"><span>Teste isolamento</span><strong>${safeValue(c.teste_isolamento, 'N/A')}</strong></div>
+                                        <div class="check-pill check-pill--${statusVariant(c.teste_aterramento)}"><span>Teste aterramento</span><strong>${safeValue(c.teste_aterramento, 'N/A')}</strong></div>
+                                        <div class="check-pill check-pill--${statusVariant(c.inversor_ligou)}"><span>Inversor ligou</span><strong>${safeValue(c.inversor_ligou, 'N/A')}</strong></div>
+                                        <div class="check-pill check-pill--${statusVariant(c.monitoramento_configurado)}"><span>Monitoramento</span><strong>${safeValue(c.monitoramento_configurado, 'N/A')}</strong></div>
+                                        <div class="check-pill check-pill--${statusVariant(c.comunicacao_app)}"><span>Comunicação app</span><strong>${safeValue(c.comunicacao_app, 'N/A')}</strong></div>
+                                        <div class="check-pill check-pill--${statusVariant(c.sistema_gerando)}"><span>Sistema gerando</span><strong>${safeValue(c.sistema_gerando, 'N/A')}</strong></div>
+                                    </div>
+                                    ${ensaiosHtml}
+                                    ${c.obs_ensaios ? `<div class="note-box-modern">${c.obs_ensaios}</div>` : ''}
+                                    ${c.obs_finais ? `<div class="note-box-modern note-box-modern--soft">${c.obs_finais}</div>` : ''}
+                                `
+                        )
+                    ].join('');
                     break;
+                }
+
+                case 'posvenda': {
+                    heroStatus = p.status_suporte || 'Ativo';
+                    heroMeta = [
+                        renderMetric('⚡', 'Geração estimada', p.geracao_estimada ? `${p.geracao_estimada} kWh/mês` : 'N/A', 'Desempenho esperado do sistema'),
+                        renderMetric('💰', 'Economia estimada', p.economia_estimada ? `R$ ${p.economia_estimada}` : 'R$ 0,00', 'Projeção mensal'),
+                        renderMetric('📅', 'Próxima manutenção', formatDate(p.proxima_manutencao), 'Planejamento de manutenção'),
+                        renderMetric('🛠️', 'Suporte', renderBadge(p.status_suporte || 'Nenhum'), 'Situação atual do atendimento')
+                    ].join('');
+
+                    const manuais = p.manuais_urls && p.manuais_urls.length > 0
+                        ? `<div class="manual-links-modern">${p.manuais_urls.map(url => `<a href="${url.trim()}" target="_blank" class="botao-acao botao-acao--secundario">📄 Manual</a>`).join('')}</div>`
+                        : '<div class="empty-state-inline">Nenhum manual disponível no momento.</div>';
+
+                    sections = [
+                        renderSection(
+                            'Monitoramento e histórico',
+                            'Visão geral do acompanhamento pós-entrega',
+                            `
+                                <div class="info-grid-modern">
+                                    ${renderInfoRow('Plataforma', p.plataforma_url ? `<a href="${p.plataforma_url}" target="_blank" class="text-link-modern">Acessar monitoramento</a>` : 'Não configurada')}
+                                    ${renderInfoRow('Última manutenção', formatDate(p.ultima_manutencao))}
+                                    ${renderInfoRow('Próxima manutenção', formatDate(p.proxima_manutencao))}
+                                    ${renderInfoRow('Plano de laudo', safeValue(p.plano_laudo, 'Nenhum'))}
+                                    ${renderInfoRow('Último contato', formatDate(p.ultimo_contato))}
+                                </div>
+                                ${p.observacoes ? `<div class="note-box-modern">${p.observacoes}</div>` : ''}
+                            `,
+                            `
+                                <button class="botao-acao" onclick="window.open('https://wa.me/5511916866075', '_blank')">📱 Falar com suporte</button>
+                                <button class="botao-acao botao-acao--secundario" onclick="alert('📧 Envie um e-mail para contato@solivia.com.br')">📧 E-mail</button>
+                            `
+                        ),
+                        renderSection('Biblioteca do cliente', 'Documentação útil para operação e manutenção', manuais)
+                    ].join('');
+                    break;
+                }
 
                 default:
-                    html = '<p>Etapa não encontrada.</p>';
+                    sections = '<div class="empty-state-inline">Etapa não encontrada.</div>';
             }
 
             conteudo.innerHTML = `
-                <div class="titulo">${titulos[tipo] || 'Detalhes'}</div>
-                <div class="subtitulo">Informações detalhadas da etapa</div>
-                ${html}
+                <div class="detail-hero-modern">
+                    <div class="detail-hero-modern__top">
+                        <div>
+                            <div class="detail-hero-modern__eyebrow">${config[tipo]?.icon || '📁'} Etapa do projeto</div>
+                            <h2>${config[tipo]?.title || 'Detalhes'}</h2>
+                            <p>${config[tipo]?.intro || 'Informações detalhadas da etapa.'}</p>
+                        </div>
+                        <div class="detail-hero-modern__status">${renderBadge(heroStatus)}</div>
+                    </div>
+                    <div class="metric-grid-modern">${heroMeta}</div>
+                </div>
+                <div class="detail-sections-stack">${sections}</div>
             `;
-            area.classList.add('ativo');
-            area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
 
+            if (area) {
+                area.classList.add('ativo');
+                area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+// ============================================================
+// FUNÇÃO: BAIXAR RELATÓRIO (DOWNLOAD DIRETO)
+// ============================================================
+function baixarRelatorio(url) {
+    // Converte URL do Google Drive para download direto (se for do Drive)
+    let downloadUrl = url;
+    if (url.includes('drive.google.com')) {
+        const match = url.match(/\/d\/([^\/]+)/);
+        if (match && match[1]) {
+            downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+        }
+    }
+    // Força o download sem abrir nova aba
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.target = '_self';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
         // ============================================================
         // FUNÇÃO: FECHAR DETALHES
         // ============================================================
         function fecharDetalhes() {
             const grid = document.getElementById('cardsGrid');
             const area = document.getElementById('detalhesArea');
-            area.classList.remove('ativo');
-            grid.classList.remove('oculto');
-            if (document.getElementById('cardPosVenda').classList.contains('ativo')) {
-                document.getElementById('cardPosVenda').classList.remove('oculto');
+            const conteudo = document.getElementById('detalhesConteudo');
+            const posVenda = document.getElementById('cardPosVenda');
+
+            if (area) {
+                area.classList.remove('ativo');
+                if (conteudo) conteudo.innerHTML = '';
+            }
+            if (grid) grid.classList.remove('oculto');
+            if (posVenda && posVenda.classList.contains('ativo')) {
+                posVenda.classList.remove('oculto');
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1913,109 +2838,105 @@
         // FUNÇÃO: UPLOAD DE DOCUMENTO
         // ============================================================
         function uploadDocumento(tipoDoc) {
-            if (!App.token) {
-                alert('Sessão expirada. Faça login novamente.');
-                return;
-            }
-            const input = document.getElementById('uploadInput');
-            if (!input) {
-                const newInput = document.createElement('input');
-                newInput.type = 'file';
-                newInput.id = 'uploadInput';
-                newInput.accept = '.pdf,.jpg,.jpeg,.png';
-                newInput.style.display = 'none';
-                document.body.appendChild(newInput);
-                newInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    enviarUpload(file, tipoDoc);
-                });
-                newInput.click();
-            } else {
-                input.value = '';
-                input.click();
-            }
-        }
+    if (!App.token) {
+        alert('Sessão expirada. Faça login novamente.');
+        return;
+    }
 
-        async function enviarUpload(file, tipoDoc) {
-            if (!App.token) {
-                alert('Sessão expirada. Faça login novamente.');
-                return;
-            }
+    const input = document.getElementById('uploadInput');
+    if (!input) {
+        alert('Erro: input de upload não encontrado.');
+        return;
+    }
 
-            const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = '⏳ Enviando...';
-            }
+    // Reset o input para permitir o mesmo arquivo novamente
+    input.value = '';
 
-            try {
-                const base64 = await fileParaBase64(file);
-                const resp = await fetch(URL_SCRIPT, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        acao: 'uploadDocumento',
-                        token: App.token,
-                        nomeArquivo: file.name,
-                        base64: base64,
-                        tipoDoc: tipoDoc
-                    })
-                });
-                const resultado = await resp.json();
-                if (resultado.success) {
-                    alert('✅ Documento enviado com sucesso!');
-                    await carregarDadosCliente(App.token);
-                    fecharDetalhes();
-                    mostrarDetalhes('documentos');
-                } else {
-                    alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
-                }
-            } catch (err) {
-                alert('❌ Erro de rede: ' + err.message);
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Enviar';
-                }
-                const input = document.getElementById('uploadInput');
-                if (input) input.value = '';
-            }
-        }
+    // Remove qualquer listener anterior para evitar múltiplos disparos
+    input.onchange = null;
 
-        function fileParaBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const base64 = reader.result.split(',')[1];
-                    resolve(base64);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
+    // Define o listener para o evento change
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        console.log('📎 Arquivo selecionado:', file ? file.name : 'nenhum');
+        if (!file) return;
 
-        // ============================================================
-        // EVENTOS
-        // ============================================================
-        // NOTA: O evento do botão "Sair" foi movido para dentro do DOMContentLoaded
-        // para garantir que o elemento exista quando o evento for anexado.
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const area = document.getElementById('detalhesArea');
-                if (area.classList.contains('ativo')) {
-                    fecharDetalhes();
-                }
-            }
+        // Chama a função de envio
+        enviarUpload(file, tipoDoc);
+    };
+
+    // Abre o seletor de arquivos
+    input.click();
+}
+// ============================================================
+// FUNÇÃO: ENVIAR UPLOAD (chamada pelo uploadDocumento)
+// ============================================================
+async function enviarUpload(file, tipoDoc) {
+    if (!App.token) {
+        alert('Sessão expirada. Faça login novamente.');
+        return;
+    }
+
+    const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Enviando...';
+    }
+
+    try {
+        const base64 = await fileParaBase64(file);
+        const resp = await fetch(URL_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'uploadDocumento',
+                token: App.token,
+                nomeArquivo: file.name,
+                base64: base64,
+                tipoDoc: tipoDoc
+            })
         });
+        const resultado = await resp.json();
+        
+        if (resultado.success) {
+            alert('✅ Documento enviado com sucesso!');
+            await carregarDadosCliente(App.token);
+            fecharDetalhes();
+            mostrarDetalhes('documentos');
+        } else {
+            alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
+        }
+    } catch (err) {
+        alert('❌ Erro de rede: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Enviar arquivo';
+        }
+        const input = document.getElementById('uploadInput');
+        if (input) input.value = '';
+    }
+}
 
+// ============================================================
+// FUNÇÃO: FILE PARA BASE64
+// ============================================================
+function fileParaBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
         // ============================================================
-        // INICIALIZAÇÃO (COM O EVENTO DO BOTÃO "SAIR" MOVIDO PARA CÁ)
+        // EVENTOS E INICIALIZAÇÃO
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const token = AuthService.getToken();
-            console.log('🚀 Inicializando. Token encontrado?', !!token);
 
-            // ===== EVENTO DO BOTÃO "SAIR" (MOVIDO PARA CÁ) =====
             const btnLogout = document.getElementById('btnLogout');
             if (btnLogout) {
                 btnLogout.addEventListener('click', function() {
@@ -2028,6 +2949,21 @@
             } else {
                 document.documentElement.classList.remove('is-logged-in');
                 render();
+            }
+
+            // Força a área de detalhes a ficar oculta e limpa (garantia)
+            const area = document.getElementById('detalhesArea');
+            const conteudo = document.getElementById('detalhesConteudo');
+            if (area) area.classList.remove('ativo');
+            if (conteudo) conteudo.innerHTML = '';
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const area = document.getElementById('detalhesArea');
+                if (area && area.classList.contains('ativo')) {
+                    fecharDetalhes();
+                }
             }
         });
 
@@ -2054,15 +2990,10 @@
         if (mobileOverlayPublico) mobileOverlayPublico.addEventListener('click', closeMenuPublico);
 
         // ============================================================
-        // MODAIS EXISTENTES
+        // MODAIS
         // ============================================================
-        function abrirModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
-
-        function fecharModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
+        function abrirModal(id) { document.getElementById(id).classList.add('active'); }
+        function fecharModal(id) { document.getElementById(id).classList.remove('active'); }
 
         document.getElementById('fecharDesenvolvimento').addEventListener('click', function() {
             fecharModal('modalDesenvolvimento');
@@ -2112,6 +3043,37 @@
                 }
             });
         });
+
+        // ============================================================
+        // COOKIE CONSENT
+        // ============================================================
+        (function() {
+            const cookieBanner = document.getElementById('cookieConsent');
+            if (!cookieBanner) return;
+            const userChoice = localStorage.getItem('cookieChoice');
+            function sendConsentToGTM(status) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ 'event': 'consent_updated', 'analytics_storage': status, 'ad_storage': status });
+            }
+            if (userChoice === 'accepted') {
+                sendConsentToGTM('granted');
+                cookieBanner.style.display = 'none';
+            } else if (!userChoice) {
+                cookieBanner.style.display = 'flex';
+            } else {
+                cookieBanner.style.display = 'none';
+            }
+            document.getElementById('acceptCookies').addEventListener('click', function() {
+                localStorage.setItem('cookieChoice', 'accepted');
+                cookieBanner.style.display = 'none';
+                sendConsentToGTM('granted');
+            });
+            document.getElementById('declineCookies').addEventListener('click', function() {
+                localStorage.setItem('cookieChoice', 'declined');
+                cookieBanner.style.display = 'none';
+                sendConsentToGTM('denied');
+            });
+        })();
     </script>
 
     <!-- ==================== COOKIE CONSENT ==================== -->
@@ -2119,19 +3081,8 @@
         <span>🍪 Usamos cookies para melhorar sua experiência, analisar tráfego e personalizar conteúdo. Ao clicar em "Aceitar", você concorda com nossa <a href="https://solivia.com.br/termos-solivia/instalacao.html#10" style="color: #ffc400; text-decoration: underline;" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span>
         <div><button id="acceptCookies" style="background:#ffc400; border:none; color:#0b2f5c; padding:0.4rem 1.2rem; border-radius:50px; font-weight:bold; cursor:pointer;">Aceitar</button><button id="declineCookies" style="background:transparent; border:1px solid #ffc400; color:#ffc400; padding:0.4rem 1.2rem; border-radius:50px; cursor:pointer;">Apenas essenciais</button></div>
     </div>
-    <script>
-        const userChoice = localStorage.getItem('cookieChoice');
-        function sendConsentToGTM(status) { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'consent_updated', 'analytics_storage': status, 'ad_storage': status }); }
-        if (userChoice === 'accepted') { sendConsentToGTM('granted'); document.getElementById('cookieConsent').style.display = 'none'; }
-        else if (!userChoice) document.getElementById('cookieConsent').style.display = 'flex';
-        else document.getElementById('cookieConsent').style.display = 'none';
-        document.getElementById('acceptCookies').addEventListener('click', () => { localStorage.setItem('cookieChoice', 'accepted'); document.getElementById('cookieConsent').style.display = 'none'; sendConsentToGTM('granted'); });
-        document.getElementById('declineCookies').addEventListener('click', () => { localStorage.setItem('cookieChoice', 'declined'); document.getElementById('cookieConsent').style.display = 'none'; sendConsentToGTM('denied'); });
-    </script>
 
-    <!-- ================================================================
-         TIDIO – AVATAR PERSONALIZADO
-         ================================================================ -->
+    <!-- ==================== TIDIO E AVATAR ==================== -->
     <script src="//code.tidio.co/eq17rmmkjlvafv6ikg3eixnt7lkd4s76.js" async></script>
     <style>
         #tidio-chat-iframe { display: none !important; }
