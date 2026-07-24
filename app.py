@@ -483,6 +483,16 @@ def gerar_proposta_api():
         print("📦 Nome do cliente:", sim_data.get('nome_cliente'))
         print("📦 Investimento recebido:", sim_data.get('investimento'))
 
+        # ===== FALLBACK PARA E-MAIL (SE VAZIO) =====
+        email_cliente = sim_data.get('email', '').strip()
+        if not email_cliente:
+            nome_sanitizado = sim_data.get('nome_cliente', 'cliente').replace(' ', '_').lower()
+            timestamp = int(datetime.now().timestamp())
+            email_cliente = f"{nome_sanitizado}.{timestamp}@temp.solivia.com.br"
+            sim_data['email'] = email_cliente
+            print(f"📧 E-mail temporário gerado: {email_cliente}")
+
+        # ===== CRIAÇÃO DO CLIENTE =====
         resultado_cliente = criar_cliente_area_cliente(sim_data)
         pasta_id_destino = None
         if resultado_cliente.get('success'):
@@ -492,6 +502,9 @@ def gerar_proposta_api():
             print(f"✅ Cliente criado: ID {cliente_id}, Pasta {pasta_id_destino}, Senha: {senha}")
         else:
             print(f"⚠️ Cliente não criado: {resultado_cliente.get('error')}")
+
+        # ===== RESTO DA FUNÇÃO (GERAÇÃO DO PDF, SALVAMENTO, ETC.) =====
+        # ... (mantenha o restante do código como está)
 
         nome_cliente = sim_data.get('nome_cliente', '')
         telefone = sim_data.get('telefone', '')
