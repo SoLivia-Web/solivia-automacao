@@ -1052,7 +1052,9 @@
                 </button>
               </div>
 
-              <!-- Comprovante de renda -->
+              <!-- ========================================================= -->
+              <!-- COMPROVANTE DE RENDA – BLOCO SUBSTITUÍDO (PASSO 1)       -->
+              <!-- ========================================================= -->
               <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
                 <label style="min-width:120px; font-weight:600;">Comprovante de renda</label>
                 <select id="doc_renda_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
@@ -1060,15 +1062,17 @@
                   <option value="Recebido">Recebido</option>
                   <option value="Validado">Validado</option>
                 </select>
-                <button id="doc_renda_btn_upload" onclick="selecionarEEnviar('renda')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
-                  📎 Selecionar arquivo
-                </button>
                 <input type="file" id="doc_renda_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('renda')" />
                 <input type="hidden" id="doc_renda_url" value="" />
-                <button id="doc_renda_btn_abrir" onclick="abrirDoc('renda')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
-                  🔗 Abrir
-                </button>
+                <button id="doc_renda_btn_abrir" onclick="abrirDoc('renda')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">🔗 Abrir</button>
+                <label style="display:flex; align-items:center; gap:0.3rem; font-size:0.8rem; white-space:nowrap;">
+                  <input type="checkbox" id="doc_renda_visivel" checked> Exibir para o cliente
+                </label>
               </div>
+              <!-- ========================================================= -->
+              <!-- FIM DO BLOCO SUBSTITUÍDO                                   -->
+              <!-- ========================================================= -->
+
             </div>
           </div>
 
@@ -2649,6 +2653,9 @@ if (erroEl) erroEl.style.display = 'none';
       preencherDoc('fatura', d.fatura);
       preencherDoc('renda', d.renda);
 
+      // ===== PASSO 2 – Sincronizar checkbox =====
+      document.getElementById('doc_renda_visivel').checked = d.renda?.visivel !== false;
+
       // --- Instalação (nova estrutura) ---
       const i = cliente.dados_instalacao || {};
 
@@ -3133,7 +3140,8 @@ document.getElementById('posvenda_observacoes').value = p.observacoes || '';
           },
           renda: {
             status: document.getElementById('doc_renda_status').value,
-            url: document.getElementById('doc_renda_url').value.trim()
+            url: document.getElementById('doc_renda_url').value.trim(),
+            visivel: document.getElementById('doc_renda_visivel').checked   // <--- PASSO 3
           }
         },
         dados_instalacao: {
