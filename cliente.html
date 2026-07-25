@@ -435,7 +435,7 @@
             max-width: 1400px !important;
             margin: 0 auto !important;
             flex: 1 !important;
-            padding: 2rem 2rem 6rem !important;
+            padding: 4.9rem 2rem 6rem !important;   /* ← AUMENTEI O TOPO DE 2rem PARA 2.5rem */
             min-height: 85vh !important;
             animation: fadeSlide 0.5s ease !important;
         }
@@ -503,7 +503,7 @@
         }
         .card__imagem {
             width: 100%;
-            height: 140px;
+            height: 180px;
             background: #e9edf2;
             display: flex;
             align-items: center;
@@ -593,7 +593,7 @@
 }
         .card-posvenda .card__imagem {
             width: 180px;
-            min-height: 140px;
+            min-height: 180px;
             height: auto;
             flex-shrink: 0;
             background: #e9edf2;
@@ -739,6 +739,16 @@
             background: rgba(255,255,255,0.12);
             border: 1px solid rgba(255,255,255,0.10);
             backdrop-filter: blur(8px);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .metric-card.active {
+            border: 2px solid #ffc400;
+            background: rgba(255,196,0,0.08);
         }
 
         .metric-card__icon {
@@ -1453,25 +1463,22 @@
             opacity: 1;
             color: #ffc400;
         }
-
-        .footer-minimal {
-            background: #0b2f5c;
-            color: rgba(255,255,255,0.7);
-            padding: 0.1rem 0.5rem;
-            font-size: 0.7rem;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            flex-shrink: 0;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            gap: 0.2rem !important;
-            flex-wrap: nowrap !important;
-            white-space: nowrap !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-            min-width: max-content;
-        }
+.footer-minimal {
+    background: #0b2f5c;
+    color: rgba(255,255,255,0.7);
+    padding: 1rem 1.5rem;          /* ← igual ao admin */
+    font-size: 0.8rem;             /* ← igual ao admin */
+    border-top: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.5rem !important;        /* ← um pouco mais espaçoso */
+    flex-wrap: wrap !important;    /* ← permite quebrar linha em mobile (igual ao admin) */
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
         .footer-minimal a {
             color: #ffc400;
             text-decoration: none;
@@ -1597,6 +1604,56 @@
         }
         .modal-aviso .conteudo .btn-fechar-modal:hover {
             background: #f1f5f9;
+        }
+
+        /* ===== MODAL PLANOS ===== */
+        .modal-planos {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .modal-planos.active {
+            display: flex;
+        }
+        .modal-planos__content {
+            background: white;
+            border-radius: 2rem;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+            animation: fadeSlide 0.4s ease;
+        }
+        .modal-planos__close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7a8a9a;
+            transition: color 0.2s;
+        }
+        .modal-planos__close:hover {
+            color: #0b2f5c;
+        }
+        @media (max-width: 768px) {
+            .modal-planos__content {
+                padding: 1.2rem;
+                border-radius: 1.2rem;
+            }
+            .modal-planos__content > div:last-of-type {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         /* ===== TIDIO ===== */
@@ -1761,12 +1818,10 @@
 
             <!-- Pós-Venda -->
             <div class="card-posvenda" id="cardPosVenda" onclick="mostrarDetalhes('posvenda')">
-                <div class="card__imagem">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        <path d="M9 12l2 2 4-4" />
-                    </svg>
-                    <span class="placeholder-text">imagem</span>
+                <div class="card__imagem" style="overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f0f4fa; border-radius:12px 12px 0 0;">
+                    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-posvenda.webp" 
+                         alt="Pós-Venda" 
+                         style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
                 </div>
                 <div class="card__body">
                     <div class="card__header">
@@ -1777,12 +1832,68 @@
                 </div>
             </div>
 
-            <!-- Área de Detalhes (CORRIGIDA) -->
+            <!-- Área de Detalhes -->
             <div class="detalhes-area" id="detalhesArea">
                 <button class="voltar" onclick="fecharDetalhes()" style="display:inline-flex; align-items:center; gap:0.5rem; background:transparent; border:none; color:#0b2f5c; font-weight:600; font-size:1rem; cursor:pointer; padding:0.6rem 1.2rem; border-radius:30px; transition:background 0.2s; z-index:10; position:relative;">
                     <span style="font-size:1.2rem; line-height:1;">←</span> Voltar
                 </button>
                 <div id="detalhesConteudo"></div>
+            </div>
+
+            <!-- ===== MODAL PLANOS DE MONITORAMENTO ===== -->
+            <div class="modal-planos" id="modalPlanos" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); z-index:9998; align-items:center; justify-content:center; padding:1.5rem;">
+                <div class="modal-planos__content" style="background:white; border-radius:2rem; max-width:900px; width:100%; max-height:90vh; overflow-y:auto; padding:2rem; position:relative; animation:fadeSlide 0.4s ease;">
+                    <button class="modal-planos__close" onclick="fecharModalPlanos()" style="position:absolute; top:16px; right:20px; background:none; border:none; font-size:2rem; cursor:pointer; color:#7a8a9a; transition:color 0.2s;">&times;</button>
+
+                    <div style="text-align:center; margin-bottom:1.8rem;">
+                        <span style="display:inline-block; background:#ffc400; color:#0b2f5c; padding:0.2rem 1.2rem; border-radius:30px; font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Ofertas exclusivas</span>
+                        <h2 style="font-size:1.8rem; font-weight:700; color:#0b2f5c; margin-top:0.5rem;">🔍 Acompanhe seu sistema como nunca</h2>
+                        <p style="color:#5c7a6c; max-width:600px; margin:0.5rem auto;">Receba diagnósticos detalhados, alertas proativos e suporte remoto com nossos planos de monitoramento. O primeiro laudo já vem incluso!</p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem;">
+                        <!-- Básico -->
+                        <div style="background:#f8fafc; border-radius:1.2rem; padding:1.2rem; border:1px solid #e2edf2; text-align:center;">
+                            <h3 style="font-size:1.2rem; color:#0b2f5c;">Básico</h3>
+                            <div style="font-size:1.6rem; font-weight:800; color:#0b2f5c; margin:0.5rem 0;">R$ 49,90<span style="font-size:0.8rem; font-weight:400; color:#5c7a6c;">/mês</span></div>
+                            <ul style="list-style:none; padding:0; margin:0.8rem 0; font-size:0.8rem; text-align:left; color:#334155;">
+                                <li style="padding:0.3rem 0;">✅ Relatório mensal</li>
+                                <li style="padding:0.3rem 0;">✅ Geração real vs esperada</li>
+                                <li style="padding:0.3rem 0;">✅ Perda financeira acumulada</li>
+                            </ul>
+                            <a href="/planosdemonitoramentosolar" target="_blank" class="botao-acao" style="display:inline-block; padding:0.4rem 1.5rem; font-size:0.8rem;">Ver plano →</a>
+                        </div>
+
+                        <!-- Essencial (recomendado) -->
+                        <div style="background:#fefaf5; border-radius:1.2rem; padding:1.2rem; border:2px solid #ffc400; text-align:center; position:relative;">
+                            <span style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:#ffc400; color:#0b2f5c; font-size:0.6rem; font-weight:800; padding:0.2rem 0.8rem; border-radius:30px; text-transform:uppercase;">⭐ Mais vendido</span>
+                            <h3 style="font-size:1.2rem; color:#0b2f5c;">Essencial</h3>
+                            <div style="font-size:1.6rem; font-weight:800; color:#0b2f5c; margin:0.5rem 0;">R$ 79,90<span style="font-size:0.8rem; font-weight:400; color:#5c7a6c;">/mês</span></div>
+                            <ul style="list-style:none; padding:0; margin:0.8rem 0; font-size:0.8rem; text-align:left; color:#334155;">
+                                <li style="padding:0.3rem 0;">✅ Relatório quinzenal</li>
+                                <li style="padding:0.3rem 0;">✅ Alertas proativos (e-mail)</li>
+                                <li style="padding:0.3rem 0;">✅ Suporte remoto (48h)</li>
+                            </ul>
+                            <a href="/planosdemonitoramentosolar" target="_blank" class="botao-acao" style="display:inline-block; padding:0.4rem 1.5rem; font-size:0.8rem;">Ver plano →</a>
+                        </div>
+
+                        <!-- Premium -->
+                        <div style="background:#f8fafc; border-radius:1.2rem; padding:1.2rem; border:1px solid #e2edf2; text-align:center;">
+                            <h3 style="font-size:1.2rem; color:#0b2f5c;">Premium</h3>
+                            <div style="font-size:1.6rem; font-weight:800; color:#0b2f5c; margin:0.5rem 0;">R$ 129,90<span style="font-size:0.8rem; font-weight:400; color:#5c7a6c;">/mês</span></div>
+                            <ul style="list-style:none; padding:0; margin:0.8rem 0; font-size:0.8rem; text-align:left; color:#334155;">
+                                <li style="padding:0.3rem 0;">✅ Relatório semanal</li>
+                                <li style="padding:0.3rem 0;">✅ Alertas (e-mail + WhatsApp)</li>
+                                <li style="padding:0.3rem 0;">✅ Suporte remoto (24h)</li>
+                            </ul>
+                            <a href="/planosdemonitoramentosolar" target="_blank" class="botao-acao" style="display:inline-block; padding:0.4rem 1.5rem; font-size:0.8rem;">Ver plano →</a>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1.5rem; text-align:center; font-size:0.75rem; color:#64748b;">
+                        ⚡ Taxa de ativação: R$ 197 (inclui 1º mês de assinatura + laudo inicial)
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2236,27 +2347,27 @@
                 };
 
                 // ===== IMAGENS DOS CARDS =====
-const imagensMap = {
-    visita: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
-    documentos: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-documento.webp',
-    instalacao: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
-    homologacao: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
-};
+                const imagensMap = {
+                    visita: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-visita.webp',
+                    documentos: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-documento.webp',
+                    instalacao: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-instalacao.webp',
+                    homologacao: 'https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-homologacao.webp',
+                };
 
-card.innerHTML = `
-    <div class="card__imagem" style="overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f0f4fa; border-radius:12px 12px 0 0;">
-        <img src="${imagensMap[etapa.id] || 'https://i.imgur.com/placeholder.jpg'}" 
-             alt="${etapa.titulo}" 
-             style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
-    </div>
-    <div class="card__body">
-        <div class="card__header">
-            <span class="card__titulo">${etapa.titulo}</span>
-            <span class="card__status ${mapaStatus[etapa.status] || 'status--pendente'}">${etapa.status}</span>
-        </div>
-        <div class="card__resumo">${etapa.resumo}</div>
-    </div>
-`;
+                card.innerHTML = `
+                    <div class="card__imagem" style="overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f0f4fa; border-radius:12px 12px 0 0;">
+                        <img src="${imagensMap[etapa.id] || 'https://i.imgur.com/placeholder.jpg'}" 
+                             alt="${etapa.titulo}" 
+                             style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
+                    </div>
+                    <div class="card__body">
+                        <div class="card__header">
+                            <span class="card__titulo">${etapa.titulo}</span>
+                            <span class="card__status ${mapaStatus[etapa.status] || 'status--pendente'}">${etapa.status}</span>
+                        </div>
+                        <div class="card__resumo">${etapa.resumo}</div>
+                    </div>
+                `;
                 grid.appendChild(card);
             });
 
@@ -2314,9 +2425,9 @@ card.innerHTML = `
             return `<span class="ui-badge ui-badge--${statusVariant(text)}">${safeValue(text, 'Pendente')}</span>`;
         }
 
-        function renderMetric(icon, label, value, extra = '') {
+        function renderMetric(icon, label, value, extra = '', target = '') {
             return `
-                <div class="metric-card">
+                <div class="metric-card" data-target="${target}" onclick="mostrarSecaoInstalacao('${target}')">
                     <div class="metric-card__icon">${icon}</div>
                     <div class="metric-card__body">
                         <span class="metric-card__label">${label}</span>
@@ -2439,8 +2550,8 @@ card.innerHTML = `
 
             if (grid) grid.classList.add('oculto');
             if (posVenda) {
-    posVenda.classList.add('oculto');
-}
+                posVenda.classList.add('oculto');
+            }
 
             const cliente = App.cliente;
             const v = cliente.dados_visita || {};
@@ -2500,13 +2611,12 @@ card.innerHTML = `
 
                 case 'documentos': {
                     const todosTipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
-const tipos = todosTipos.filter(t => {
-    if (t === 'renda') {
-        // Só exibe se o campo visivel for true (ou se não existir, assume true)
-        return d.renda && d.renda.visivel !== false;
-    }
-    return true;
-});
+                    const tipos = todosTipos.filter(t => {
+                        if (t === 'renda') {
+                            return d.renda && d.renda.visivel !== false;
+                        }
+                        return true;
+                    });
                     const labels = {
                         rg: 'RG / CNH',
                         cpf: 'CPF',
@@ -2573,60 +2683,66 @@ const tipos = todosTipos.filter(t => {
                     const crono = i.cronograma || {};
                     heroStatus = i.status === 'Concluída' ? 'Concluído' : ((i.status_compra === 'Realizada' || i.status_compra === 'Paga') ? 'Em andamento' : 'Pendente');
                     heroMeta = [
-                        renderMetric('🛒', 'Compra', renderBadge(i.status_compra || 'Pendente'), safeValue(i.fornecedor, 'Fornecedor não informado')),
-                        renderMetric('🚚', 'Entrega', formatDate(i.previsao_entrega), i.codigo_rastreio ? `Rastreio: ${i.codigo_rastreio}` : 'Sem rastreio disponível'),
-                        renderMetric('📆', 'Agendamento', formatDate(i.data_agendada), safeValue(i.horario, 'Horário não definido')),
-                        renderMetric('🔧', 'Execução', renderBadge(i.status || 'Aguardando material'), i.data_conclusao ? `Concluída em ${formatDate(i.data_conclusao)}` : 'Instalação ainda em aberto')
+                        renderMetric('🛒', 'Compra', renderBadge(i.status_compra || 'Pendente'), safeValue(i.fornecedor, 'Fornecedor não informado'), 'instalacao-secao-compra'),
+                        renderMetric('🚚', 'Entrega', formatDate(i.previsao_entrega), i.codigo_rastreio ? `Rastreio: ${i.codigo_rastreio}` : 'Sem rastreio disponível', 'instalacao-secao-compra'),
+                        renderMetric('📆', 'Agendamento', formatDate(i.data_agendada), safeValue(i.horario, 'Horário não definido'), 'instalacao-secao-agendamento'),
+                        renderMetric('🔧', 'Execução', renderBadge(i.status || 'Aguardando material'), i.data_conclusao ? `Concluída em ${formatDate(i.data_conclusao)}` : 'Instalação ainda em aberto', 'instalacao-secao-execucao')
                     ].join('');
 
                     const cronogramaHtml = Object.entries(crono).length
                         ? `<div class="stack-list-modern">${Object.entries(crono).map(([etapa, status]) => `<div class="stack-list-modern__item"><span>${etapa}</span>${renderBadge(status)}</div>`).join('')}</div>`
                         : '<div class="empty-state-inline">Cronograma ainda não preenchido.</div>';
 
-                    sections = [
-                        renderSection(
-                            'Compra e logística',
-                            'Acompanhe materiais, nota fiscal e entrega',
-                            `
-                                <div class="info-grid-modern">
-                                    ${renderInfoRow('Fornecedor', safeValue(i.fornecedor))}
-                                    ${renderInfoRow('Nota fiscal', safeValue(i.nota_fiscal))}
-                                    ${renderInfoRow('Data da compra', formatDate(i.data_compra))}
-                                    ${renderInfoRow('Previsão de entrega', formatDate(i.previsao_entrega))}
-                                    ${renderInfoRow('Entrega efetiva', formatDate(i.data_entrega_efetiva))}
-                                    ${renderInfoRow('Equipamentos', safeValue(i.equipamentos))}
-                                    ${renderInfoRow('Rastreio', i.link_rastreio ? `<a href="${i.link_rastreio}" target="_blank" class="text-link-modern">${safeValue(i.codigo_rastreio, 'Abrir rastreio')}</a>` : safeValue(i.codigo_rastreio))}
-                                </div>
-                                ${i.obs_compra ? `<div class="note-box-modern">${i.obs_compra}</div>` : ''}
-                            `
-                        ),
-                        renderSection(
-                            'Agendamento da instalação',
-                            'Data, equipe e combinados com o cliente',
-                            `
-                                <div class="info-grid-modern">
-                                    ${renderInfoRow('Data agendada', formatDate(i.data_agendada))}
-                                    ${renderInfoRow('Horário', safeValue(i.horario))}
-                                    ${renderInfoRow('Cliente presente', safeValue(i.cliente_presente, 'A confirmar'))}
-                                    ${renderInfoRow('Equipe', safeValue(i.equipe))}
-                                </div>
-                                ${i.obs_agendamento ? `<div class="note-box-modern">${i.obs_agendamento}</div>` : ''}
-                            `
-                        ),
-                        renderSection(
-                            'Execução em campo',
-                            'Status operacional e cronograma técnico',
-                            `
-                                <div class="info-grid-modern">
-                                    ${renderInfoRow('Status', renderBadge(i.status || 'Aguardando material'))}
-                                    ${renderInfoRow('Data de início', formatDate(i.data_inicio))}
-                                    ${renderInfoRow('Data de conclusão', formatDate(i.data_conclusao))}
-                                </div>
-                                ${cronogramaHtml}
-                                ${i.obs_execucao ? `<div class="note-box-modern">${i.obs_execucao}</div>` : ''}
-                            `
-                        )
-                    ].join('');
+                    sections = `
+                        <div id="instalacao-secao-compra" class="detail-section-card" style="display:block;">
+                            ${renderSection(
+                                'Compra e logística',
+                                'Acompanhe materiais, nota fiscal e entrega',
+                                `
+                                    <div class="info-grid-modern">
+                                        ${renderInfoRow('Fornecedor', safeValue(i.fornecedor))}
+                                        ${renderInfoRow('Nota fiscal', safeValue(i.nota_fiscal))}
+                                        ${renderInfoRow('Data da compra', formatDate(i.data_compra))}
+                                        ${renderInfoRow('Previsão de entrega', formatDate(i.previsao_entrega))}
+                                        ${renderInfoRow('Entrega efetiva', formatDate(i.data_entrega_efetiva))}
+                                        ${renderInfoRow('Equipamentos', safeValue(i.equipamentos))}
+                                        ${renderInfoRow('Rastreio', i.link_rastreio ? `<a href="${i.link_rastreio}" target="_blank" class="text-link-modern">${safeValue(i.codigo_rastreio, 'Abrir rastreio')}</a>` : safeValue(i.codigo_rastreio))}
+                                    </div>
+                                    ${i.obs_compra ? `<div class="note-box-modern">${i.obs_compra}</div>` : ''}
+                                `
+                            )}
+                        </div>
+                        <div id="instalacao-secao-agendamento" class="detail-section-card" style="display:none;">
+                            ${renderSection(
+                                'Agendamento da instalação',
+                                'Data, equipe e combinados com o cliente',
+                                `
+                                    <div class="info-grid-modern">
+                                        ${renderInfoRow('Data agendada', formatDate(i.data_agendada))}
+                                        ${renderInfoRow('Horário', safeValue(i.horario))}
+                                        ${renderInfoRow('Cliente presente', safeValue(i.cliente_presente, 'A confirmar'))}
+                                        ${renderInfoRow('Equipe', safeValue(i.equipe))}
+                                    </div>
+                                    ${i.obs_agendamento ? `<div class="note-box-modern">${i.obs_agendamento}</div>` : ''}
+                                `
+                            )}
+                        </div>
+                        <div id="instalacao-secao-execucao" class="detail-section-card" style="display:none;">
+                            ${renderSection(
+                                'Execução em campo',
+                                'Status operacional e cronograma técnico',
+                                `
+                                    <div class="info-grid-modern">
+                                        ${renderInfoRow('Status', renderBadge(i.status || 'Aguardando material'))}
+                                        ${renderInfoRow('Data de início', formatDate(i.data_inicio))}
+                                        ${renderInfoRow('Data de conclusão', formatDate(i.data_conclusao))}
+                                    </div>
+                                    ${cronogramaHtml}
+                                    ${i.obs_execucao ? `<div class="note-box-modern">${i.obs_execucao}</div>` : ''}
+                                `
+                            )}
+                        </div>
+                    `;
                     break;
                 }
 
@@ -2684,7 +2800,8 @@ const tipos = todosTipos.filter(t => {
                                     ${renderInfoRow('Concessionária', safeValue(h.concessionaria))}
                                     ${renderInfoRow('Protocolo', safeValue(h.protocolo))}
                                     ${renderInfoRow('Medidor bidirecional', safeValue(h.medidor, 'Não instalado'))}
-                                    ${renderInfoRow('Laudo', h.laudo_url ? `<a href="${h.laudo_url}" target="_blank" class="text-link-modern">Visualizar laudo</a>` : 'Não disponível')}
+                                    ${renderInfoRow('Laudo (vistoria)', h.laudo_url ? `<button class="text-link-modern" onclick="baixarRelatorio('${h.laudo_url}')" style="background:none; border:none; color:#0b2f5c; font-weight:700; cursor:pointer; text-decoration:underline; font-size:inherit;">Baixar laudo</button>` : 'Não disponível')}
+                                    ${renderInfoRow('Laudo de comissionamento', (h.laudo_comiss_url && h.laudo_comiss_url.trim() !== '') ? `<button class="text-link-modern" onclick="baixarRelatorio('${h.laudo_comiss_url}')" style="background:none; border:none; color:#0b2f5c; font-weight:700; cursor:pointer; text-decoration:underline; font-size:inherit;">Baixar laudo</button>` : 'Aguardando geração')}
                                 </div>
                                 ${h.obs_homologacao ? `<div class="note-box-modern">${h.obs_homologacao}</div>` : ''}
                             `
@@ -2734,41 +2851,82 @@ const tipos = todosTipos.filter(t => {
                 }
 
                 case 'posvenda': {
-                    heroStatus = p.status_suporte || 'Ativo';
-                    heroMeta = [
-                        renderMetric('⚡', 'Geração estimada', p.geracao_estimada ? `${p.geracao_estimada} kWh/mês` : 'N/A', 'Desempenho esperado do sistema'),
-                        renderMetric('💰', 'Economia estimada', p.economia_estimada ? `R$ ${p.economia_estimada}` : 'R$ 0,00', 'Projeção mensal'),
-                        renderMetric('📅', 'Próxima manutenção', formatDate(p.proxima_manutencao), 'Planejamento de manutenção'),
-                        renderMetric('🛠️', 'Suporte', renderBadge(p.status_suporte || 'Nenhum'), 'Situação atual do atendimento')
-                    ].join('');
+    // ===== DADOS DO PÓS-VENDA =====
+    const p = cliente.dados_posvenda || {};
 
-                    const manuais = p.manuais_urls && p.manuais_urls.length > 0
-                        ? `<div class="manual-links-modern">${p.manuais_urls.map(url => `<a href="${url.trim()}" target="_blank" class="botao-acao botao-acao--secundario">📄 Manual</a>`).join('')}</div>`
-                        : '<div class="empty-state-inline">Nenhum manual disponível no momento.</div>';
+    // ===== STATUS E KPIs =====
+    heroStatus = p.status_suporte || 'Ativo';
+    heroMeta = [
+        renderMetric('⚡', 'Geração estimada', p.geracao_estimada ? `${p.geracao_estimada} kWh/mês` : 'N/A', 'Desempenho esperado do sistema'),
+        renderMetric('💰', 'Economia estimada', p.economia_estimada ? `R$ ${p.economia_estimada}` : 'R$ 0,00', 'Projeção mensal'),
+        renderMetric('📅', 'Próxima manutenção', formatDate(p.proxima_manutencao), 'Planejamento de manutenção'),
+        renderMetric('🛠️', 'Suporte', renderBadge(p.status_suporte || 'Nenhum'), 'Situação atual do atendimento')
+    ].join('');
 
-                    sections = [
-                        renderSection(
-                            'Monitoramento e histórico',
-                            'Visão geral do acompanhamento pós-entrega',
-                            `
-                                <div class="info-grid-modern">
-                                    ${renderInfoRow('Plataforma', p.plataforma_url ? `<a href="${p.plataforma_url}" target="_blank" class="text-link-modern">Acessar monitoramento</a>` : 'Não configurada')}
-                                    ${renderInfoRow('Última manutenção', formatDate(p.ultima_manutencao))}
-                                    ${renderInfoRow('Próxima manutenção', formatDate(p.proxima_manutencao))}
-                                    ${renderInfoRow('Plano de laudo', safeValue(p.plano_laudo, 'Nenhum'))}
-                                    ${renderInfoRow('Último contato', formatDate(p.ultimo_contato))}
-                                </div>
-                                ${p.observacoes ? `<div class="note-box-modern">${p.observacoes}</div>` : ''}
-                            `,
-                            `
-                                <button class="botao-acao" onclick="window.open('https://wa.me/5511916866075', '_blank')">📱 Falar com suporte</button>
-                                <button class="botao-acao botao-acao--secundario" onclick="alert('📧 Envie um e-mail para contato@solivia.com.br')">📧 E-mail</button>
-                            `
-                        ),
-                        renderSection('Biblioteca do cliente', 'Documentação útil para operação e manutenção', manuais)
-                    ].join('');
-                    break;
-                }
+    // ===== VARIÁVEL PARA MANUAIS (usada na biblioteca) =====
+    const manuais = p.manuais_urls && p.manuais_urls.length > 0
+        ? `<div class="manual-links-modern">${p.manuais_urls.map(url => `<a href="${url.trim()}" target="_blank" class="botao-acao botao-acao--secundario">📄 Manual</a>`).join('')}</div>`
+        : '<div class="empty-state-inline">Nenhum manual disponível no momento.</div>';
+
+    // ===== SEÇÕES (3 seções: Monitoramento, Upsell, Biblioteca) =====
+    sections = [
+        // ===== SEÇÃO 1: MONITORAMENTO E HISTÓRICO =====
+        // ===== SEÇÃO 1: MONITORAMENTO E HISTÓRICO =====
+renderSection(
+    'Monitoramento e histórico',
+    'Visão geral do acompanhamento pós-entrega',
+    `
+        <div class="info-grid-modern">
+            ${renderInfoRow('Plataforma', p.plataforma_url ? `<a href="${p.plataforma_url}" target="_blank" class="text-link-modern">Acessar monitoramento</a>` : 'Não configurada')}
+            ${renderInfoRow('Última manutenção', formatDate(p.ultima_manutencao))}
+            ${renderInfoRow('Próxima manutenção', formatDate(p.proxima_manutencao))}
+            ${renderInfoRow('Plano de laudo', safeValue(p.plano_laudo, 'Nenhum'))}
+        </div>
+        ${p.observacoes ? `<div class="note-box-modern">${p.observacoes}</div>` : ''}
+    `,
+    // Botão único com estilo padrão (arredondado)
+    `
+        <button class="botao-acao" onclick="window.open('https://wa.me/5511916866075', '_blank')" style="border-radius:50px; padding:0.6rem 1.8rem; font-weight:700; font-size:0.9rem; background:#0b2f5c; color:white; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; transition:background 0.2s;">📱 Falar com suporte</button>
+    `
+),
+
+        // ===== SEÇÃO 2: UPSELL (AMPLIAÇÃO DO SISTEMA) =====
+        renderSection(
+            '🚀 Amplie seu sistema e maximize seus resultados',
+            'Descubra como adicionar baterias, aumentar a potência ou otimizar seu sistema solar com nossos especialistas.',
+            `
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                <p style="color:#475569; line-height:1.6;">
+                    Com a <strong>ampliação do seu sistema</strong>, você pode gerar mais energia, armazenar excedentes em <strong>baterias</strong> e até mesmo se tornar <strong>independente da rede</strong> em horários de pico.
+                </p>
+                <ul style="list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.85rem;">
+                    <li style="padding:0.4rem 0.8rem; background:#f8fafc; border-radius:8px;">🔋 Adição de baterias</li>
+                    <li style="padding:0.4rem 0.8rem; background:#f8fafc; border-radius:8px;">📈 Aumento de potência</li>
+                    <li style="padding:0.4rem 0.8rem; background:#f8fafc; border-radius:8px;">⚡ Otimização do sistema</li>
+                    <li style="padding:0.4rem 0.8rem; background:#f8fafc; border-radius:8px;">🔄 Substituição de inversor</li>
+                </ul>
+                <div style="display:flex; flex-wrap:wrap; gap:0.8rem; margin-top:0.5rem;">
+                    <a href="https://wa.me/5511916866075?text=Quero%20ampliar%20meu%20sistema%20solar" target="_blank" class="botao-acao" style="text-decoration: none;">📊 Solicitar análise gratuita</a>
+<a href="https://wa.me/5511916866075?text=Quero%20saber%20mais%20sobre%20baterias%20e%20ampliação" target="_blank" class="botao-acao botao-acao--secundario" style="text-decoration: none;">💬 Falar com especialista</a>
+                </div>
+                <small style="color:#64748b; font-size:0.8rem; background:#fefce8; padding:0.5rem 1rem; border-radius:8px; border-left:3px solid #ffc400;">
+                    💡 Clientes que ampliaram o sistema tiveram em média 40% mais economia na conta de luz.
+                </small>
+            </div>
+            `,
+            // Sem ações extras (já temos botões no body)
+            ''
+        ),
+
+        // ===== SEÇÃO 3: BIBLIOTECA DO CLIENTE =====
+        renderSection(
+            'Biblioteca do cliente',
+            'Documentação útil para operação e manutenção',
+            manuais
+        )
+    ].join('');
+    break;
+}
 
                 default:
                     sections = '<div class="empty-state-inline">Etapa não encontrada.</div>';
@@ -2793,27 +2951,35 @@ const tipos = todosTipos.filter(t => {
                 area.classList.add('ativo');
                 area.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+
+            // ===== GATILHO PARA O MODAL DE PLANOS (PÓS-VENDA) =====
+            if (tipo === 'posvenda') {
+                iniciarGatilhoPlanos();
+            }
         }
-// ============================================================
-// FUNÇÃO: BAIXAR RELATÓRIO (DOWNLOAD DIRETO)
-// ============================================================
-function baixarRelatorio(url) {
-    // Converte URL do Google Drive para download direto (se for do Drive)
-    let downloadUrl = url;
-    if (url.includes('drive.google.com')) {
-        const match = url.match(/\/d\/([^\/]+)/);
-        if (match && match[1]) {
-            downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+
+        // ============================================================
+        // FUNÇÃO: BAIXAR RELATÓRIO (DOWNLOAD DIRETO)
+        // ============================================================
+        function baixarRelatorio(url) {
+            // Converte URL do Google Drive para download direto (se for do Drive)
+            let downloadUrl = url;
+            if (url.includes('drive.google.com')) {
+                const match = url.match(/\/d\/([^\/]+)/);
+                if (match && match[1]) {
+                    downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+                }
+            }
+            // Força o download sem abrir nova aba
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.target = '_self';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
-    }
-    // Força o download sem abrir nova aba
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.target = '_self';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+
         // ============================================================
         // FUNÇÃO: FECHAR DETALHES
         // ============================================================
@@ -2835,102 +3001,209 @@ function baixarRelatorio(url) {
         }
 
         // ============================================================
+        // FUNÇÃO: MOSTRAR SEÇÃO INSTALAÇÃO (NAVEGAÇÃO POR KPIs)
+        // ============================================================
+        function mostrarSecaoInstalacao(secaoId) {
+            // Esconde todas as seções
+            document.querySelectorAll('[id^="instalacao-secao-"]').forEach(el => {
+                el.style.display = 'none';
+            });
+            // Mostra a seção clicada
+            const secao = document.getElementById(secaoId);
+            if (secao) {
+                secao.style.display = 'block';
+            }
+            // Atualiza classe active nos KPIs
+            document.querySelectorAll('.metric-card').forEach(card => card.classList.remove('active'));
+            const kpiAtivo = document.querySelector(`.metric-card[data-target="${secaoId}"]`);
+            if (kpiAtivo) kpiAtivo.classList.add('active');
+        }
+
+        // ============================================================
         // FUNÇÃO: UPLOAD DE DOCUMENTO
         // ============================================================
         function uploadDocumento(tipoDoc) {
-    if (!App.token) {
-        alert('Sessão expirada. Faça login novamente.');
-        return;
-    }
+            if (!App.token) {
+                alert('Sessão expirada. Faça login novamente.');
+                return;
+            }
 
-    const input = document.getElementById('uploadInput');
-    if (!input) {
-        alert('Erro: input de upload não encontrado.');
-        return;
-    }
+            const input = document.getElementById('uploadInput');
+            if (!input) {
+                alert('Erro: input de upload não encontrado.');
+                return;
+            }
 
-    // Reset o input para permitir o mesmo arquivo novamente
-    input.value = '';
+            // Reset o input para permitir o mesmo arquivo novamente
+            input.value = '';
 
-    // Remove qualquer listener anterior para evitar múltiplos disparos
-    input.onchange = null;
+            // Remove qualquer listener anterior para evitar múltiplos disparos
+            input.onchange = null;
 
-    // Define o listener para o evento change
-    input.onchange = function(e) {
-        const file = e.target.files[0];
-        console.log('📎 Arquivo selecionado:', file ? file.name : 'nenhum');
-        if (!file) return;
+            // Define o listener para o evento change
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                console.log('📎 Arquivo selecionado:', file ? file.name : 'nenhum');
+                if (!file) return;
 
-        // Chama a função de envio
-        enviarUpload(file, tipoDoc);
-    };
+                // Chama a função de envio
+                enviarUpload(file, tipoDoc);
+            };
 
-    // Abre o seletor de arquivos
-    input.click();
-}
-// ============================================================
-// FUNÇÃO: ENVIAR UPLOAD (chamada pelo uploadDocumento)
-// ============================================================
-async function enviarUpload(file, tipoDoc) {
-    if (!App.token) {
-        alert('Sessão expirada. Faça login novamente.');
-        return;
-    }
+            // Abre o seletor de arquivos
+            input.click();
+        }
 
-    const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = '⏳ Enviando...';
-    }
+        // ============================================================
+        // FUNÇÃO: ENVIAR UPLOAD (chamada pelo uploadDocumento)
+        // ============================================================
+        async function enviarUpload(file, tipoDoc) {
+            if (!App.token) {
+                alert('Sessão expirada. Faça login novamente.');
+                return;
+            }
 
-    try {
-        const base64 = await fileParaBase64(file);
-        const resp = await fetch(URL_SCRIPT, {
-            method: 'POST',
-            body: JSON.stringify({
-                acao: 'uploadDocumento',
-                token: App.token,
-                nomeArquivo: file.name,
-                base64: base64,
-                tipoDoc: tipoDoc
-            })
+            const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Enviando...';
+            }
+
+            try {
+                const base64 = await fileParaBase64(file);
+                const resp = await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        acao: 'uploadDocumento',
+                        token: App.token,
+                        nomeArquivo: file.name,
+                        base64: base64,
+                        tipoDoc: tipoDoc
+                    })
+                });
+                const resultado = await resp.json();
+                
+                if (resultado.success) {
+                    alert('✅ Documento enviado com sucesso!');
+                    await carregarDadosCliente(App.token);
+                    fecharDetalhes();
+                    mostrarDetalhes('documentos');
+                } else {
+                    alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
+                }
+            } catch (err) {
+                alert('❌ Erro de rede: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Enviar arquivo';
+                }
+                const input = document.getElementById('uploadInput');
+                if (input) input.value = '';
+            }
+        }
+
+        // ============================================================
+        // FUNÇÃO: FILE PARA BASE64
+        // ============================================================
+        function fileParaBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============================================================
+        // MODAL PLANOS DE MONITORAMENTO
+        // ============================================================
+        let timeoutPlanos = null;
+
+        function mostrarModalPlanos() {
+            const modal = document.getElementById('modalPlanos');
+            if (!modal) return;
+
+            // Verifica se o cliente já fechou o modal recentemente (nesta sessão)
+            if (sessionStorage.getItem('planosModalFechado') === 'true') {
+                return;
+            }
+
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+        }
+
+        function fecharModalPlanos() {
+            const modal = document.getElementById('modalPlanos');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+                // Armazena que o cliente fechou nesta sessão (não mostra novamente por enquanto)
+                sessionStorage.setItem('planosModalFechado', 'true');
+            }
+            // Cancela o timeout para não tentar mostrar novamente
+            if (timeoutPlanos) {
+                clearTimeout(timeoutPlanos);
+                timeoutPlanos = null;
+            }
+        }
+
+        // Gatilho: quando o cliente estiver na página de pós-venda
+        function iniciarGatilhoPlanos() {
+            // Se o modal já foi fechado nesta sessão, não faz nada
+            if (sessionStorage.getItem('planosModalFechado') === 'true') return;
+
+            // Se o cliente já está vendo os planos (está na página de planos), não mostra
+            if (window.location.pathname.includes('planosdemonitoramentosolar')) return;
+
+            // Reseta qualquer timeout anterior
+            if (timeoutPlanos) {
+                clearTimeout(timeoutPlanos);
+                timeoutPlanos = null;
+            }
+
+            // Após 20 segundos, mostra o modal
+            timeoutPlanos = setTimeout(function() {
+                // Verifica se o cliente ainda está na página e não está interagindo com outro modal
+                if (!document.querySelector('.modal-aviso.active') && !document.querySelector('.modal-overlay.active')) {
+                    mostrarModalPlanos();
+                }
+            }, 20000); // 20 segundos
+        }
+
+        // Quando a página carregar, inicia o gatilho
+        document.addEventListener('DOMContentLoaded', function() {
+            // Só inicia se estiver na área do cliente (logado) e na etapa de pós-venda
+            if (document.querySelector('.view-logged') && App.cliente && App.etapaAtual === 5) {
+                iniciarGatilhoPlanos();
+            }
         });
-        const resultado = await resp.json();
-        
-        if (resultado.success) {
-            alert('✅ Documento enviado com sucesso!');
-            await carregarDadosCliente(App.token);
-            fecharDetalhes();
-            mostrarDetalhes('documentos');
-        } else {
-            alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
-        }
-    } catch (err) {
-        alert('❌ Erro de rede: ' + err.message);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Enviar arquivo';
-        }
-        const input = document.getElementById('uploadInput');
-        if (input) input.value = '';
-    }
-}
 
-// ============================================================
-// FUNÇÃO: FILE PARA BASE64
-// ============================================================
-function fileParaBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
+        // Se o usuário clicar em qualquer lugar ou rolar a página, reinicia o timer (opcional)
+        // Isso evita que o modal apareça enquanto o usuário está ativo
+        let atividadePlanos = false;
+        document.addEventListener('click', function() {
+            atividadePlanos = true;
+            if (timeoutPlanos) {
+                clearTimeout(timeoutPlanos);
+                timeoutPlanos = null;
+            }
+            // Reinicia o timer após atividade (mas apenas se o modal ainda não foi mostrado)
+            if (!sessionStorage.getItem('planosModalFechado') && !document.getElementById('modalPlanos').classList.contains('active')) {
+                iniciarGatilhoPlanos();
+            }
+        });
+
+        // Quando o modal é fechado, cancela o timer
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fecharModalPlanos();
+            }
+        });
+
         // ============================================================
         // EVENTOS E INICIALIZAÇÃO
         // ============================================================
