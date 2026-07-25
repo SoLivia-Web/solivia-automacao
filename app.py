@@ -1620,9 +1620,8 @@ def gerar_contrato():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ROTAS ADICIONAIS
+# ROTA: GERAR RELATÓRIO DE COMISSIONAMENTO (ATUALIZADA)
 # ============================================================
-
 @app.route('/gerar_relatorio_comissionamento', methods=['POST'])
 def gerar_relatorio_comissionamento():
     try:
@@ -1634,17 +1633,265 @@ def gerar_relatorio_comissionamento():
         if not cliente_id:
             return jsonify({'success': False, 'error': 'cliente_id não informado'}), 400
 
-        cliente_data = buscar_cliente_por_id(cliente_id)
-        if not cliente_data:
+        # Buscar cliente completo
+        cliente = buscar_cliente_por_id(cliente_id)
+        if not cliente:
             return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-        return jsonify({'success': True, 'message': 'Relatório de comissionamento gerado'})
+        # Dados do cliente
+        nome_cliente = cliente.get('nome', '')
+        endereco = cliente.get('endereco', '')
+        cpf_cnpj = cliente.get('cpf_cnpj', '')
+
+        # Dados de homologação e comissionamento
+        h = cliente.get('dados_homologacao', {})
+        c = h.get('comissionamento', {})
+
+        # Verifica se há dados mínimos
+        potencia = c.get('potencia_kwp') or dados.get('comissionamento', {}).get('potencia_kwp')
+        qtd_modulos = c.get('qtd_modulos') or dados.get('comissionamento', {}).get('qtd_modulos')
+        if not potencia or not qtd_modulos:
+            return jsonify({'success': False, 'error': 'Preencha pelo menos Potência e Quantidade de módulos.'}), 400
+
+        # Dados do engenheiro (podem vir do corpo da requisição ou do banco)
+        engenheiro = dados.get('engenheiro', c.get('responsavel', 'Nícolas Alves de Sá'))
+        crea = dados.get('crea', '5071237870')
+
+        # Data do comissionamento
+        data_comissionamento = c.get('data') or datetime.now().strftime('%Y-%m-%d')
+        data_instalacao = dados.get('data_instalacao') or c.get('data_instalacao') or 'Não informado'
+
+        # Status e classe CSS
+        status = c.get('status') or 'Pendente'
+        status_classe = {
+            'Concluído': 'status-aprovado',
+            'Em andamento': 'status-parcial',
+            'Pendente': 'status-parcial',
+            'Com falhas': 'status-reprovado'
+        }.get(status, 'status-parcial')
+
+        # Resumo do comissionamento (texto gerado)
+        resumo = f"Sistema fotovoltaico de {potencia} kWp com {qtd_modulos} módulos. " \
+                 f"Inversor {c.get('marca_inversor', '')} {c.get('potencia_inversor', '')}. " \
+                 f"Status: {status}."
+
+        # Função auxiliar para fallback
+        def safe(value, default='Não informado'):
+            return value if value and str(value).strip() else default
+
+        # Montar contexto com TODAS as variáveis do template
+        context = {
+            # Dados da empresa
+            'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+            'NOME_FANTASIA': 'SoLivia Engenharia',
+            'CNPJ': '49.972.976/0001-15',
+            'TELEFONE': '(11) 5028-2426',
+            'EMAIL': 'contato@solivia.com.br',
+            'SITE': 'solivia.com.br',
+            'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+            'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+            'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+            'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
+
+            # Dados do cliente
+            'NOME_CLIENTE': nome_cliente,
+            'CPF_CNPJ': cpf_cnpj,
+            'ENDERECO': endereco,
+
+            # Dados do relatório
+            'NUM_RELATORIO': f"RC-{datetime.now().strftime('%Y%m%d')}-{cliente_id}",
+            'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+            'HORA_EMISSAO': datetime.now().strftime('%H:%M'),
+            'NUM_PROTOCOLO': f"RC-{datetime.now().strftime('%Y%m%d')}-{cliente_id}",
+            'HASH_DOCUMENTO': hashlib.sha256(f"{cliente_id}{datetime.now().isoformat()}".encode()).hexdigest(),
+            'URL_VALIDACAO': f"https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec?hash={hashlib.sha256(f'{cliente_id}{datetime.now().isoformat()}'.encode()).hexdigest()}",
+
+            # Engenheiro
+            'ENGENHEIRO_RESPONSAVEL': engenheiro,
+            'CREA_NUMERO': crea,
+
+            # Datas
+            'DATA_INSTALACAO': data_instalacao,
+            'DATA_COMISSIONAMENTO': data_comissionamento,
+
+            # Status
+            'STATUS': status,
+            'STATUS_CLASSE': status_classe,
+            'RESUMO_COMISSIONAMENTO': resumo,
+
+            # Dados do sistema
+            'POTENCIA_KWP': safe(potencia),
+            'QTD_MODULOS': safe(qtd_modulos),
+            'MARCA_MODULOS': safe(c.get('marca_modulos')),
+            'POTENCIA_INVERSOR': safe(c.get('potencia_inversor')),
+            'MARCA_INVERSOR': safe(c.get('marca_inversor')),
+            'TIPO_SISTEMA': safe(c.get('tipo_sistema'), 'On-grid'),
+            'NUM_STRINGS': safe(c.get('num_strings')),
+            'MODULOS_POR_STRING': safe(c.get('modulos_por_string')),
+            'TENSAO_NOMINAL': safe(c.get('tensao_nominal')),
+            'CORRENTE_NOMINAL': safe(c.get('corrente_nominal')),
+            'FREQUENCIA': safe(c.get('frequencia')),
+            'CLASSE_ISOLAMENTO': safe(c.get('classe_isolamento')),
+
+            # Verificações elétricas
+            'TENSAO_CC': safe(c.get('tensao_cc')),
+            'CORRENTE_CC': safe(c.get('corrente_cc')),
+            'TENSAO_CA': safe(c.get('tensao_ca')),
+            'FREQUENCIA_REDE': safe(c.get('frequencia_rede')),
+            'TESTE_ISOLAMENTO': safe(c.get('teste_isolamento')),
+            'TESTE_ATERRAMENTO': safe(c.get('teste_aterramento')),
+            'IDENTIFICACAO_POLOS': safe(c.get('identificacao_polos')),
+            'INVERSOR_LIGOU': safe(c.get('inversor_ligou')),
+            'MONITORAMENTO_CONFIGURADO': safe(c.get('monitoramento_configurado')),
+            'COMUNICACAO_APP': safe(c.get('comunicacao_app')),
+            'SISTEMA_GERANDO': safe(c.get('sistema_gerando')),
+
+            # Checklist
+            'CHECK_ESTRUTURA': safe(c.get('check_estrutura')),
+            'CHECK_MODULOS': safe(c.get('check_modulos')),
+            'CHECK_CONEXOES': safe(c.get('check_conexoes')),
+            'CHECK_ATERRAMENTO': safe(c.get('check_aterramento')),
+            'CHECK_CABEAMENTO': safe(c.get('check_cabeamento')),
+
+            # Ensaios
+            'ENSAIO_VOC': safe(c.get('ensaio_voc')),
+            'ENSAIO_VOC_ESPERADO': safe(c.get('ensaio_voc_esperado')),
+            'ENSAIO_VOC_RESULTADO': safe(c.get('ensaio_voc_resultado'), '-'),
+            'ENSAIO_ISC': safe(c.get('ensaio_isc')),
+            'ENSAIO_ISC_ESPERADO': safe(c.get('ensaio_isc_esperado')),
+            'ENSAIO_ISC_RESULTADO': safe(c.get('ensaio_isc_resultado'), '-'),
+            'ENSAIO_ISOLAMENTO': safe(c.get('ensaio_isolamento')),
+            'ENSAIO_ISOLAMENTO_ESPERADO': safe(c.get('ensaio_isolamento_esperado')),
+            'ENSAIO_ISOLAMENTO_RESULTADO': safe(c.get('ensaio_isolamento_resultado'), '-'),
+            'ENSAIO_ATERRAMENTO': safe(c.get('ensaio_aterramento')),
+            'ENSAIO_ATERRAMENTO_ESPERADO': safe(c.get('ensaio_aterramento_esperado')),
+            'ENSAIO_ATERRAMENTO_RESULTADO': safe(c.get('ensaio_aterramento_resultado'), '-'),
+            'ENSAIO_CONTINUIDADE': safe(c.get('ensaio_continuidade')),
+            'ENSAIO_CONTINUIDADE_ESPERADO': safe(c.get('ensaio_continuidade_esperado')),
+            'ENSAIO_CONTINUIDADE_RESULTADO': safe(c.get('ensaio_continuidade_resultado'), '-'),
+            'ENSAIO_POLARIDADE': safe(c.get('ensaio_polaridade')),
+            'ENSAIO_POLARIDADE_ESPERADO': safe(c.get('ensaio_polaridade_esperado')),
+            'ENSAIO_POLARIDADE_RESULTADO': safe(c.get('ensaio_polaridade_resultado'), '-'),
+            'OBSERVACOES_ENSAIOS': safe(c.get('obs_ensaios')),
+
+            # Quadros e circuitos
+            'TIPO_QUADRO': safe(c.get('tipo_quadro')),
+            'QTD_CIRCUITOS': safe(c.get('qtd_circuitos')),
+            'LOCAL_QUADRO': safe(c.get('local_quadro')),
+            'ALTURA_QUADRO': safe(c.get('altura_quadro')),
+            'DISTANCIA_PONTOS': safe(c.get('distancia_pontos')),
+            'SISTEMA_ATERRADO': safe(c.get('sistema_aterrado')),
+            'DUPLO_ISOLAMENTO': safe(c.get('duplo_isolamento')),
+            'SEGUIR_DIAGRAMA': safe(c.get('seguir_diagrama')),
+            'CIRCUITOS_VERIFICADOS': safe(c.get('circuitos_verificados')),
+
+            # Monitoramento
+            'APLICATIVO_MONITORAMENTO': safe(c.get('aplicativo_monitoramento')),
+            'LOGIN_MONITORAMENTO': safe(c.get('login')),
+            'SENHA_MONITORAMENTO': safe(c.get('senha')),
+
+            # Segurança
+            'NF_ENVIADA': safe(c.get('nf_enviada')),
+            'PROTECOES_TESTADAS': safe(c.get('protecoes_testadas')),
+            'USARAM_EPI': safe(c.get('usaram_epi')),
+            'INSPECAO_REALIZADA': safe(c.get('inspecao_realizada')),
+            'PONTOS_ATENCAO': safe(c.get('pontos_atencao')),
+
+            # Resultado final
+            'RESULTADO_GERAL': safe(c.get('resultado_geral')),
+            'RESULTADO_FINAL': safe(c.get('resultado_final')),
+            'OBSERVACOES_FINAIS': safe(c.get('obs_finais')),
+
+            # Fotos (opcionais) – base64
+            'FOTO_ESTRUTURA_ANTES': dados.get('foto_estrutura_antes') or h.get('fotos', {}).get('foto_estrutura_antes'),
+            'FOTO_ATERRAMENTO_SISTEMA': dados.get('foto_aterramento_sistema') or h.get('fotos', {}).get('foto_aterramento_sistema'),
+            'FOTO_QUADROS': dados.get('foto_quadros') or h.get('fotos', {}).get('foto_quadros'),
+            'FOTO_CONEXOES': dados.get('foto_conexoes') or h.get('fotos', {}).get('foto_conexoes'),
+            'FOTO_QUADRO_REDE': dados.get('foto_quadro_rede') or h.get('fotos', {}).get('foto_quadro_rede'),
+            'FOTO_ATERRAMENTO_CARCACAS': dados.get('foto_aterramento_carcacas') or h.get('fotos', {}).get('foto_aterramento_carcacas'),
+            'FOTO_ATERRAMENTO_SISTEMA47': dados.get('foto_aterramento_sistema47') or h.get('fotos', {}).get('foto_aterramento_sistema47'),
+            'FOTO_INSPECAO_LOCAL': dados.get('foto_inspecao_local') or h.get('fotos', {}).get('foto_inspecao_local'),
+            'FOTO_FACHADA': dados.get('foto_fachada') or h.get('fotos', {}).get('foto_fachada'),
+            'FOTO_IDENTIFICACAO_DISJUNTORES': dados.get('foto_identificacao_disjuntores') or h.get('fotos', {}).get('foto_identificacao_disjuntores'),
+            'FOTO_ETIQUETAS_CIRCUITOS': dados.get('foto_etiquetas_circuitos') or h.get('fotos', {}).get('foto_etiquetas_circuitos'),
+            'FOTO_TENSAO_CIRCUITOS': dados.get('foto_tensao_circuitos') or h.get('fotos', {}).get('foto_tensao_circuitos'),
+            'FOTO_CORRENTE_CIRCUITOS': dados.get('foto_corrente_circuitos') or h.get('fotos', {}).get('foto_corrente_circuitos'),
+            'FOTO_EPI': dados.get('foto_epi') or h.get('fotos', {}).get('foto_epi'),
+            'FOTO_APLICATIVO': dados.get('foto_aplicativo') or h.get('fotos', {}).get('foto_aplicativo'),
+            'FOTO_SISTEMA': dados.get('foto_sistema') or h.get('fotos', {}).get('foto_sistema'),
+            'FOTO_QUADRO_COMPLETO': dados.get('foto_quadro_completo') or h.get('fotos', {}).get('foto_quadro_completo'),
+
+            # Gráfico (opcional)
+            'GRAFICO_ENSAIOS': dados.get('grafico_ensaios') or None,
+        }
+
+        # Renderiza o template HTML
+        html_content = render_template('relatorio_comissionamento.html', **context)
+        pdf_bytes = HTML(string=html_content).write_pdf()
+
+        # Converte para Base64 para enviar ao Apps Script
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+        # Prepara payload para o Apps Script (salvar PDF)
+        payload_script = {
+            'token': TOKEN,
+            'acao': 'salvar_pdf',
+            'dados': {
+                'nome_cliente': nome_cliente or 'cliente',
+                'pdf_base64': pdf_base64,
+                'cliente_id': cliente_id,
+                'hash_documento': context['HASH_DOCUMENTO'],
+                'subpasta': 'Homologacao',
+                'nome_arquivo': f"Relatorio_Comissionamento_{nome_cliente.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            }
+        }
+
+        # Envia para o Apps Script salvar no Drive
+        response = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
+        if response.status_code != 200:
+            return jsonify({'success': False, 'error': f'Erro ao salvar PDF no Drive: {response.status_code}'}), 500
+
+        result_save = response.json()
+        if not result_save.get('success'):
+            return jsonify({'success': False, 'error': result_save.get('error', 'Erro ao salvar PDF no Drive')}), 500
+
+        url_pdf = result_save.get('url')
+
+        # Atualiza a planilha com a URL do laudo de comissionamento
+        try:
+            cliente_atual = buscar_cliente_por_id(cliente_id)
+            if cliente_atual:
+                h_atual = cliente_atual.get('dados_homologacao', {})
+                h_atual['laudo_comiss_url'] = url_pdf
+                h_atual['laudo_comiss_data'] = datetime.now().isoformat()
+                payload_update = {
+                    "acao": "adminAtualizarCliente",
+                    "idCliente": str(cliente_id),
+                    "campos": {
+                        "dados_homologacao": h_atual
+                    },
+                    "senhaAdmin": "SoLiVi@64253798@"
+                }
+                requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                print(f"✅ Laudo de comissionamento salvo para cliente {cliente_id}: {url_pdf}")
+        except Exception as e:
+            print(f"⚠️ Erro ao atualizar planilha: {e}")
+
+        return jsonify({
+            'success': True,
+            'url': url_pdf,
+            'message': 'Relatório de comissionamento gerado com sucesso!'
+        })
 
     except Exception as e:
         print(f"❌ Erro: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROTAS ADICIONAIS
+# ============================================================
 
 @app.route('/ping', methods=['GET'])
 def ping():
