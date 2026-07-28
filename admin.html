@@ -21,6 +21,7 @@
     a { text-decoration: none; }
 
     /* ===== HEADER ADMIN ===== */
+    
 .header-admin {
   background: #0b2f5c;
   padding: 0.6rem 1.5rem;
@@ -35,10 +36,14 @@
 }
 .header-admin .header-left,
 .header-admin .header-right {
-  display: flex;
+  display: none !important;
   align-items: center;
   gap: 1rem;
   flex: 1;
+}
+/* Mostra quando logado */
+body.admin-logged .header-admin .header-right {
+    display: flex !important;
 }
 .header-admin .header-center {
   flex: 0 0 auto;
@@ -266,6 +271,8 @@
     .status-instalacao { background: #dbeafe; color: #1e4b8c; }
     .status-homologacao { background: #fce4e4; color: #b33636; }
     .status-posvenda { background: #e8d5f5; color: #6b2f8a; }
+    .status-preproposta { background: #dbeafe; color: #1e4b8c; }
+.status-arquivado { background: #e2e8f0; color: #475569; }
 
     /* ===== MODAIS ===== */
     .modal-overlay {
@@ -284,7 +291,7 @@
     }
     .modal-edicao {
       background: white;
-      max-width: 900px;
+      max-width: 1050px;
       width: 100%;
       max-height: 90vh;
       border-radius: 2rem;
@@ -725,6 +732,54 @@
     .erro-validacao.visivel {
       display: block;
     }
+    /* ===== HERO ADMIN ===== */
+/* ===== HERO ADMIN ===== */
+.hero-admin {
+    background-image: url('https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-hero-adm.webp');
+    background-size: 100% 120%;
+    background-position: center top;
+    background-repeat: no-repeat;
+    width: 100%;
+    min-height: 88.8vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    margin: 0; /* remove margens externas */
+    display: flex !important;
+}
+.hero-admin::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 10% 40%, rgba(255,196,0,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+}
+.hero-admin .login-admin {
+      transform: translate(240px, -110px); /* (X, Y) – ajuste os valores */
+      padding: 4.5rem 3rem;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+/* ===== CONTROLE DE VISIBILIDADE ===== */
+.main-admin {
+    padding: 0; /* remove padding para hero ocupar toda a tela */
+}
+.dashboard-admin {
+    padding: 2rem 1.5rem;
+    display: none !important;
+}
+body.admin-logged .dashboard-admin {
+    display: block !important;
+}
+body.admin-logged .hero-admin {
+    display: none !important;
+}
   </style>
 </head>
 <body>
@@ -749,18 +804,7 @@
   <!-- ===== CONTEÚDO ===== -->
   <main class="main-admin">
 
-    <!-- TELA DE LOGIN -->
-    <div class="login-admin" id="loginAdmin">
-      <h2>🔐 Acesso Administrativo</h2>
-      <form id="formLoginAdmin" onsubmit="event.preventDefault(); adminLogin();">
-        <div class="campo">
-          <label for="senhaAdmin">Senha mestra</label>
-          <input type="password" id="senhaAdmin" placeholder="Digite a senha..." autocomplete="current-password" required />
-        </div>
-        <div id="loginErroAdmin" class="erro">Senha inválida.</div>
-        <button type="submit" class="btn-entrar">Entrar</button>
-      </form>
-    </div>
+    
 
     <!-- PAINEL ADMIN -->
     <div class="dashboard-admin" id="dashboardAdmin">
@@ -769,13 +813,15 @@
 
       <!-- FILTROS -->
       <div class="filtros-etapa" id="filtrosEtapa">
-        <button class="filtro-btn active" data-etapa="todos">Todos</button>
-        <button class="filtro-btn" data-etapa="visita">Visita Técnica</button>
-        <button class="filtro-btn" data-etapa="documentos">Documentos</button>
-        <button class="filtro-btn" data-etapa="instalacao">Instalação</button>
-        <button class="filtro-btn" data-etapa="homologacao">Homologação</button>
-        <button class="filtro-btn" data-etapa="posvenda">Pós-Venda</button>
-      </div>
+    <button class="filtro-btn active" data-etapa="todos">Todos</button>
+    <button class="filtro-btn" data-etapa="preproposta">Pré-proposta</button>
+    <button class="filtro-btn" data-etapa="visita">Visita Técnica</button>
+    <button class="filtro-btn" data-etapa="documentos">Documentos</button>
+    <button class="filtro-btn" data-etapa="instalacao">Instalação</button>
+    <button class="filtro-btn" data-etapa="homologacao">Homologação</button>
+    <button class="filtro-btn" data-etapa="posvenda">Pós-Venda</button>
+    <button class="filtro-btn" data-etapa="arquivado">Arquivado</button>
+</div>
 
       <!-- TOOLBAR -->
       <div class="toolbar">
@@ -805,7 +851,26 @@
     </div>
 
   </main>
-
+<!-- HERO + TELA DE LOGIN -->
+    <div class="hero-admin" id="heroLogin">
+        <div class="login-admin" id="loginAdmin">
+            <div class="login-card">
+                <div class="logo-mini">
+                    
+                </div>
+                <h2>Acesso Administrativo</h2>
+                <p class="subtitulo">Digite a senha mestra para acessar o painel.</p>
+                <form id="formLoginAdmin" onsubmit="event.preventDefault(); adminLogin();">
+                    <div class="campo">
+                        <label for="senhaAdmin">Senha mestra</label>
+                        <input type="password" id="senhaAdmin" placeholder="Digite a senha..." autocomplete="current-password" required />
+                    </div>
+                    <div id="loginErroAdmin" class="erro">Senha inválida.</div>
+                    <button type="submit" class="btn-entrar">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
   <!-- ===== RODAPÉ ===== -->
   <footer class="footer">
     &copy; 2026 SoLivia Engenharia – Painel Administrativo
@@ -830,13 +895,54 @@
         <div class="subtitulo-modal" id="modalSubtitulo">Carregando...</div>
 
         <div class="tabs">
-          <button class="tab-btn active" data-tab="tabVisita" onclick="abrirTab(this)">🔍 Visita</button>
-          <button class="tab-btn" data-tab="tabDocumentos" onclick="abrirTab(this)">📄 Documentos</button>
-          <button class="tab-btn" data-tab="tabInstalacao" onclick="abrirTab(this)">🔧 Instalação</button>
-          <button class="tab-btn" data-tab="tabHomologacao" onclick="abrirTab(this)">🏷️ Homologação</button>
-          <button class="tab-btn" data-tab="tabPosVenda" onclick="abrirTab(this)">🛡️ Pós-Venda</button>
+    <button class="tab-btn active" data-tab="tabPreProposta" onclick="abrirTab(this)">📋 Pré-proposta</button>
+    <button class="tab-btn" data-tab="tabVisita" onclick="abrirTab(this)">🔍 Visita</button>
+    <button class="tab-btn" data-tab="tabDocumentos" onclick="abrirTab(this)">📄 Documentos</button>
+    <button class="tab-btn" data-tab="tabInstalacao" onclick="abrirTab(this)">🔧 Instalação</button>
+    <button class="tab-btn" data-tab="tabHomologacao" onclick="abrirTab(this)">🏷️ Homologação</button>
+    <button class="tab-btn" data-tab="tabPosVenda" onclick="abrirTab(this)">🛡️ Pós-Venda</button>
+    <button class="tab-btn" data-tab="tabArquivado" onclick="abrirTab(this)">📦 Arquivado</button>
+</div>
+<!-- ===== ABA PRÉ-PROPOSTA ===== -->
+<div id="tabPreProposta" class="tab-content">
+    <div class="form-grid">
+        <div class="campo">
+            <label>📅 Data da pré-proposta</label>
+            <input type="text" id="preproposta_data" placeholder="DD/MM/AAAA" />
         </div>
+        <div class="campo">
+            <label>💰 Valor estimado</label>
+            <input type="text" id="preproposta_valor" placeholder="R$ 0,00" />
+        </div>
+        <div class="campo full">
+            <label>📄 Status</label>
+            <select id="preproposta_status">
+                <option value="Enviada">Enviada</option>
+                <option value="Aguardando retorno" selected>Aguardando retorno</option>
+                <option value="Aprovada">✅ Aprovada</option>
+                <option value="Rejeitada">❌ Rejeitada</option>
+            </select>
+        </div>
+        <div class="campo full">
+            <label>📝 Observações</label>
+            <textarea rows="2" id="preproposta_obs" placeholder="Anotações sobre a pré-proposta..."></textarea>
+        </div>
+        <div class="campo full">
+            <label>🔗 Link da pré-proposta (PDF)</label>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="preproposta_url" placeholder="https://..." readonly style="flex:1;" />
+                <button class="btn-acao-aba" onclick="abrirPreProposta()" style="padding:0.3rem 1rem; font-size:0.8rem;">📄 Abrir</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Ações -->
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; border-top:1px solid #e2edf2; padding-top:1rem;">
+        <button class="btn-acao-aba" onclick="reenviarPreProposta()">📤 Reenviar Pré-proposta</button>
+        <button class="btn-acao-aba btn-acao-aba--secundario" onclick="avancarParaVisita()">▶️ Avançar para Visita Técnica</button>
+        <button class="btn-acao-aba" style="background:#b91c1c; color:white;" onclick="arquivarCliente()">📦 Arquivar Cliente</button>
+    </div>
+</div>
         <!-- ===== ABA VISITA ===== -->
         <div id="tabVisita" class="tab-content active">
           <div class="form-grid">
@@ -1599,7 +1705,35 @@
             </div>
           </div>
         </div>
+<!-- ===== ABA ARQUIVADO ===== -->
+<div id="tabArquivado" class="tab-content">
+    <div class="form-grid">
+        <div class="campo">
+            <label>📅 Data do arquivamento</label>
+            <input type="text" id="arquivado_data" placeholder="DD/MM/AAAA" />
+        </div>
+        <div class="campo full">
+            <label>📋 Motivo do arquivamento</label>
+            <select id="arquivado_motivo">
+                <option value="">Selecione...</option>
+                <option value="Cliente não aprovou">Cliente não aprovou</option>
+                <option value="Cliente não respondeu">Cliente não respondeu</option>
+                <option value="Projeto inviável">Projeto inviável</option>
+                <option value="Projeto em pausa">Projeto em pausa</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+        <div class="campo full">
+            <label>📝 Observações do arquivamento</label>
+            <textarea rows="3" id="arquivado_obs" placeholder="Anotações sobre o motivo do arquivamento..."></textarea>
+        </div>
+    </div>
 
+    <!-- Ações -->
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; border-top:1px solid #e2edf2; padding-top:1rem;">
+        <button class="btn-acao-aba" onclick="reativarCliente()">🔄 Reativar Cliente</button>
+    </div>
+</div>
         <!-- ===== ABA PÓS-VENDA (NOVA VERSÃO) ===== -->
 <div id="tabPosVenda" class="tab-content">
   <div class="form-grid">
@@ -2315,6 +2449,8 @@ function mascaraCPF(input) {
     // AUTENTICAÇÃO
     // ============================================================
     function adminLogin() {
+      console.log('🔐 Login: admin-logged adicionada');
+console.log('Body classes:', document.body.className);
       const senha = document.getElementById('senhaAdmin').value.trim();
       const erro = document.getElementById('loginErroAdmin');
       erro.style.display = 'none';
@@ -2325,9 +2461,14 @@ function mascaraCPF(input) {
       }
       adminToken = senha;
       carregarClientes();
+       // Adiciona classe ao body para mostrar o header direito
+    document.body.classList.add('admin-logged');
+    document.getElementById('senhaAdmin').value = '';
     }
 
     function logoutAdmin() {
+      console.log('🔓 Logout: admin-logged removida');
+console.log('Body classes:', document.body.className);
       adminToken = null;
       localStorage.removeItem('adminToken');
       document.getElementById('loginAdmin').classList.add('ativo');
@@ -2335,8 +2476,72 @@ function mascaraCPF(input) {
       document.getElementById('tabelaClientesAdmin').style.display = 'none';
       document.getElementById('loadingTabela').style.display = 'block';
       document.getElementById('tbodyClientes').innerHTML = '';
+      // Remove a classe ao deslogar
+    document.getElementById('senhaAdmin').value = '';
+    document.getElementById('senhaAdmin').focus(); // opcional: foca no campo
     }
+function abrirModalLogout() {
+    var modal = document.getElementById('modalLogout');
+    if (modal) modal.classList.add('active');
+}
 
+function fecharModalLogout() {
+    var modal = document.getElementById('modalLogout');
+    if (modal) modal.classList.remove('active');
+}
+
+function confirmarLogout() {
+    fecharModalLogout();
+    logoutAdmin();
+    // Recarrega a página para garantir que o estado seja resetado
+    location.reload();
+    
+}
+function atualizarContadores() {
+    // Conta quantos clientes existem em cada etapa
+    const total = clientes.length;
+    const contagem = {
+    todos: total,
+    preproposta: clientes.filter(c => c.etapa === 'preproposta').length,
+    visita: clientes.filter(c => c.etapa === 'visita').length,
+    documentos: clientes.filter(c => c.etapa === 'documentos').length,
+    instalacao: clientes.filter(c => c.etapa === 'instalacao').length,
+    homologacao: clientes.filter(c => c.etapa === 'homologacao').length,
+    posvenda: clientes.filter(c => c.etapa === 'posvenda').length,
+    arquivado: clientes.filter(c => c.etapa === 'arquivado').length,
+};
+
+    // Atualiza o texto dos botões
+    const botoes = {
+    todos: document.querySelector('.filtro-btn[data-etapa="todos"]'),
+    preproposta: document.querySelector('.filtro-btn[data-etapa="preproposta"]'),
+    visita: document.querySelector('.filtro-btn[data-etapa="visita"]'),
+    documentos: document.querySelector('.filtro-btn[data-etapa="documentos"]'),
+    instalacao: document.querySelector('.filtro-btn[data-etapa="instalacao"]'),
+    homologacao: document.querySelector('.filtro-btn[data-etapa="homologacao"]'),
+    posvenda: document.querySelector('.filtro-btn[data-etapa="posvenda"]'),
+    arquivado: document.querySelector('.filtro-btn[data-etapa="arquivado"]'),
+};
+
+    // Mapeia os textos originais (sem contagem)
+    const textos = {
+    todos: 'Todos',
+    preproposta: 'Pré-proposta',
+    visita: 'Visita Técnica',
+    documentos: 'Documentos',
+    instalacao: 'Instalação',
+    homologacao: 'Homologação',
+    posvenda: 'Pós-Venda',
+    arquivado: 'Arquivado',
+};
+
+    for (const [etapa, btn] of Object.entries(botoes)) {
+        if (btn) {
+            const count = contagem[etapa] || 0;
+            btn.textContent = `${textos[etapa]} (${count})`;
+        }
+    }
+}
     // ============================================================
     // CARREGAR CLIENTES
     // ============================================================
@@ -2352,10 +2557,12 @@ function mascaraCPF(input) {
         });
         const resultado = await resp.json();
         if (resultado.success) {
+          document.body.classList.add('admin-logged');
           clientes = resultado.clientes || [];
           document.getElementById('loginAdmin').classList.remove('ativo');
           document.getElementById('dashboardAdmin').classList.add('ativo');
           localStorage.setItem('adminToken', adminToken);
+          atualizarContadores();
           renderizarTabela();
         } else {
           alert('Erro: ' + (resultado.error || 'Senha inválida.'));
@@ -2406,18 +2613,21 @@ function mascaraCPF(input) {
         filtrados = filtrados.filter(c => c.etapa === filtroEtapaAtual);
       }
       if (filtroLower) {
-        filtrados = filtrados.filter(c =>
-          c.nome.toLowerCase().includes(filtroLower) ||
-          c.email.toLowerCase().includes(filtroLower)
-        );
-      }
+    filtrados = filtrados.filter(c => {
+        const nome = (c.nome || '').toString().toLowerCase();
+        const email = (c.email || '').toString().toLowerCase();
+        return nome.includes(filtroLower) || email.includes(filtroLower);
+    });
+}
       const mapaEtapa = {
-        visita: { label: 'Visita Técnica', classe: 'status-visita' },
-        documentos: { label: 'Documentos', classe: 'status-documentos' },
-        instalacao: { label: 'Instalação', classe: 'status-instalacao' },
-        homologacao: { label: 'Homologação', classe: 'status-homologacao' },
-        posvenda: { label: 'Pós-Venda', classe: 'status-posvenda' },
-      };
+    preproposta: { label: 'Pré-proposta', classe: 'status-preproposta' },
+    visita: { label: 'Visita Técnica', classe: 'status-visita' },
+    documentos: { label: 'Documentos', classe: 'status-documentos' },
+    instalacao: { label: 'Instalação', classe: 'status-instalacao' },
+    homologacao: { label: 'Homologação', classe: 'status-homologacao' },
+    posvenda: { label: 'Pós-Venda', classe: 'status-posvenda' },
+    arquivado: { label: 'Arquivado', classe: 'status-arquivado' },
+};
       tbody.innerHTML = '';
       if (filtrados.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem; color:#7a8a9a;">Nenhum cliente encontrado.</td></tr>`;
@@ -2593,6 +2803,14 @@ if (erroEl) erroEl.style.display = 'none';
     function preencherModal(cliente) {
       document.getElementById('modalTitulo').textContent = `${cliente.nome}`;
       document.getElementById('modalSubtitulo').textContent = cliente.endereco || 'Endereço não informado';
+
+      // ===== PRÉ-PROPOSTA =====
+const pp = cliente.dados_preproposta || {};
+document.getElementById('preproposta_data').value = pp.data || '';
+document.getElementById('preproposta_valor').value = pp.valor || '';
+document.getElementById('preproposta_status').value = pp.status || 'Aguardando retorno';
+document.getElementById('preproposta_obs').value = pp.obs || '';
+document.getElementById('preproposta_url').value = pp.url || '';
 
       const v = cliente.dados_visita || {};
       document.getElementById('visita_engenheiro').value = v.engenheiro || '';
@@ -2794,6 +3012,12 @@ document.getElementById('posvenda_plano_inicio').value = p.plano_inicio || '';
 document.getElementById('posvenda_plano_fim').value = p.plano_fim || '';
 document.getElementById('posvenda_observacoes').value = p.observacoes || '';
 
+// ===== ARQUIVADO =====
+const arq = cliente.dados_arquivado || {};
+document.getElementById('arquivado_data').value = arq.data || '';
+document.getElementById('arquivado_motivo').value = arq.motivo || '';
+document.getElementById('arquivado_obs').value = arq.obs || '';
+
       sincronizarDataVisita();
       setTimeout(validarDataRealizacao, 100);
       setTimeout(validarDataAprovacao, 100);
@@ -2802,22 +3026,24 @@ document.getElementById('posvenda_observacoes').value = p.observacoes || '';
     }
 
     function ativarAbaPorEtapa(etapa) {
-      const mapa = {
+    const mapa = {
+        'preproposta': 'tabPreProposta',
         'visita': 'tabVisita',
         'documentos': 'tabDocumentos',
         'instalacao': 'tabInstalacao',
         'homologacao': 'tabHomologacao',
-        'posvenda': 'tabPosVenda'
-      };
-      const abaId = mapa[etapa] || 'tabVisita';
-      const aba = document.getElementById(abaId);
-      if (!aba) return;
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      aba.classList.add('active');
-      const btnCorrespondente = document.querySelector(`.tab-btn[data-tab="${abaId}"]`);
-      if (btnCorrespondente) btnCorrespondente.classList.add('active');
-    }
+        'posvenda': 'tabPosVenda',
+        'arquivado': 'tabArquivado'
+    };
+    const abaId = mapa[etapa] || 'tabVisita';
+    const aba = document.getElementById(abaId);
+    if (!aba) return;
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    aba.classList.add('active');
+    const btnCorrespondente = document.querySelector(`.tab-btn[data-tab="${abaId}"]`);
+    if (btnCorrespondente) btnCorrespondente.classList.add('active');
+}
 
     // ============================================================
     // LISTA DE FOTOS PARA COMISSIONAMENTO
@@ -3111,6 +3337,13 @@ document.getElementById('posvenda_observacoes').value = p.observacoes || '';
         endereco: clienteEditando.endereco,
         cep: clienteEditando.cep,
         etapa_atual: novaEtapa,
+        dados_preproposta: {
+        data: document.getElementById('preproposta_data').value,
+        valor: document.getElementById('preproposta_valor').value,
+        status: document.getElementById('preproposta_status').value,
+        obs: document.getElementById('preproposta_obs').value,
+        url: document.getElementById('preproposta_url').value,
+    },
         dados_visita: {
           engenheiro: document.getElementById('visita_engenheiro').value,
           data_agendada: document.getElementById('visita_data_agendada').value,
@@ -3257,6 +3490,11 @@ document.getElementById('posvenda_observacoes').value = p.observacoes || '';
             return fotosObj;
           })()
         },
+        dados_arquivado: {
+        data: document.getElementById('arquivado_data').value,
+        motivo: document.getElementById('arquivado_motivo').value,
+        obs: document.getElementById('arquivado_obs').value,
+    },
         dados_posvenda: {
   // Campos renomeados
   geracao_estimada: document.getElementById('posvenda_geracao').value,
@@ -3273,6 +3511,7 @@ document.getElementById('posvenda_observacoes').value = p.observacoes || '';
   plano_fim: document.getElementById('posvenda_plano_fim').value,
   observacoes: document.getElementById('posvenda_observacoes').value,
 }
+
       };
 
       try {
@@ -4397,11 +4636,10 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
     // ============================================================
     // LOGOUT E INICIALIZAÇÃO
     // ============================================================
-    document.getElementById('btnLogout').addEventListener('click', function() {
-      if (confirm('Deseja sair?')) {
-        logoutAdmin();
-      }
-    });
+    document.getElementById('btnLogout').addEventListener('click', function(e) {
+    e.preventDefault();
+    abrirModalLogout();
+});
 
     (function init() {
       vtPreencherConcessionarias();
@@ -4415,6 +4653,66 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
         document.getElementById('loginAdmin').classList.add('ativo');
       }
     })();
+    // ===== AÇÕES DA PRÉ-PROPOSTA =====
+function abrirPreProposta() {
+    const url = document.getElementById('preproposta_url').value;
+    if (url && url.trim() !== '') {
+        window.open(url, '_blank');
+    } else {
+        alert('Nenhuma pré-proposta disponível.');
+    }
+}
+
+function reenviarPreProposta() {
+    if (!clienteEditando) {
+        alert('Nenhum cliente selecionado.');
+        return;
+    }
+    // Abre o modal da calculadora (iframe)
+    document.getElementById('modalCalculadora').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function avancarParaVisita() {
+    if (!clienteEditando) return;
+    if (!confirm('Deseja avançar este cliente para a etapa de Visita Técnica?')) return;
+    // Atualiza a etapa do cliente para 'visita'
+    clienteEditando.etapa_atual = 'visita';
+    salvarCliente();
+}
+
+function arquivarCliente() {
+    if (!clienteEditando) return;
+    if (!confirm('Tem certeza que deseja arquivar este cliente?')) return;
+    clienteEditando.etapa_atual = 'arquivado';
+    salvarCliente();
+}
+
+// ===== AÇÕES DO ARQUIVADO =====
+function reativarCliente() {
+    if (!clienteEditando) return;
+    if (!confirm('Deseja reativar este cliente? Ele voltará para a etapa de Pré-proposta.')) return;
+    clienteEditando.etapa_atual = 'preproposta';
+    salvarCliente();
+}
   </script>
+  <!-- ===== MODAL DE CONFIRMAÇÃO DE SAÍDA ===== -->
+<div class="modal-overlay" id="modalLogout">
+    <div class="modal-edicao" style="max-width: 420px; text-align: center; padding: 2.5rem 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+        <div class="titulo-modal" style="font-size: 1.4rem;">Sair do Painel</div>
+        <div class="subtitulo-modal" style="margin-bottom: 2rem;">
+            Tem certeza que deseja sair da área administrativa?
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-salvar" onclick="confirmarLogout()" style="min-width: 100px; background: #b91c1c; color: white; border: none; padding: 0.7rem 2rem; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer;">
+                Sim, sair
+            </button>
+            <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalLogout()" style="min-width: 100px;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
