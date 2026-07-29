@@ -930,7 +930,7 @@ body.admin-logged .hero-admin {
         <div class="campo full">
             <label>🔗 Link da pré-proposta (PDF)</label>
             <div style="display:flex; gap:0.5rem; align-items:center;">
-                <input type="text" id="preproposta_url" placeholder="https://..." readonly style="flex:1;" />
+                <input type="text" id="preproposta_url" placeholder="https://..." style="flex:1;" />
                 <button class="btn-acao-aba" onclick="abrirPreProposta()" style="padding:0.3rem 1rem; font-size:0.8rem;">📄 Abrir</button>
             </div>
         </div>
@@ -3207,130 +3207,141 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
     // SALVAR CLIENTE (COM VALIDAÇÃO DE DOCUMENTOS E CHECKLIST CONDICIONAL)
     // ============================================================
     async function salvarCliente() {
-      if (!clienteEditando) return;
+    if (!clienteEditando) return;
 
-      const btn = document.getElementById('btnSalvarCliente');
-      const spinner = document.getElementById('salvarSpinner');
-      const texto = document.getElementById('salvarTexto');
-      btn.disabled = true;
-      spinner.style.display = 'inline-block';
-      texto.textContent = ' Salvando...';
+    const btn = document.getElementById('btnSalvarCliente');
+    const spinner = document.getElementById('salvarSpinner');
+    const texto = document.getElementById('salvarTexto');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    texto.textContent = ' Salvando...';
 
-      // ===== VALIDAÇÃO DE DOCUMENTOS (sempre executada) =====
-      const docs = [
+    // ===== VALIDAÇÃO DE DOCUMENTOS (sempre executada) =====
+    const docs = [
         { id: 'rg', label: 'RG/CNH' },
         { id: 'cpf', label: 'CPF' },
         { id: 'comprovante', label: 'Comprovante de residência' },
         { id: 'fatura', label: 'Última fatura' },
         { id: 'renda', label: 'Comprovante de renda' }
-      ];
+    ];
 
-      let erroDocs = [];
-      docs.forEach(doc => {
+    let erroDocs = [];
+    docs.forEach(doc => {
         const status = document.getElementById(`doc_${doc.id}_status`).value;
         const url = document.getElementById(`doc_${doc.id}_url`).value.trim();
         if ((status === 'Recebido' || status === 'Validado') && !url) {
-          erroDocs.push(`${doc.label} (status ${status} sem URL)`);
+            erroDocs.push(`${doc.label} (status ${status} sem URL)`);
         }
-      });
+    });
 
-      if (erroDocs.length > 0) {
+    if (erroDocs.length > 0) {
         exibirModalComAcao(
-          '⚠️ Documentos pendentes',
-          `Os seguintes documentos estão com status "Recebido" ou "Validado" mas sem URL:<br>${erroDocs.join('<br>')}`,
-          '⚠️',
-          '#b91c1c',
-          null
+            '⚠️ Documentos pendentes',
+            `Os seguintes documentos estão com status "Recebido" ou "Validado" mas sem URL:<br>${erroDocs.join('<br>')}`,
+            '⚠️',
+            '#b91c1c',
+            null
         );
         btn.disabled = false;
         spinner.style.display = 'none';
         texto.textContent = '💾 Salvar alterações';
         return;
-      }
+    }
 
-      // ===== VALIDAÇÃO DE DATAS E RESULTADO =====
-      if (!isDataRealizacaoValida()) {
+    // ===== VALIDAÇÃO DE DATAS (sempre executada) =====
+    if (!isDataRealizacaoValida()) {
         const erroEl = document.getElementById('erroDataRealizacao');
         if (erroEl) erroEl.classList.add('visivel');
         exibirModalComAcao(
-          '⚠️ Erro de validação',
-          'A data da realização não pode ser anterior à data agendada.',
-          '⚠️',
-          '#b91c1c',
-          null
+            '⚠️ Erro de validação',
+            'A data da realização não pode ser anterior à data agendada.',
+            '⚠️',
+            '#b91c1c',
+            null
         );
         btn.disabled = false;
         spinner.style.display = 'none';
         texto.textContent = '💾 Salvar alterações';
         return;
-      }
+    }
 
-      if (!validarDataAprovacao()) {
+    if (!validarDataAprovacao()) {
         exibirModalComAcao(
-          '⚠️ Erro de validação',
-          'A data de aprovação não pode ser anterior à data da realização.',
-          '⚠️',
-          '#b91c1c',
-          null
+            '⚠️ Erro de validação',
+            'A data de aprovação não pode ser anterior à data da realização.',
+            '⚠️',
+            '#b91c1c',
+            null
         );
         btn.disabled = false;
         spinner.style.display = 'none';
         texto.textContent = '💾 Salvar alterações';
         return;
-      }
+    }
 
-      const resultadoVisita = document.getElementById('visita_resultado').value;
-      if (!resultadoVisita) {
+    // ===== DETERMINA A ETAPA DO CLIENTE =====
+    // ===== DETERMINA A ETAPA DO CLIENTE =====
+let novaEtapa = clienteEditando.etapa_atual;
+
+// ===== VALIDAÇÃO DA VISITA (SOMENTE SE CLIENTE ESTIVER NA ETAPA "visita" E ABA VISITA ESTIVER ATIVA) =====
+let resultadoVisita = '';
+let checklist = {};
+
+const isVisita = clienteEditando.etapa_atual === 'visita';
+const isAbaVisitaAtiva = document.getElementById('tabVisita').classList.contains('active');
+
+if (isVisita && isAbaVisitaAtiva) {
+    resultadoVisita = document.getElementById('visita_resultado').value;
+    if (!resultadoVisita) {
         exibirModalComAcao(
-          '⚠️ Campo obrigatório',
-          'Selecione o resultado final da visita.',
-          '⚠️',
-          '#b91c1c',
-          null
+            '⚠️ Campo obrigatório',
+            'Selecione o resultado final da visita.',
+            '⚠️',
+            '#b91c1c',
+            null
         );
         btn.disabled = false;
         spinner.style.display = 'none';
         texto.textContent = '💾 Salvar alterações';
         return;
-      }
+    }
 
-      // ===== VALIDAÇÃO DO CHECKLIST (SOMENTE SE ABA VISITA ESTIVER ATIVA) =====
-      const abaVisitaAtiva = document.getElementById('tabVisita').classList.contains('active');
-      if (abaVisitaAtiva) {
-        const items = ['telhado', 'sombreamento', 'cabos', 'padrao', 'wifi', 'acesso'];
-        const vazio = items.some(item => !document.getElementById(`chk_${item}`).value);
-        if (vazio) {
-          exibirModalComAcao(
+    // Valida checklist
+    const items = ['telhado', 'sombreamento', 'cabos', 'padrao', 'wifi', 'acesso'];
+    const vazio = items.some(item => !document.getElementById(`chk_${item}`).value);
+    if (vazio) {
+        exibirModalComAcao(
             '⚠️ Checklist incompleto',
             'Preencha todos os itens do checklist antes de salvar.',
             '⚠️',
             '#b91c1c',
             null
-          );
-          btn.disabled = false;
-          spinner.style.display = 'none';
-          texto.textContent = '💾 Salvar alterações';
-          return;
-        }
-      }
+        );
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        texto.textContent = '💾 Salvar alterações';
+        return;
+    }
 
-      const checklist = {
+    checklist = {
         telhado: document.getElementById('chk_telhado').value,
         sombreamento: document.getElementById('chk_sombreamento').value,
         cabos: document.getElementById('chk_cabos').value,
         padrao: document.getElementById('chk_padrao').value,
         wifi: document.getElementById('chk_wifi').value,
         acesso: document.getElementById('chk_acesso').value
-      };
+    };
 
-      let novaEtapa = clienteEditando.etapa_atual;
-      if (resultadoVisita === 'Aprovado') {
+    // Define a nova etapa com base no resultado da visita
+    if (resultadoVisita === 'Aprovado') {
         novaEtapa = 'documentos';
-      } else if (resultadoVisita === 'Pendente de ajustes' || resultadoVisita === 'Reprovado') {
+    } else if (resultadoVisita === 'Pendente de ajustes' || resultadoVisita === 'Reprovado') {
         novaEtapa = 'visita';
-      }
+    }
+}
 
-      const campos = {
+    // ===== MONTA OS CAMPOS PARA SALVAR =====
+    const campos = {
         nome: clienteEditando.nome,
         email: clienteEditando.email,
         telefone: clienteEditando.telefone,
@@ -3338,228 +3349,207 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
         cep: clienteEditando.cep,
         etapa_atual: novaEtapa,
         dados_preproposta: {
-        data: document.getElementById('preproposta_data').value,
-        valor: document.getElementById('preproposta_valor').value,
-        status: document.getElementById('preproposta_status').value,
-        obs: document.getElementById('preproposta_obs').value,
-        url: document.getElementById('preproposta_url').value,
-    },
+            data: document.getElementById('preproposta_data').value,
+            valor: document.getElementById('preproposta_valor').value,
+            status: document.getElementById('preproposta_status').value,
+            obs: document.getElementById('preproposta_obs').value,
+            url: document.getElementById('preproposta_url').value,
+        },
         dados_visita: {
-          engenheiro: document.getElementById('visita_engenheiro').value,
-          data_agendada: document.getElementById('visita_data_agendada').value,
-          data_realizacao: document.getElementById('visita_data_realizacao').value,
-          resultado: resultadoVisita,
-          observacoes: document.getElementById('visita_observacoes').value,
-          relatorio_url: document.getElementById('visita_relatorio_url').value,
-          assinatura_data: document.getElementById('visita_aprovacao').value,
-          checklist: checklist
+            engenheiro: document.getElementById('visita_engenheiro').value,
+            data_agendada: document.getElementById('visita_data_agendada').value,
+            data_realizacao: document.getElementById('visita_data_realizacao').value,
+            resultado: resultadoVisita,
+            observacoes: document.getElementById('visita_observacoes').value,
+            relatorio_url: document.getElementById('visita_relatorio_url').value,
+            assinatura_data: document.getElementById('visita_aprovacao').value,
+            checklist: checklist
         },
         documentos: {
-          rg: {
-            status: document.getElementById('doc_rg_status').value,
-            url: document.getElementById('doc_rg_url').value.trim()
-          },
-          cpf: {
-            status: document.getElementById('doc_cpf_status').value,
-            url: document.getElementById('doc_cpf_url').value.trim()
-          },
-          comprovante: {
-            status: document.getElementById('doc_comprovante_status').value,
-            url: document.getElementById('doc_comprovante_url').value.trim()
-          },
-          fatura: {
-            status: document.getElementById('doc_fatura_status').value,
-            url: document.getElementById('doc_fatura_url').value.trim()
-          },
-          renda: {
-            status: document.getElementById('doc_renda_status').value,
-            url: document.getElementById('doc_renda_url').value.trim(),
-            visivel: document.getElementById('doc_renda_visivel').checked   // <--- PASSO 3
-          }
+            rg: {
+                status: document.getElementById('doc_rg_status').value,
+                url: document.getElementById('doc_rg_url').value.trim()
+            },
+            cpf: {
+                status: document.getElementById('doc_cpf_status').value,
+                url: document.getElementById('doc_cpf_url').value.trim()
+            },
+            comprovante: {
+                status: document.getElementById('doc_comprovante_status').value,
+                url: document.getElementById('doc_comprovante_url').value.trim()
+            },
+            fatura: {
+                status: document.getElementById('doc_fatura_status').value,
+                url: document.getElementById('doc_fatura_url').value.trim()
+            },
+            renda: {
+                status: document.getElementById('doc_renda_status').value,
+                url: document.getElementById('doc_renda_url').value.trim(),
+                visivel: document.getElementById('doc_renda_visivel').checked
+            }
         },
         dados_instalacao: {
-          // Compra e Logística
-          status_compra: document.getElementById('instalacao_status_compra').value,
-          fornecedor: document.getElementById('instalacao_fornecedor').value,
-          nota_fiscal: document.getElementById('instalacao_nota_fiscal').value,
-          data_compra: document.getElementById('instalacao_data_compra').value,
-          previsao_entrega: document.getElementById('instalacao_previsao_entrega').value,
-          data_entrega_efetiva: document.getElementById('instalacao_data_entrega_efetiva').value,
-          codigo_rastreio: document.getElementById('instalacao_codigo_rastreio').value,
-          link_rastreio: document.getElementById('instalacao_link_rastreio').value,
-          equipamentos: document.getElementById('instalacao_equipamentos').value,
-          obs_compra: document.getElementById('instalacao_obs_compra').value,
-          // Agendamento
-          data_agendada: document.getElementById('instalacao_data_agendada').value,
-          horario: document.getElementById('instalacao_horario').value,
-          cliente_presente: document.getElementById('instalacao_cliente_presente').value,
-          equipe: document.getElementById('instalacao_equipe').value,
-          obs_agendamento: document.getElementById('instalacao_obs_agendamento').value,
-          // Execução
-          status: document.getElementById('instalacao_status').value,
-          data_inicio: document.getElementById('instalacao_data_inicio').value,
-          data_conclusao: document.getElementById('instalacao_data_conclusao').value,
-          obs_execucao: document.getElementById('instalacao_obs_execucao').value,
-          // Cronograma
-          cronograma: {
-            montagem: document.getElementById('crono_montagem').checked ? 'Concluído' : 'Pendente',
-            cabos: document.getElementById('crono_cabos').checked ? 'Concluído' : 'Pendente',
-            inversor: document.getElementById('crono_inversor').checked ? 'Concluído' : 'Pendente',
-            conexao: document.getElementById('crono_conexao').checked ? 'Concluído' : 'Pendente',
-            testes: document.getElementById('crono_testes').checked ? 'Concluído' : 'Pendente',
-          }
+            status_compra: document.getElementById('instalacao_status_compra').value,
+            fornecedor: document.getElementById('instalacao_fornecedor').value,
+            nota_fiscal: document.getElementById('instalacao_nota_fiscal').value,
+            data_compra: document.getElementById('instalacao_data_compra').value,
+            previsao_entrega: document.getElementById('instalacao_previsao_entrega').value,
+            data_entrega_efetiva: document.getElementById('instalacao_data_entrega_efetiva').value,
+            codigo_rastreio: document.getElementById('instalacao_codigo_rastreio').value,
+            link_rastreio: document.getElementById('instalacao_link_rastreio').value,
+            equipamentos: document.getElementById('instalacao_equipamentos').value,
+            obs_compra: document.getElementById('instalacao_obs_compra').value,
+            data_agendada: document.getElementById('instalacao_data_agendada').value,
+            horario: document.getElementById('instalacao_horario').value,
+            cliente_presente: document.getElementById('instalacao_cliente_presente').value,
+            equipe: document.getElementById('instalacao_equipe').value,
+            obs_agendamento: document.getElementById('instalacao_obs_agendamento').value,
+            status: document.getElementById('instalacao_status').value,
+            data_inicio: document.getElementById('instalacao_data_inicio').value,
+            data_conclusao: document.getElementById('instalacao_data_conclusao').value,
+            obs_execucao: document.getElementById('instalacao_obs_execucao').value,
+            cronograma: {
+                montagem: document.getElementById('crono_montagem').checked ? 'Concluído' : 'Pendente',
+                cabos: document.getElementById('crono_cabos').checked ? 'Concluído' : 'Pendente',
+                inversor: document.getElementById('crono_inversor').checked ? 'Concluído' : 'Pendente',
+                conexao: document.getElementById('crono_conexao').checked ? 'Concluído' : 'Pendente',
+                testes: document.getElementById('crono_testes').checked ? 'Concluído' : 'Pendente',
+            }
         },
         dados_homologacao: {
-          // Sub-aba 1: Homologação
-          concessionaria: document.getElementById('homologacao_concessionaria').value,
-          protocolo: document.getElementById('homologacao_protocolo').value,
-          data_envio: document.getElementById('homologacao_data_envio').value,
-          data_vistoria: document.getElementById('homologacao_data_vistoria').value,
-          resultado: document.getElementById('homologacao_resultado').value,
-          medidor: document.getElementById('homologacao_medidor').value,
-          data_liberacao: document.getElementById('homologacao_data_liberacao').value,
-          laudo_url: document.getElementById('homologacao_laudo_url').value,
-          obs_homologacao: document.getElementById('homologacao_obs_homologacao').value,
-
-          // Sub-aba 2: Comissionamento
-          comissionamento: {
-            // Status e responsáveis
-            status: document.getElementById('comiss_status').value,
-            data: document.getElementById('comiss_data').value,
-            responsavel: document.getElementById('comiss_responsavel').value,
-            login: document.getElementById('comiss_login').value,
-            senha: document.getElementById('comiss_senha').value,
-            plataforma: document.getElementById('comiss_plataforma').value,
-
-            // Dados do sistema
-            potencia_kwp: document.getElementById('comiss_potencia_kwp').value,
-            qtd_modulos: document.getElementById('comiss_qtd_modulos').value,
-            marca_modulos: document.getElementById('comiss_marca_modulos').value,
-            potencia_inversor: document.getElementById('comiss_potencia_inversor').value,
-            marca_inversor: document.getElementById('comiss_marca_inversor').value,
-            tipo_sistema: document.getElementById('comiss_tipo_sistema').value,
-            num_strings: document.getElementById('comiss_num_strings').value,
-            modulos_por_string: document.getElementById('comiss_modulos_por_string').value,
-            tensao_nominal: document.getElementById('comiss_tensao_nominal').value,
-            corrente_nominal: document.getElementById('comiss_corrente_nominal').value,
-            frequencia: document.getElementById('comiss_frequencia').value,
-            classe_isolamento: document.getElementById('comiss_classe_isolamento').value,
-
-            // Verificações elétricas
-            tensao_cc: document.getElementById('comiss_tensao_cc').value,
-            corrente_cc: document.getElementById('comiss_corrente_cc').value,
-            tensao_ca: document.getElementById('comiss_tensao_ca').value,
-            frequencia_rede: document.getElementById('comiss_frequencia_rede').value,
-            teste_isolamento: document.getElementById('comiss_teste_isolamento').value,
-            teste_aterramento: document.getElementById('comiss_teste_aterramento').value,
-            identificacao_polos: document.getElementById('comiss_identificacao_polos').value,
-            inversor_ligou: document.getElementById('comiss_inversor_ligou').value,
-            monitoramento_configurado: document.getElementById('comiss_monitoramento_configurado').value,
-            comunicacao_app: document.getElementById('comiss_comunicacao_app').value,
-            sistema_gerando: document.getElementById('comiss_sistema_gerando').value,
-
-            // Ensaios
-            ensaio_voc: document.getElementById('comiss_ensaio_voc').value,
-            ensaio_voc_resultado: document.getElementById('comiss_ensaio_voc_resultado').value,
-            ensaio_isc: document.getElementById('comiss_ensaio_isc').value,
-            ensaio_isc_resultado: document.getElementById('comiss_ensaio_isc_resultado').value,
-            ensaio_isolamento: document.getElementById('comiss_ensaio_isolamento').value,
-            ensaio_isolamento_resultado: document.getElementById('comiss_ensaio_isolamento_resultado').value,
-            ensaio_aterramento: document.getElementById('comiss_ensaio_aterramento').value,
-            ensaio_aterramento_resultado: document.getElementById('comiss_ensaio_aterramento_resultado').value,
-            ensaio_continuidade: document.getElementById('comiss_ensaio_continuidade').value,
-            ensaio_continuidade_resultado: document.getElementById('comiss_ensaio_continuidade_resultado').value,
-            ensaio_polaridade: document.getElementById('comiss_ensaio_polaridade').value,
-            ensaio_polaridade_resultado: document.getElementById('comiss_ensaio_polaridade_resultado').value,
-            obs_ensaios: document.getElementById('comiss_obs_ensaios').value,
-            obs_finais: document.getElementById('comiss_obs_finais').value,
-          },
-
-          // Sub-aba 3: Documentos e Anexos
-          laudo_comiss_url: document.getElementById('homologacao_laudo_comiss_url').value,
-          art_url: document.getElementById('homologacao_art_url').value,
-          obs_anexos: document.getElementById('homologacao_obs_anexos').value,
-
-          // Fotos - coletar URLs
-          fotos: (() => {
-            const fotosObj = {};
-            FOTOS_COMISSIONAMENTO.forEach(foto => {
-              const url = document.getElementById(`foto_${foto.id}_url`).value;
-              if (url) fotosObj[foto.id] = url;
-            });
-            return fotosObj;
-          })()
+            concessionaria: document.getElementById('homologacao_concessionaria').value,
+            protocolo: document.getElementById('homologacao_protocolo').value,
+            data_envio: document.getElementById('homologacao_data_envio').value,
+            data_vistoria: document.getElementById('homologacao_data_vistoria').value,
+            resultado: document.getElementById('homologacao_resultado').value,
+            medidor: document.getElementById('homologacao_medidor').value,
+            data_liberacao: document.getElementById('homologacao_data_liberacao').value,
+            laudo_url: document.getElementById('homologacao_laudo_url').value,
+            obs_homologacao: document.getElementById('homologacao_obs_homologacao').value,
+            comissionamento: {
+                status: document.getElementById('comiss_status').value,
+                data: document.getElementById('comiss_data').value,
+                responsavel: document.getElementById('comiss_responsavel').value,
+                login: document.getElementById('comiss_login').value,
+                senha: document.getElementById('comiss_senha').value,
+                plataforma: document.getElementById('comiss_plataforma').value,
+                potencia_kwp: document.getElementById('comiss_potencia_kwp').value,
+                qtd_modulos: document.getElementById('comiss_qtd_modulos').value,
+                marca_modulos: document.getElementById('comiss_marca_modulos').value,
+                potencia_inversor: document.getElementById('comiss_potencia_inversor').value,
+                marca_inversor: document.getElementById('comiss_marca_inversor').value,
+                tipo_sistema: document.getElementById('comiss_tipo_sistema').value,
+                num_strings: document.getElementById('comiss_num_strings').value,
+                modulos_por_string: document.getElementById('comiss_modulos_por_string').value,
+                tensao_nominal: document.getElementById('comiss_tensao_nominal').value,
+                corrente_nominal: document.getElementById('comiss_corrente_nominal').value,
+                frequencia: document.getElementById('comiss_frequencia').value,
+                classe_isolamento: document.getElementById('comiss_classe_isolamento').value,
+                tensao_cc: document.getElementById('comiss_tensao_cc').value,
+                corrente_cc: document.getElementById('comiss_corrente_cc').value,
+                tensao_ca: document.getElementById('comiss_tensao_ca').value,
+                frequencia_rede: document.getElementById('comiss_frequencia_rede').value,
+                teste_isolamento: document.getElementById('comiss_teste_isolamento').value,
+                teste_aterramento: document.getElementById('comiss_teste_aterramento').value,
+                identificacao_polos: document.getElementById('comiss_identificacao_polos').value,
+                inversor_ligou: document.getElementById('comiss_inversor_ligou').value,
+                monitoramento_configurado: document.getElementById('comiss_monitoramento_configurado').value,
+                comunicacao_app: document.getElementById('comiss_comunicacao_app').value,
+                sistema_gerando: document.getElementById('comiss_sistema_gerando').value,
+                ensaio_voc: document.getElementById('comiss_ensaio_voc').value,
+                ensaio_voc_resultado: document.getElementById('comiss_ensaio_voc_resultado').value,
+                ensaio_isc: document.getElementById('comiss_ensaio_isc').value,
+                ensaio_isc_resultado: document.getElementById('comiss_ensaio_isc_resultado').value,
+                ensaio_isolamento: document.getElementById('comiss_ensaio_isolamento').value,
+                ensaio_isolamento_resultado: document.getElementById('comiss_ensaio_isolamento_resultado').value,
+                ensaio_aterramento: document.getElementById('comiss_ensaio_aterramento').value,
+                ensaio_aterramento_resultado: document.getElementById('comiss_ensaio_aterramento_resultado').value,
+                ensaio_continuidade: document.getElementById('comiss_ensaio_continuidade').value,
+                ensaio_continuidade_resultado: document.getElementById('comiss_ensaio_continuidade_resultado').value,
+                ensaio_polaridade: document.getElementById('comiss_ensaio_polaridade').value,
+                ensaio_polaridade_resultado: document.getElementById('comiss_ensaio_polaridade_resultado').value,
+                obs_ensaios: document.getElementById('comiss_obs_ensaios').value,
+                obs_finais: document.getElementById('comiss_obs_finais').value,
+            },
+            laudo_comiss_url: document.getElementById('homologacao_laudo_comiss_url').value,
+            art_url: document.getElementById('homologacao_art_url').value,
+            obs_anexos: document.getElementById('homologacao_obs_anexos').value,
+            fotos: (() => {
+                const fotosObj = {};
+                FOTOS_COMISSIONAMENTO.forEach(foto => {
+                    const url = document.getElementById(`foto_${foto.id}_url`).value;
+                    if (url) fotosObj[foto.id] = url;
+                });
+                return fotosObj;
+            })()
         },
         dados_arquivado: {
-        data: document.getElementById('arquivado_data').value,
-        motivo: document.getElementById('arquivado_motivo').value,
-        obs: document.getElementById('arquivado_obs').value,
-    },
+            data: document.getElementById('arquivado_data').value,
+            motivo: document.getElementById('arquivado_motivo').value,
+            obs: document.getElementById('arquivado_obs').value,
+        },
         dados_posvenda: {
-  // Campos renomeados
-  geracao_estimada: document.getElementById('posvenda_geracao').value,
-  economia_estimada: document.getElementById('posvenda_economia').value,
-  plataforma_url: document.getElementById('posvenda_plataforma').value,
-  ultima_manutencao: document.getElementById('posvenda_ultima_manutencao').value,
-  proxima_manutencao: document.getElementById('posvenda_proxima_manutencao').value,
-  manuais_urls: document.getElementById('posvenda_manuais').value.split(',').map(s => s.trim()).filter(Boolean),
-  // Novos campos
-  status_suporte: document.getElementById('posvenda_status_suporte').value,
-  ultimo_contato: document.getElementById('posvenda_ultimo_contato').value,
-  plano_laudo: document.getElementById('posvenda_plano_laudo').value,
-  plano_inicio: document.getElementById('posvenda_plano_inicio').value,
-  plano_fim: document.getElementById('posvenda_plano_fim').value,
-  observacoes: document.getElementById('posvenda_observacoes').value,
-}
+            geracao_estimada: document.getElementById('posvenda_geracao').value,
+            economia_estimada: document.getElementById('posvenda_economia').value,
+            plataforma_url: document.getElementById('posvenda_plataforma').value,
+            ultima_manutencao: document.getElementById('posvenda_ultima_manutencao').value,
+            proxima_manutencao: document.getElementById('posvenda_proxima_manutencao').value,
+            manuais_urls: document.getElementById('posvenda_manuais').value.split(',').map(s => s.trim()).filter(Boolean),
+            status_suporte: document.getElementById('posvenda_status_suporte').value,
+            ultimo_contato: document.getElementById('posvenda_ultimo_contato').value,
+            plano_laudo: document.getElementById('posvenda_plano_laudo').value,
+            plano_inicio: document.getElementById('posvenda_plano_inicio').value,
+            plano_fim: document.getElementById('posvenda_plano_fim').value,
+            observacoes: document.getElementById('posvenda_observacoes').value,
+        }
+    };
 
-      };
-
-      try {
+    try {
         const resp = await fetch(URL_API, {
-          method: 'POST',
-          body: JSON.stringify({
-            acao: 'adminAtualizarCliente',
-            idCliente: clienteEditando.id,
-            campos: campos,
-            senhaAdmin: adminToken
-          })
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'adminAtualizarCliente',
+                idCliente: clienteEditando.id,
+                campos: campos,
+                senhaAdmin: adminToken
+            })
         });
         const resultado = await resp.json();
 
         if (resultado.success) {
-          exibirModalComAcao(
-            'Cliente atualizado com sucesso!',
-            'As alterações foram salvas permanentemente.',
-            '✅',
-            '#0b2f5c',
-            function() {
-              fecharModalEdicao();
-              carregarClientes();
-            }
-          );
+            exibirModalComAcao(
+                'Cliente atualizado com sucesso!',
+                'As alterações foram salvas permanentemente.',
+                '✅',
+                '#0b2f5c',
+                function() {
+                    fecharModalEdicao();
+                    carregarClientes();
+                }
+            );
         } else {
-          exibirModalComAcao(
-            '❌ Erro ao atualizar',
-            resultado.error || 'Erro desconhecido',
+            exibirModalComAcao(
+                '❌ Erro ao atualizar',
+                resultado.error || 'Erro desconhecido',
+                '❌',
+                '#b91c1c',
+                null
+            );
+        }
+    } catch (err) {
+        exibirModalComAcao(
+            '❌ Erro de conexão',
+            err.message,
             '❌',
             '#b91c1c',
             null
-          );
-        }
-      } catch (err) {
-        exibirModalComAcao(
-          '❌ Erro de conexão',
-          err.message,
-          '❌',
-          '#b91c1c',
-          null
         );
-      } finally {
+    } finally {
         btn.disabled = false;
         spinner.style.display = 'none';
         texto.textContent = '💾 Salvar alterações';
-      }
     }
+}
 
     // ============================================================
     // EXIBIR MODAL COM AÇÃO (substitui alert)
@@ -4675,15 +4665,35 @@ function reenviarPreProposta() {
 
 function avancarParaVisita() {
     if (!clienteEditando) return;
-    if (!confirm('Deseja avançar este cliente para a etapa de Visita Técnica?')) return;
-    // Atualiza a etapa do cliente para 'visita'
+    document.getElementById('modalAvancarVisita').classList.add('active');
+}
+
+function fecharModalAvancarVisita() {
+    document.getElementById('modalAvancarVisita').classList.remove('active');
+}
+
+function confirmarAvancarVisita() {
+    fecharModalAvancarVisita();
     clienteEditando.etapa_atual = 'visita';
     salvarCliente();
 }
 
 function arquivarCliente() {
     if (!clienteEditando) return;
-    if (!confirm('Tem certeza que deseja arquivar este cliente?')) return;
+    // Abre o modal em vez de confirm()
+    document.getElementById('modalArquivar').classList.add('active');
+}
+
+function fecharModalArquivar() {
+    document.getElementById('modalArquivar').classList.remove('active');
+}
+
+function confirmarArquivar() {
+    fecharModalArquivar();
+    // Preenche a data atual automaticamente
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    document.getElementById('arquivado_data').value = hoje;
+    // Atualiza a etapa
     clienteEditando.etapa_atual = 'arquivado';
     salvarCliente();
 }
@@ -4709,6 +4719,44 @@ function reativarCliente() {
                 Sim, sair
             </button>
             <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalLogout()" style="min-width: 100px;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+<!-- ===== MODAL DE CONFIRMAÇÃO DE ARQUIVAMENTO ===== -->
+<div class="modal-overlay" id="modalArquivar">
+    <div class="modal-edicao" style="max-width: 420px; text-align: center; padding: 2.5rem 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">📦</div>
+        <div class="titulo-modal" style="font-size: 1.4rem;">Arquivar Cliente</div>
+        <div class="subtitulo-modal" style="margin-bottom: 2rem;">
+            Tem certeza que deseja arquivar este cliente?<br>
+            <small style="color:#64748b;">Ele será movido para a etapa "Arquivado".</small>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-salvar" onclick="confirmarArquivar()" style="min-width: 100px; background: #b91c1c; color: white; border: none; padding: 0.7rem 2rem; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer;">
+                Sim, arquivar
+            </button>
+            <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalArquivar()" style="min-width: 100px;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+<!-- ===== MODAL DE CONFIRMAÇÃO PARA AVANÇAR PARA VISITA TÉCNICA ===== -->
+<div class="modal-overlay" id="modalAvancarVisita">
+    <div class="modal-edicao" style="max-width: 420px; text-align: center; padding: 2.5rem 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">▶️</div>
+        <div class="titulo-modal" style="font-size: 1.4rem;">Avançar para Visita Técnica</div>
+        <div class="subtitulo-modal" style="margin-bottom: 2rem;">
+            Deseja avançar este cliente para a etapa de Visita Técnica?<br>
+            <small style="color:#64748b;">Ele sairá da fase de Pré-proposta.</small>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-salvar" onclick="confirmarAvancarVisita()" style="min-width: 100px; background: #0b2f5c; color: white; border: none; padding: 0.7rem 2rem; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer;">
+                Sim, avançar
+            </button>
+            <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalAvancarVisita()" style="min-width: 100px;">
                 Cancelar
             </button>
         </div>
