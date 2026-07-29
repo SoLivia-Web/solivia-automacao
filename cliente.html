@@ -147,6 +147,7 @@
             cursor: pointer;
             font-size: 0.9rem;
             overflow: hidden;
+                margin-top: 0.4rem;   /* alinha com o logo */
         }
         .header-minimal .header__left .avatar:hover .avatar-overlay {
             display: flex !important;
@@ -181,6 +182,7 @@
         }
         .header-minimal .header__left .nome {
             font-weight: 600;
+            margin-top: 0.4rem;   /* alinha com o logo */
             font-size: 1rem;
             white-space: nowrap;
             color: #ffffff;
@@ -189,6 +191,7 @@
             background: rgba(255,255,255,0.15);
             border: none;
             color: white;
+            margin-top: 0.4rem;   /* alinha com o logo */
             padding: 0.2rem 0.9rem;
             border-radius: 30px;
             font-size: 0.8rem;
@@ -207,11 +210,12 @@
             margin-right: 2.8rem;
         }
         .header-minimal .header__right img {
-            height: 32px;
+            height: 42px;
             background: white;
             padding: 3px 10px;
             border-radius: 4px;
             display: block;
+                margin-top: 0.4rem;   /* ← desce apenas o logo */
         }
 
         /* ===== MOBILE MENU ===== */
@@ -260,19 +264,19 @@
             display: block;
         }
 
-        /* ===== HERO ===== */
+        /* ===== NOVAS REGRAS (SUBSTITUÍDAS) ===== */
+        /* ===== HERO COM CARD SOBREPOSTO ===== */
         .hero-cliente {
             background-image: url('assets/img/hero-cliente.jpg');
-            background-size: 100% 100%;
-            background-position: center center;
-            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center 30%;
             position: relative;
-            padding: 0;
-            margin-bottom: 2rem;
-            min-height: 500px;
+            padding: 5%;
+            margin-bottom: 0;
+            min-height: 600px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end;
         }
         .hero-cliente::after {
             content: '';
@@ -289,32 +293,27 @@
         }
         .hero-cliente .container {
             position: relative;
-            z-index: 0;
+            z-index: 2;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 0 5% 0 auto;
+            width: 100%;
+            padding: 0 1.5rem;
         }
 
-        /* ===== LOGIN ===== */
-        .login-section {
-            padding: 1rem 1.5rem 4rem;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            background: transparent;
-        }
+        /* ===== CARD DE LOGIN (estilo moderno) ===== */
         .login-card {
             background: white;
             border-radius: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             padding: 2.5rem 2rem;
             max-width: 440px;
             width: 100%;
+            margin: 0 auto;
             border: 1px solid rgba(255, 196, 0, 0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .login-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 30px 50px rgba(0,0,0,0.12);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.15);
         }
         .login-card .logo-mini {
             text-align: center;
@@ -356,6 +355,12 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
             background: #f9fbfd;
         }
+        #email_login,
+#senha_login {
+    max-width: 95% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
         .login-card .campo input:focus {
             outline: none;
             border-color: #ffc400;
@@ -435,7 +440,7 @@
             max-width: 1400px !important;
             margin: 0 auto !important;
             flex: 1 !important;
-            padding: 4.9rem 2rem 6rem !important;   /* ← AUMENTEI O TOPO DE 2rem PARA 2.5rem */
+            padding: 4.9rem 2rem 0.00001rem !important;   /* ← AUMENTEI O TOPO DE 2rem PARA 2.5rem */
             min-height: 85vh !important;
             animation: fadeSlide 0.5s ease !important;
         }
@@ -458,12 +463,13 @@
         }
 
         .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            transition: opacity 0.3s ease;
-        }
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    margin-top: 6.5rem;   /* ← ADICIONE ESTA LINHA */
+    transition: opacity 0.3s ease;
+}
         .cards-grid.oculto {
             display: none;
         }
@@ -1478,6 +1484,7 @@
     width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
+   margin-top: -40px !important;   /* ← sobe o rodapé */
 }
         .footer-minimal a {
             color: #ffc400;
@@ -1772,35 +1779,41 @@
 
     <!-- ==================== CONTEÚDO PÚBLICO ==================== -->
     <div class="view-public">
+        <!-- ===== NOVO BLOCO INTEGRADO (HERO + CARD DE LOGIN) ===== -->
         <section class="hero-cliente">
-            <div class="container"></div>
-        </section>
-        <section class="login-section">
-            <div class="login-card">
-                <div class="logo-mini">
-                    <img src="assets/img/logo.png" alt="SoLivia" style="height: 45px;">
-                </div>
-                <h2>Acesse sua conta</h2>
-                <p class="subtitulo">Insira seus dados para visualizar seu painel</p>
-                <form id="formLogin" onsubmit="event.preventDefault(); handleLogin();">
+            <div class="container">
+                <div class="login-card">
+                    <div class="logo-mini">
+                    </div>
+                    <h2>Bem-vindo</h2>
+                    <p class="subtitulo">Acesse sua área exclusiva para acompanhar seu projeto.</p>
+
+                    <!-- CAMPOS COM IDs ORIGINAIS -->
                     <div class="campo">
-                        <label for="email_login">E-mail</label>
-                        <input type="email" id="email_login" placeholder="seu@email.com" autocomplete="email" required>
+                        <label>E-mail</label>
+                        <input type="email" id="email_login" placeholder="seu@email.com" autocomplete="email" required />
                     </div>
                     <div class="campo">
-                        <label for="senha_login">Senha</label>
-                        <input type="password" id="senha_login" placeholder="••••••••" autocomplete="current-password" required>
+                        <label>Senha</label>
+                        <input type="password" id="senha_login" placeholder="••••••••" autocomplete="current-password" required />
                     </div>
+
                     <div id="loginErro" class="login-erro">E-mail ou senha inválidos.</div>
-                    <button type="submit" class="btn-entrar">Entrar</button>
-                </form>
-                <div class="links-rodape">
-                    <a id="esqueciSenha">Esqueceu a senha?</a>
-                    <a id="solicitarAcesso">Ainda não tem cadastro? Solicite acesso</a>
-                </div>
-                <div class="selo-seguranca">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                    <span>Dados protegidos com criptografia SSL</span>
+
+                    <!-- BOTÃO COM A FUNÇÃO ORIGINAL (handleLogin) -->
+                    <button class="btn-entrar" id="btnEntrar" onclick="handleLogin()">Entrar</button>
+
+                    <div class="links-rodape">
+                        <a id="esqueciSenha">Esqueceu a senha?</a>
+                        <a id="solicitarAcesso">Ainda não tem cadastro? Solicite acesso</a>
+                    </div>
+
+                    <div class="selo-seguranca">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <span>Dados protegidos com criptografia SSL</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1895,8 +1908,16 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div>   <!-- FECHA O dashboard-container -->
+
+        <!-- ==================== FOOTER MINIMALISTA (AGORA DENTRO DA view-logged) ==================== -->
+        <footer class="footer-minimal">
+            <span class="footer-text">
+                &copy; 2026 SoLivia Engenharia – Todos os direitos reservados | <a href="#">Política de Privacidade</a>
+            </span>
+        </footer>
+
+    </div>   <!-- FECHA O view-logged -->
 
     <!-- ==================== FOOTER PÚBLICO ==================== -->
     <footer class="footer-publico view-public">
@@ -1937,13 +1958,6 @@
                 <a href="https://solivia.com.br/termos-solivia/instalacao.html#10" class="footer__privacy">Política de Privacidade</a>
             </div>
         </div>
-    </footer>
-
-    <!-- ==================== FOOTER MINIMALISTA ==================== -->
-    <footer class="footer-minimal view-logged">
-        <span class="footer-text">
-            &copy; 2026 SoLivia Engenharia – Todos os direitos reservados | <a href="#">Política de Privacidade</a>
-        </span>
     </footer>
 
     <!-- ==================== WHATSAPP FLUTUANTE ==================== -->
@@ -2094,37 +2108,60 @@
         // FUNÇÃO: CARREGAR DADOS DO CLIENTE
         // ============================================================
         async function carregarDadosCliente(token) {
-            try {
-                const resp = await fetch(URL_SCRIPT, {
-                    method: 'POST',
-                    body: JSON.stringify({ acao: 'buscarDadosCliente', token })
-                });
-                const resultado = await resp.json();
+    try {
+        const resp = await fetch(URL_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({ acao: 'buscarDadosCliente', token })
+        });
+        const resultado = await resp.json();
 
-                if (resultado.success) {
-                    App.cliente = resultado.cliente;
-                    App.autenticado = true;
-                    App.token = token;
-                    const mapaEtapa = { visita: 1, documentos: 2, instalacao: 3, homologacao: 4, posvenda: 5 };
-                    App.etapaAtual = mapaEtapa[App.cliente.etapa_atual] || 1;
-                    document.documentElement.classList.add('is-logged-in');
-                    render();
-                } else {
-                    AuthService.removeToken();
-                    App.autenticado = false;
-                    document.documentElement.classList.remove('is-logged-in');
-                    render();
-                    alert('Sessão expirada. Faça login novamente.');
+        if (resultado.success) {
+            App.cliente = resultado.cliente;
+            App.autenticado = true;
+            App.token = token;
+
+            // ===== BUSCA DADOS COMPLETOS (COM PRÉ-PROPOSTA E ARQUIVADO) =====
+            try {
+                const respCompleta = await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        acao: 'adminObterCliente',
+                        idCliente: App.cliente.id,
+                        senhaAdmin: 'SoLiVi@64253798@'
+                    })
+                });
+                const resultadoCompleto = await respCompleta.json();
+                if (resultadoCompleto.success) {
+                    // Mescla os dados completos no cliente
+                    App.cliente = {
+                        ...App.cliente,
+                        ...resultadoCompleto.cliente
+                    };
                 }
             } catch (err) {
-                console.error('❌ Erro ao carregar dados:', err);
-                AuthService.removeToken();
-                App.autenticado = false;
-                document.documentElement.classList.remove('is-logged-in');
-                render();
-                alert('Erro de conexão. Tente novamente.');
+                console.warn('Erro ao buscar dados completos:', err);
             }
+
+            const mapaEtapa = { visita: 1, documentos: 2, instalacao: 3, homologacao: 4, posvenda: 5 };
+            App.etapaAtual = mapaEtapa[App.cliente.etapa_atual] || 1;
+            document.documentElement.classList.add('is-logged-in');
+            render();
+        } else {
+            AuthService.removeToken();
+            App.autenticado = false;
+            document.documentElement.classList.remove('is-logged-in');
+            render();
+            alert('Sessão expirada. Faça login novamente.');
         }
+    } catch (err) {
+        console.error('❌ Erro ao carregar dados:', err);
+        AuthService.removeToken();
+        App.autenticado = false;
+        document.documentElement.classList.remove('is-logged-in');
+        render();
+        alert('Erro de conexão. Tente novamente.');
+    }
+}
 
         // ============================================================
         // FUNÇÃO: RENDER
@@ -2280,6 +2317,8 @@
             const cliente = App.cliente;
             const etapaAtual = App.etapaAtual;
 
+            
+
             const v = cliente.dados_visita || {};
             const d = cliente.documentos || {};
             const i = cliente.dados_instalacao || {};
@@ -2328,7 +2367,10 @@
                 const idx = index + 1;
                 const card = document.createElement('div');
                 card.className = 'card';
-                if (idx > etapaAtual) card.classList.add('bloqueado');
+                // Bloqueia se a etapa for maior que a atual OU se o cliente estiver arquivado
+if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
+    card.classList.add('bloqueado');
+}
                 card.dataset.tipo = etapa.id;
                 card.dataset.step = idx;
                 card.onclick = function() {
@@ -2369,6 +2411,32 @@
                     </div>
                 `;
                 grid.appendChild(card);
+                    // ===== CLIENTE ARQUIVADO - MENSAGEM ABAIXO DOS CARDS =====
+    if (App.cliente && App.cliente.etapa_atual === 'arquivado') {
+        // Remove mensagem anterior se existir (evita duplicação)
+        const msgAntiga = document.getElementById('mensagemArquivado');
+        if (msgAntiga) msgAntiga.remove();
+
+        const msgDiv = document.createElement('div');
+        msgDiv.id = 'mensagemArquivado';
+        msgDiv.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 2rem; margin-top: 1.5rem; background: #fef2f2; border-radius: 1.5rem; border: 2px solid #fca5a5;';
+        msgDiv.innerHTML = `
+            <h2 style="color: #0b2f5c; font-size: 1.3rem; margin-bottom: 0.5rem;">Projeto encerrado</h2>
+            <p style="color: #5c7a6c; max-width: 500px; margin: 0 auto 1.2rem;">
+                Seu projeto foi arquivado. Para reativá-lo e dar continuidade ao processo, entre em contato conosco pelo WhatsApp.
+            </p>
+            <a href="https://wa.me/5511916866075?text=Olá! Gostaria de reativar meu projeto solar." 
+               target="_blank" 
+               class="botao-acao" 
+               style="display: inline-block; background: #ffc400; color: #0b2f5c; padding: 0.75rem 2rem; border-radius: 50px; font-weight: 700; text-decoration: none;">
+                💬 Reativar projeto
+            </a>
+        `;
+        
+        // Adiciona após o grid
+        const grid = document.getElementById('cardsGrid');
+        grid.parentNode.appendChild(msgDiv);
+    }
             });
 
             // Pós-Venda
@@ -2463,20 +2531,33 @@
         }
 
         function renderTimeline(items) {
-            return `
-                <div class="timeline-modern">
-                    ${items.map(item => `
-                        <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''}">
+    return `
+        <div class="timeline-modern">
+            ${items.map(item => {
+                if (item.clickable && item.url) {
+                    return `
+                        <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''} timeline-clickable" onclick="baixarRelatorio('${item.url}')">
                             <div class="timeline-modern__dot"></div>
                             <div class="timeline-modern__content">
-                                <strong>${item.title}</strong>
-                                <span>${item.description || 'Sem atualização'}</span>
+                                <strong style="color: #0b2f5c; text-decoration: underline;">${item.title}</strong>
+                                <span style="color: #0b2f5c; text-decoration: underline;">${item.description || 'Clique para baixar'}</span>
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            `;
-        }
+                    `;
+                }
+                return `
+                    <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''}">
+                        <div class="timeline-modern__dot"></div>
+                        <div class="timeline-modern__content">
+                            <strong>${item.title}</strong>
+                            <span>${item.description || 'Sem atualização'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
 
         function renderChecklist(items = {}) {
             const entries = Object.entries(items || {});
@@ -2534,7 +2615,7 @@
         // ============================================================
         // FUNÇÃO: MOSTRAR DETALHES (NOVA VERSÃO)
         // ============================================================
-        function mostrarDetalhes(tipo) {
+        async function mostrarDetalhes(tipo) {
             console.log('🖱️ Clicou em:', tipo);
 
             const card = document.querySelector(`[data-tipo="${tipo}"]`);
@@ -2576,38 +2657,43 @@
 
             switch (tipo) {
                 case 'visita': {
-                    heroStatus = v.resultado || (v.data_agendada ? 'Em andamento' : 'Pendente');
-                    heroMeta = [
-                        renderMetric('📅', 'Agendamento', formatDate(v.data_agendada), v.data_agendada ? 'Data prevista da visita' : 'Aguardando definição'),
-                        renderMetric('🧑‍🔧', 'Responsável', safeValue(v.engenheiro), 'Técnico responsável'),
-                        renderMetric('📍', 'Endereço', safeValue(cliente.endereco, 'Endereço não informado')),
-                        renderMetric('✅', 'Resultado', renderBadge(v.resultado || 'Pendente'), v.resultado ? 'Status final da análise' : 'Ainda sem conclusão')
-                    ].join('');
+    const v = cliente.dados_visita || {};
+    const pp = cliente.dados_preproposta || {};
 
-                    sections = [
-                        renderSection(
-                            'Linha do tempo da visita',
-                            'Resumo rápido da etapa',
-                            renderTimeline([
-                                { title: 'Visita agendada', description: v.data_agendada ? formatDate(v.data_agendada) : 'Aguardando agendamento', state: v.data_agendada ? 'done' : 'pending' },
-                                { title: 'Visita realizada', description: v.data_realizacao ? formatDate(v.data_realizacao) : 'Ainda não realizada', state: v.data_realizacao ? 'done' : 'pending' },
-                                { title: 'Aprovação', description: v.assinatura_data ? formatDate(v.assinatura_data) : 'Pendente', state: v.assinatura_data ? 'done' : 'pending' }
-                            ])
-                        ),
-                        renderSection(
-                            'Checklist técnico',
-                            'Itens verificados durante a vistoria',
-                            renderChecklist(v.checklist)
-                        ),
-                        renderSection(
-                            'Observações da equipe',
-                            'Anotações relevantes para o andamento do projeto',
-                            `<div class="note-box-modern">${safeValue(v.observacoes, 'Nenhuma observação registrada até o momento.')}</div>`,
-                            v.relatorio_url ? `<button class="botao-acao" onclick="baixarRelatorio('${v.relatorio_url}')" style="background:#0b2f5c; color:white; border:none; padding:0.6rem 1.8rem; border-radius:50px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-top:0.5rem; margin-right:0.5rem;">📄 Baixar relatório</button>` : ''
-                        )
-                    ].join('');
-                    break;
-                }
+    heroStatus = v.resultado || (v.data_agendada ? 'Em andamento' : 'Pendente');
+    heroMeta = [
+        renderMetric('📅', 'Agendamento', formatDate(v.data_agendada), v.data_agendada ? 'Data prevista da visita' : 'Aguardando definição'),
+        renderMetric('🧑‍🔧', 'Responsável', safeValue(v.engenheiro), 'Técnico responsável'),
+        renderMetric('📍', 'Endereço', safeValue(cliente.endereco, 'Endereço não informado')),
+        renderMetric('✅', 'Resultado', renderBadge(v.resultado || 'Pendente'), v.resultado ? 'Status final da análise' : 'Ainda sem conclusão')
+    ].join('');
+
+    // ===== CONSTRÓI A TIMELINE COM PRÉ-PROPOSTA =====
+    const timelineItems = [];
+    if (pp.url && pp.url.trim() !== '') {
+        timelineItems.push({
+            title: '📄 Pré-proposta',
+            description: 'Clique para baixar o PDF',
+            state: 'done',
+            clickable: true,
+            url: pp.url.trim()
+        });
+    }
+    timelineItems.push(
+        { title: 'Visita agendada', description: v.data_agendada ? formatDate(v.data_agendada) : 'Aguardando agendamento', state: v.data_agendada ? 'done' : 'pending' },
+        { title: 'Visita realizada', description: v.data_realizacao ? formatDate(v.data_realizacao) : 'Ainda não realizada', state: v.data_realizacao ? 'done' : 'pending' },
+        { title: 'Aprovação', description: v.assinatura_data ? formatDate(v.assinatura_data) : 'Pendente', state: v.assinatura_data ? 'done' : 'pending' }
+    );
+
+    const timelineHtml = renderTimeline(timelineItems);
+
+    sections = [
+        renderSection('Linha do tempo da visita', 'Resumo rápido da etapa', timelineHtml),
+        renderSection('Checklist técnico', 'Itens verificados durante a vistoria', renderChecklist(v.checklist)),
+        renderSection('Observações da equipe', 'Anotações relevantes para o andamento do projeto', `<div class="note-box-modern">${safeValue(v.observacoes, 'Nenhuma observação registrada até o momento.')}</div>`, v.relatorio_url ? `<button class="botao-acao" onclick="baixarRelatorio('${v.relatorio_url}')" style="background:#0b2f5c; color:white; border:none; padding:0.6rem 1.8rem; border-radius:50px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-top:0.5rem; margin-right:0.5rem;">📄 Baixar relatório</button>` : '')
+    ].join('');
+    break;
+}
 
                 case 'documentos': {
                     const todosTipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
@@ -3390,6 +3476,17 @@ renderSection(
         }
         @media (min-width: 769px) { #avatar-livia { width: 85px !important; height: 85px !important; bottom: 35px !important; } }
         @media (max-width: 768px) { #avatar-livia { border-width: 2px !important; } }
+        /* ===== ITEM CLICÁVEL DA TIMELINE (PARECER HIPERLINK) ===== */
+.timeline-clickable {
+    cursor: pointer !important;
+    color: #0b2f5c !important;
+    text-decoration: underline !important;
+    transition: color 0.2s ease;
+}
+.timeline-clickable:hover {
+    color: #ffc400 !important;
+    text-decoration: underline !important;
+}
     </style>
     <button id="avatar-livia" onclick="alternarChat(event)">
         <img src="assets/img/avatar-livia.png" alt="LivIA" onerror="this.style.display='none'; document.getElementById('avatar-fallback').style.display='flex';">
