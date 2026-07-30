@@ -178,7 +178,7 @@
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            100% { transform: rotate(-360deg); }
         }
         .header-minimal .header__left .nome {
             font-weight: 600;
@@ -1705,6 +1705,11 @@
         }
         @media (min-width: 769px) { #avatar-livia { width: 85px !important; height: 85px !important; bottom: 35px !important; } }
         @media (max-width: 768px) { #avatar-livia { border-width: 2px !important; } }
+        button:disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+    }
     </style>
 
     <!-- =========================================================
@@ -2333,19 +2338,32 @@
                     resumo: v.data_realizacao ? 'Visita realizada em ' + new Date(v.data_realizacao).toLocaleDateString('pt-BR') : (v.data_agendada ? 'Agendada para ' + new Date(v.data_agendada).toLocaleDateString('pt-BR') : 'Aguardando agendamento')
                 },
                 {
-                    id: 'documentos',
-                    titulo: 'Documentos',
-                    status: (() => {
-                        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
-                        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
-                        return enviados === tipos.length ? 'Concluído' : (enviados > 0 ? 'Em andamento' : 'Pendente');
-                    })(),
-                    resumo: (() => {
-                        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
-                        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
-                        return `${enviados} de ${tipos.length} documentos enviados`;
-                    })()
-                },
+    id: 'documentos',
+    titulo: 'Documentos',
+    status: (() => {
+        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
+        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
+        const contratoAssinado = d.contrato && d.contrato.status === 'assinado';
+
+        if (contratoAssinado) {
+            return 'Concluído';
+        } else if (enviados === tipos.length) {
+            return 'Aguardando assinatura';
+        } else if (enviados > 0) {
+            return 'Em andamento';
+        } else {
+            return 'Pendente';
+        }
+    })(),
+    resumo: (() => {
+        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
+        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
+        const contratoAssinado = d.contrato && d.contrato.status === 'assinado';
+        if (contratoAssinado) return 'Contrato assinado e documentos completos';
+        if (enviados === tipos.length) return 'Documentos validados, aguardando assinatura';
+        return `${enviados} de ${tipos.length} documentos enviados`;
+    })()
+},
                 {
                     id: 'instalacao',
                     titulo: 'Instalação',
@@ -2453,12 +2471,27 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
         // ============================================================
         // HELPERS PARA RENDERIZAÇÃO DOS DETALHES
         // ============================================================
-        function formatDate(value) {
-            if (!value) return 'Não informado';
-            const d = new Date(value);
-            if (Number.isNaN(d.getTime())) return 'Não informado';
-            return d.toLocaleDateString('pt-BR');
+       function formatDate(value) {
+    if (!value) return 'Não informado';
+    
+    // Se já estiver no formato DD/MM/AAAA, converte para YYYY-MM-DD
+    if (value.includes('/')) {
+        const partes = value.split('/');
+        if (partes.length === 3) {
+            const dia = partes[0].padStart(2, '0');
+            const mes = partes[1].padStart(2, '0');
+            const ano = partes[2];
+            const data = new Date(`${ano}-${mes}-${dia}`);
+            if (!isNaN(data)) {
+                return data.toLocaleDateString('pt-BR');
+            }
         }
+    }
+    
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return 'Não informado';
+    return d.toLocaleDateString('pt-BR');
+}
 
         function safeValue(value, fallback = 'Não informado') {
             if (value === null || value === undefined || value === '') return fallback;
@@ -2604,10 +2637,12 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
                         </div>
                     </div>
                     <div class="doc-card-modern__side">
-                        ${renderBadge(status)}
-                        ${isDone && url ? `<a href="${url}" target="_blank" class="text-link-modern">Visualizar</a>` : ''}
-                        ${!isDone ? `<button onclick="uploadDocumento('${tipoDoc}')" style="background:#0b2f5c; color:white; border:none; padding:0.5rem 1.2rem; border-radius:50px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition:background 0.2s;">📄 Enviar arquivo</button>` : ''}
-                    </div>
+    ${status === 'Recebido' 
+        ? `<span class="ui-badge ui-badge--info">Recebido</span>` 
+        : renderBadge(status)}
+    ${isDone && url ? `<a href="${url}" target="_blank" class="text-link-modern">Visualizar</a>` : ''}
+    ${!isDone ? `<button class="btn-upload" onclick="uploadDocumento('${tipoDoc}')" style="background:#0b2f5c; color:white; border:none; padding:0.5rem 1.2rem; border-radius:50px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition:background 0.2s;">📄 Enviar arquivo</button>` : ''}
+</div>
                 </div>
             `;
         }
@@ -2711,10 +2746,21 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
                         renda: 'Comprovante de renda'
                     };
 
-                    const enviados = tipos.filter(t => d[t] && ['recebido', 'validado'].includes(String(d[t].status || '').toLowerCase())).length;
+                    const enviados = tipos.filter(t => d[t] && String(d[t].status || '').toLowerCase() === 'validado').length;
                     const progresso = Math.round((enviados / tipos.length) * 100);
 
-                    heroStatus = enviados === tipos.length ? 'Concluído' : (enviados > 0 ? 'Em andamento' : 'Pendente');
+                    // ===== STATUS DO HERO (CONSIDERANDO CONTRATO) =====
+const contratoAssinado = contrato && contrato.status === 'assinado';
+
+if (contratoAssinado) {
+    heroStatus = 'Concluído';
+} else if (enviados === tipos.length) {
+    heroStatus = 'Aguardando assinatura';
+} else if (enviados > 0) {
+    heroStatus = 'Em andamento';
+} else {
+    heroStatus = 'Pendente';
+}
                     heroMeta = [
                         renderMetric('📦', 'Documentos enviados', `${enviados} de ${tipos.length}`, 'Progresso do envio'),
                         renderMetric('📈', 'Conclusão', `${progresso}%`, 'Percentual concluído'),
@@ -2750,7 +2796,7 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
                             `
                                 <div class="progress-card-modern">
                                     <div class="progress-card-modern__top">
-                                        <strong>${enviados} de ${tipos.length} documentos recebidos</strong>
+                                        <strong>${enviados} de ${tipos.length} documentos validados</strong>
                                         <span>${progresso}% concluído</span>
                                     </div>
                                     <div class="progress-bar-modern"><span style="width:${progresso}%"></span></div>
@@ -2758,10 +2804,51 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
                                 <div class="doc-grid-modern">${docsHtml}</div>
                                 <input type="file" id="uploadInput" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" />
                             `,
-                            `<button style="background:#0b2f5c; color:white; border:none; padding:0.5rem 1.2rem; border-radius:50px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition:background 0.2s;" onclick="alert('📦 Função de download em desenvolvimento.')">📦 Baixar todos</button>`
+                            `<button id="btnBaixarTodos" onclick="baixarTodosDocumentos()" style="
+    background: #0b2f5c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s;
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+">📦 Baixar todos</button>`
                         ),
                         renderSection('Contrato', 'Documento comercial e assinatura eletrônica', contractHtml)
                     ].join('');
+                    // ===== ATUALIZA O ESTADO DO BOTÃO "BAIXAR TODOS" =====
+    setTimeout(function() {
+        const btnBaixarTodos = document.getElementById('btnBaixarTodos');
+        if (btnBaixarTodos) {
+            const cliente = App.cliente;
+            const documentos = cliente.documentos || {};
+            const tipos = ['rg', 'cpf', 'comprovante', 'fatura']; // documentos obrigatórios
+            const todosEnviados = tipos.every(tipo => {
+    const doc = documentos[tipo];
+    return doc && doc.url && doc.status === 'Validado';
+});
+
+            if (todosEnviados) {
+                btnBaixarTodos.style.opacity = '1';
+                btnBaixarTodos.style.cursor = 'pointer';
+                btnBaixarTodos.style.pointerEvents = 'auto';
+                btnBaixarTodos.title = 'Baixar todos os documentos';
+            } else {
+                btnBaixarTodos.style.opacity = '0.5';
+                btnBaixarTodos.style.cursor = 'not-allowed';
+                btnBaixarTodos.style.pointerEvents = 'none';
+                btnBaixarTodos.title = 'Aguardando todos os documentos';
+            }
+        }
+    }, 100); // pequeno delay para garantir que o DOM foi renderizado
                     break;
                 }
 
@@ -3043,7 +3130,43 @@ renderSection(
                 iniciarGatilhoPlanos();
             }
         }
+// ===== BAIXAR TODOS OS DOCUMENTOS =====
+function baixarTodosDocumentos() {
+    const cliente = App.cliente;
+    const documentos = cliente.documentos || {};
+    const tipos = ['rg', 'cpf', 'comprovante', 'fatura'];
+    const labels = {
+        rg: 'RG_CNH',
+        cpf: 'CPF',
+        comprovante: 'Comprovante_Residencia',
+        fatura: 'Ultima_Fatura',
+        renda: 'Comprovante_Renda'
+    };
 
+    let urls = [];
+    tipos.forEach(tipo => {
+        const doc = documentos[tipo];
+        if (doc && doc.url && (doc.status === 'Recebido' || doc.status === 'Validado')) {
+            urls.push({ url: doc.url, nome: labels[tipo] });
+        }
+    });
+
+    if (urls.length === 0) {
+        alert('Nenhum documento disponível para baixar.');
+        return;
+    }
+
+    // Baixa cada documento em uma nova aba (ou usa fetch para download direto)
+    urls.forEach(item => {
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.target = '_blank';
+        link.download = `${item.nome}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+}
         // ============================================================
         // FUNÇÃO: BAIXAR RELATÓRIO (DOWNLOAD DIRETO)
         // ============================================================
@@ -3108,86 +3231,120 @@ renderSection(
         // ============================================================
         // FUNÇÃO: UPLOAD DE DOCUMENTO
         // ============================================================
-        function uploadDocumento(tipoDoc) {
-            if (!App.token) {
-                alert('Sessão expirada. Faça login novamente.');
-                return;
-            }
+        let uploadEmAndamento = false;
 
-            const input = document.getElementById('uploadInput');
-            if (!input) {
-                alert('Erro: input de upload não encontrado.');
-                return;
-            }
+function uploadDocumento(tipoDoc) {
+    if (uploadEmAndamento) {
+    exibirModalAviso('⏳ Aguarde', 'Já há um documento sendo enviado. Aguarde a conclusão para enviar outro.');
+    return;
+}
 
-            // Reset o input para permitir o mesmo arquivo novamente
-            input.value = '';
+    if (!App.token) {
+        alert('Sessão expirada. Faça login novamente.');
+        return;
+    }
 
-            // Remove qualquer listener anterior para evitar múltiplos disparos
-            input.onchange = null;
+    const input = document.getElementById('uploadInput');
+    if (!input) {
+        alert('Erro: input de upload não encontrado.');
+        return;
+    }
 
-            // Define o listener para o evento change
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                console.log('📎 Arquivo selecionado:', file ? file.name : 'nenhum');
-                if (!file) return;
+    input.value = '';
+    input.onchange = null;
 
-                // Chama a função de envio
-                enviarUpload(file, tipoDoc);
-            };
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        // Só agora inicia o upload, com o botão específico
+        enviarUpload(file, tipoDoc);
+    };
 
-            // Abre o seletor de arquivos
-            input.click();
-        }
+    input.click();
+}
+function exibirModalAviso(titulo, mensagem) {
+    const modal = document.getElementById('modalAvisoCustom');
+    if (!modal) {
+        // Fallback: se o modal não existir, usa alert (mas não vai acontecer)
+        alert(titulo + '\n' + mensagem);
+        return;
+    }
+    document.getElementById('modalAvisoTitulo').textContent = titulo;
+    document.getElementById('modalAvisoMensagem').textContent = mensagem;
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+}
 
+function fecharModalAviso() {
+    const modal = document.getElementById('modalAvisoCustom');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+}
+
+// Adiciona evento ao botão (com verificação de existência)
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('modalAvisoBtn');
+    if (btn) {
+        btn.addEventListener('click', fecharModalAviso);
+    }
+    const modal = document.getElementById('modalAvisoCustom');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) fecharModalAviso();
+        });
+    }
+});
         // ============================================================
         // FUNÇÃO: ENVIAR UPLOAD (chamada pelo uploadDocumento)
         // ============================================================
         async function enviarUpload(file, tipoDoc) {
-            if (!App.token) {
-                alert('Sessão expirada. Faça login novamente.');
-                return;
-            }
+    const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; vertical-align: middle; margin-right: 6px;">
+                <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="white"/>
+            </svg>
+            Enviando...
+        `;
+    }
+    uploadEmAndamento = true;
 
-            const btn = document.querySelector(`button[onclick="uploadDocumento('${tipoDoc}')"]`);
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = '⏳ Enviando...';
-            }
+    try {
+        const base64 = await fileParaBase64(file);
+        const resp = await fetch(URL_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'uploadDocumento',
+                token: App.token,
+                nomeArquivo: file.name,
+                base64: base64,
+                tipoDoc: tipoDoc
+            })
+        });
+        const resultado = await resp.json();
 
-            try {
-                const base64 = await fileParaBase64(file);
-                const resp = await fetch(URL_SCRIPT, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        acao: 'uploadDocumento',
-                        token: App.token,
-                        nomeArquivo: file.name,
-                        base64: base64,
-                        tipoDoc: tipoDoc
-                    })
-                });
-                const resultado = await resp.json();
-                
-                if (resultado.success) {
-                    alert('✅ Documento enviado com sucesso!');
-                    await carregarDadosCliente(App.token);
-                    fecharDetalhes();
-                    mostrarDetalhes('documentos');
-                } else {
-                    alert('❌ Erro ao enviar: ' + (resultado.error || 'Erro desconhecido.'));
-                }
-            } catch (err) {
-                alert('❌ Erro de rede: ' + err.message);
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Enviar arquivo';
-                }
-                const input = document.getElementById('uploadInput');
-                if (input) input.value = '';
-            }
+        if (resultado.success) {
+            await carregarDadosCliente(App.token);
+            fecharDetalhes();
+            mostrarDetalhes('documentos');
+        } else {
+            alert('❌ Erro no envio: ' + (resultado.error || 'Erro desconhecido.'));
         }
+    } catch (err) {
+        alert('❌ Erro de rede: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '📄 Enviar arquivo';
+        }
+        uploadEmAndamento = false;
+        const input = document.getElementById('uploadInput');
+        if (input) input.value = '';
+    }
+}
 
         // ============================================================
         // FUNÇÃO: FILE PARA BASE64
@@ -3690,6 +3847,13 @@ renderSection(
         iniciar();
     })();
     </script>
-
+<!-- ===== MODAL DE AVISO CUSTOMIZADO (BLOQUEIO DE MÚLTIPLOS UPLOADS) ===== -->
+<div class="modal-aviso" id="modalAvisoCustom" style="display: none;">
+    <div class="conteudo">
+        <h3 id="modalAvisoTitulo">⏳ Aguarde</h3>
+        <p id="modalAvisoMensagem">Já há um documento sendo enviado. Aguarde a conclusão para enviar outro.</p>
+        <button class="btn-modal" id="modalAvisoBtn">OK</button>
+    </div>
+</div>
 </body>
 </html>
