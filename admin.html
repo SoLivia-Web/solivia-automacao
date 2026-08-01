@@ -1181,10 +1181,12 @@ body.admin-logged .hero-admin {
           </div>
 
           <!-- Botões finais (mantidos) -->
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:1rem;">
-            <button class="btn-acao-aba" onclick="gerarPropostaFinal()">📄 Gerar Proposta Final</button>
-            <button class="btn-acao-aba btn-acao-aba--secundario" onclick="gerarContratoCliente()">📜 Gerar Contrato</button>
-                      </div>
+          <!-- Botões principais (visíveis antes de gerar contrato) -->
+<div id="divBotoesGeracao" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:1rem;">
+        <button id="btnGerarPropostaFinal" class="btn-acao-aba" onclick="gerarPropostaFinal()">📄 Gerar Proposta Final</button>
+    <button id="btnGerarContrato" class="btn-acao-aba btn-acao-aba--secundario" onclick="gerarContratoCliente()">📜 Gerar Contrato</button>
+</div>
+
         </div>
 
         <!-- ===== ABA INSTALAÇÃO (NOVA VERSÃO) ===== -->
@@ -1841,7 +1843,7 @@ body.admin-logged .hero-admin {
   <div class="modal-overlay" id="modalCalculadora">
     <div class="modal-calculadora">
       <button class="fechar" onclick="fecharCalculadora()">&times;</button>
-      <iframe id="iframeCalculadora" src="orcamento-solar.html"></iframe>
+      <iframe id="iframeCalculadora" src="https://solivia.com.br/orcamento-solar.html"></iframe>
     </div>
   </div>
 
@@ -2026,6 +2028,8 @@ body.admin-logged .hero-admin {
           <div class="campo"><label>Geração original *</label><input type="number" step="0.1" id="vtFTGeracaoOriginal" /></div>
 <div class="campo"><label>Geração otimizada *</label><input type="number" step="0.1" id="vtFTGeracaoOtimizada" /></div>
           <div class="campo"><label>Módulos *</label><input type="number" id="vtQtdModulosFT" /></div>
+          <div class="campo"><label>Investimento estimado (R$) *</label><input type="number" step="0.01" id="vtInvestimentoFT" />
+</div>
           <div class="campo"><label>Potência inversor *</label><input type="text" id="vtPotenciaInversorFT" placeholder="Ex: 5 kW" /></div>
           <div class="campo full"><label>Local inversor *</label><input type="text" id="vtLocalInversorFT" /></div>
           <div class="campo full"><label>Observações</label><textarea rows="2" id="vtObservacoesFT"></textarea></div>
@@ -2215,6 +2219,7 @@ body.admin-logged .hero-admin {
     let adminToken = null;
     let clientes = [];
     let clienteEditando = null;
+    let contratoGerado = false;  // controla se o contrato já foi gerado
     let filtroEtapaAtual = 'todos';
 
     // ============================================================
@@ -2284,7 +2289,14 @@ function mascaraCPF(input) {
         alert('Nenhum relatório disponível para visualizar.');
       }
     }
-
+function atualizarBotoesContrato() {
+    const divGeracao = document.getElementById('divBotoesGeracao');
+    if (contratoGerado) {
+        divGeracao.style.display = 'none';
+    } else {
+        divGeracao.style.display = 'flex';
+    }
+}
     // ============================================================
     // MÁSCARAS PARA DATA, TELEFONE E CEP
     // ============================================================
@@ -2852,6 +2864,10 @@ document.getElementById('preproposta_url').value = pp.url || '';
 
       // --- Documentos (novo formato) ---
       const d = cliente.documentos || {};
+      const contrato = d.contrato || {};
+      contratoGerado = !!contrato.document_id && contrato.status !== 'assinado';
+      atualizarBotoesContrato();
+      
 
       function preencherDoc(prefixo, dadosDoc) {
         const statusEl = document.getElementById(`doc_${prefixo}_status`);
@@ -3282,7 +3298,48 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
   
 let novaEtapa = clienteEditando.etapa_atual;
 
+// ===== VERIFICAÇÃO PARA AVANÇAR PARA HOMOLOGAÇÃO =====
+if (novaEtapa === 'instalacao') {
+    // Pega os dados atuais da instalação (campos do formulário)
+    const statusCompra = document.getElementById('instalacao_status_compra').value;
+    const dataEntregaEfetiva = document.getElementById('instalacao_data_entrega_efetiva').value;
+    const dataAgendada = document.getElementById('instalacao_data_agendada').value;
+    const horario = document.getElementById('instalacao_horario').value;
+    const statusInstalacao = document.getElementById('instalacao_status').value;
+    const dataConclusao = document.getElementById('instalacao_data_conclusao').value;
 
+    // Verifica cronograma
+    const cronoMontagem = document.getElementById('crono_montagem').checked ? 'Concluído' : 'Pendente';
+    const cronoCabos = document.getElementById('crono_cabos').checked ? 'Concluído' : 'Pendente';
+    const cronoInversor = document.getElementById('crono_inversor').checked ? 'Concluído' : 'Pendente';
+    const cronoConexao = document.getElementById('crono_conexao').checked ? 'Concluído' : 'Pendente';
+    const cronoTestes = document.getElementById('crono_testes').checked ? 'Concluído' : 'Pendente';
+    const cronoConcluido = (
+        cronoMontagem === 'Concluído' &&
+        cronoCabos === 'Concluído' &&
+        cronoInversor === 'Concluído' &&
+        cronoConexao === 'Concluído' &&
+        cronoTestes === 'Concluído'
+    );
+
+    // Critérios para avançar
+    const podeAvancar = (
+        (statusCompra === 'Paga' || statusCompra === 'Realizada') &&
+        dataEntregaEfetiva &&
+        dataAgendada &&
+        horario &&
+        statusInstalacao === 'Concluída' &&
+        dataConclusao &&
+        cronoConcluido
+    );
+
+    if (podeAvancar) {
+        novaEtapa = 'homologacao';
+        console.log('✅ Instalação concluída – avançando para Homologação');
+    } else {
+        console.log('⚠️ Instalação não concluída – mantendo etapa:', novaEtapa);
+    }
+}
 // ===== VALIDAÇÃO DA VISITA (SOMENTE SE CLIENTE ESTIVER NA ETAPA "visita") =====
 // ===== COLETA OS DADOS DA VISITA (sempre que possível) =====
 let resultadoVisita = '';
@@ -3341,29 +3398,35 @@ checklist = {
             assinatura_data: document.getElementById('visita_aprovacao').value,
             checklist: checklist
         },
-        documentos: {
-            rg: {
-                status: document.getElementById('doc_rg_status').value,
-                url: document.getElementById('doc_rg_url').value.trim()
-            },
-            cpf: {
-                status: document.getElementById('doc_cpf_status').value,
-                url: document.getElementById('doc_cpf_url').value.trim()
-            },
-            comprovante: {
-                status: document.getElementById('doc_comprovante_status').value,
-                url: document.getElementById('doc_comprovante_url').value.trim()
-            },
-            fatura: {
-                status: document.getElementById('doc_fatura_status').value,
-                url: document.getElementById('doc_fatura_url').value.trim()
-            },
-            renda: {
-                status: document.getElementById('doc_renda_status').value,
-                url: document.getElementById('doc_renda_url').value.trim(),
-                visivel: document.getElementById('doc_renda_visivel').checked
-            }
+        documentos: (() => {
+    const docsExistentes = clienteEditando.documentos || {};
+    return {
+        rg: {
+            status: document.getElementById('doc_rg_status').value,
+            url: document.getElementById('doc_rg_url').value.trim()
         },
+        cpf: {
+            status: document.getElementById('doc_cpf_status').value,
+            url: document.getElementById('doc_cpf_url').value.trim()
+        },
+        comprovante: {
+            status: document.getElementById('doc_comprovante_status').value,
+            url: document.getElementById('doc_comprovante_url').value.trim()
+        },
+        fatura: {
+            status: document.getElementById('doc_fatura_status').value,
+            url: document.getElementById('doc_fatura_url').value.trim()
+        },
+        renda: {
+            status: document.getElementById('doc_renda_status').value,
+            url: document.getElementById('doc_renda_url').value.trim(),
+            visivel: document.getElementById('doc_renda_visivel').checked
+        },
+        // Preserva os dados existentes
+        contrato: docsExistentes.contrato || {},
+        proposta_final: docsExistentes.proposta_final || {}
+    };
+})(),
         dados_instalacao: {
             status_compra: document.getElementById('instalacao_status_compra').value,
             fornecedor: document.getElementById('instalacao_fornecedor').value,
@@ -3526,7 +3589,46 @@ checklist = {
         texto.textContent = '💾 Salvar alterações';
     }
 }
-
+// ============================================================
+// COMPRESSÃO DE IMAGEM (SUBSTITUI O fileToBase64)
+// ============================================================
+// ============================================================
+// COMPRESSÃO DE IMAGEM (SUBSTITUI O fileToBase64)
+// ============================================================
+function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // Exporta como JPEG com qualidade ajustável
+                const dataUrl = canvas.toDataURL('image/jpeg', qualidade);
+                // Remove o prefixo "data:image/jpeg;base64,"
+                const base64 = dataUrl.split(',')[1];
+                resolve(base64);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
     // ============================================================
     // EXIBIR MODAL COM AÇÃO (substitui alert)
     // ============================================================
@@ -4083,21 +4185,57 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
     qtd_modulos: qtdModulos,
     potencia_inversor: potInversor,
     local_inversor: localInversor,
-    observacoes: observacoes
+    observacoes: observacoes,
+    investimento: document.getElementById('vtInvestimentoFT').value || 0
   };
 }
 
   const imagens = {};
-  async function processarImagem(idInput, nomeCampo) {
+  // ===== FUNÇÃO DE COMPRESSÃO (coloque ANTES de processarImagem) =====
+function comprimirImagem(file, maxWidth = 400, maxHeight = 400, qualidade = 0.5) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', qualidade);
+                const base64 = dataUrl.split(',')[1];
+                resolve(base64);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// ===== FUNÇÃO processarImagem (agora usando compressão) =====
+async function processarImagem(idInput, nomeCampo) {
     const input = document.getElementById(idInput);
     if (input && input.files && input.files[0]) {
-      try {
-        imagens[nomeCampo] = await fileToBase64(input.files[0]);
-      } catch (err) {
-        console.warn(`Erro ao ler ${nomeCampo}:`, err);
-      }
+        try {
+            imagens[nomeCampo] = await comprimirImagem(input.files[0], 400, 400, 0.5);
+        } catch (err) {
+            console.warn(`Erro ao processar ${nomeCampo}:`, err);
+        }
     }
-  }
+}
   await processarImagem('vtCroqui', 'croqui_layout');
   await processarImagem('vtPanoramica', 'foto_panoramica');
   await processarImagem('vtTelhado', 'foto_telhado');
@@ -4208,153 +4346,265 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
     // GERAR PROPOSTA FINAL
     // ============================================================
     async function gerarPropostaFinal() {
-  if (!clienteEditando) {
-    exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de gerar a proposta final.', '⚠️', '#b91c1c', null);
-    return;
-  }
-  // ===== VALIDAÇÃO: SÓ PERMITE GERAR SE HOUVER VISITA TÉCNICA =====
-  const dadosVisita = clienteEditando.dados_visita || {};
-  const temVisita = dadosVisita.data_realizacao || dadosVisita.engenheiro || dadosVisita.resultado;
-  if (!temVisita) {
-    exibirModalComAcao(
-      'Visita técnica necessária',
-      'Para gerar a proposta final, primeiro realize e finalize a visita técnica do cliente.',
-      '⚠️',
-      '#b91c1c',
-      null
-    );
-    return;
-  }
-  const btn = event.target;
-  const textoOriginal = btn.textContent;
-  
-  // Desabilitar e aplicar opacidade
-  btn.disabled = true;
-  btn.style.opacity = '0.6';
-  btn.textContent = '⏳ Gerando...';
+    if (!clienteEditando) {
+        exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de gerar a proposta final.', '⚠️', '#b91c1c', null);
+        return;
+    }
 
-  try {
-    const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cliente_id: clienteEditando.id })
-    });
-    const resultado = await resp.json();
+    const dadosVisita = clienteEditando.dados_visita || {};
+    const temVisita = dadosVisita.data_realizacao || dadosVisita.engenheiro || dadosVisita.resultado;
+    if (!temVisita) {
+        exibirModalComAcao(
+            'Visita técnica necessária',
+            'Para gerar a proposta final, primeiro realize e finalize a visita técnica do cliente.',
+            '⚠️',
+            '#b91c1c',
+            null
+        );
+        return;
+    }
 
-    if (resultado.success) {
-  const modalSucesso = document.getElementById('modalSucesso');
-  const msg = document.getElementById('modalSucessoMsg');
-  const btnAbrir = document.getElementById('modalSucessoAbrir');
-  const btnFechar = document.getElementById('modalSucessoFechar');
+    const btn = event.target;
+const textoOriginal = btn.textContent;
+const btnContrato = document.getElementById('btnGerarContrato');
 
-  msg.innerHTML = 'Clique no botão abaixo para visualizar a proposta final.';
-  btnAbrir.textContent = '📄 Visualizar';
-  btnAbrir.onclick = function() {
-    if (resultado.url) window.open(resultado.url, '_blank');
-    modalSucesso.classList.remove('active');
-  };
-  btnFechar.textContent = 'Fechar';
-  btnFechar.onclick = function() {
-    modalSucesso.classList.remove('active');
-  };
-  modalSucesso.classList.add('active');
-  carregarClientes();
-} else {
-  exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+// Desabilita e aplica opacidade em AMBOS
+if (btnContrato) {
+    btnContrato.disabled = true;
+    btnContrato.style.opacity = '0.5';
 }
-  } catch (err) {
-    exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
-  } finally {
-    // Restaurar
+btn.disabled = true;
+btn.style.opacity = '0.5';
+btn.textContent = '⏳ Gerando...';
+
+    try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cliente_id: clienteEditando.id })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            const modalSucesso = document.getElementById('modalSucesso');
+            const msg = document.getElementById('modalSucessoMsg');
+            const btnAbrir = document.getElementById('modalSucessoAbrir');
+            const btnFechar = document.getElementById('modalSucessoFechar');
+
+            msg.innerHTML = 'Clique no botão abaixo para visualizar a proposta final.';
+            btnAbrir.textContent = '📄 Visualizar';
+            btnAbrir.onclick = function() {
+                if (resultado.url) window.open(resultado.url, '_blank');
+                modalSucesso.classList.remove('active');
+            };
+            btnFechar.textContent = 'Fechar';
+            btnFechar.onclick = function() {
+                modalSucesso.classList.remove('active');
+            };
+            modalSucesso.classList.add('active');
+            carregarClientes();
+        } else {
+            exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+        }
+    } catch (err) {
+        exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
+    } finally {
+    // Reabilita e restaura opacidade em AMBOS
+    if (btnContrato) {
+        btnContrato.disabled = false;
+        btnContrato.style.opacity = '1';
+    }
     btn.disabled = false;
     btn.style.opacity = '1';
     btn.textContent = textoOriginal;
-  }
+}
 }
 
     // ============================================================
     // GERAR CONTRATO CLIENTE
     // ============================================================
     async function gerarContratoCliente() {
-  if (!clienteEditando) {
-    exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de gerar o contrato.', '⚠️', '#b91c1c', null);
-    return;
-  }
-
-  // ===== LIMPAR ERROS ANTERIORES =====
-  const docsObrigatorios = ['rg', 'cpf', 'comprovante'];
-  docsObrigatorios.forEach(doc => {
-    const erroEl = document.getElementById(`doc_${doc}_erro`);
-    if (erroEl) erroEl.style.display = 'none';
-  });
-
-  // ===== VALIDAÇÃO INDIVIDUAL =====
-  const docs = [
-    { id: 'rg', label: 'RG / CNH' },
-    { id: 'cpf', label: 'CPF' },
-    { id: 'comprovante', label: 'Comprovante de residência' }
-  ];
-
-  let temErro = false;
-  docs.forEach(doc => {
-    const status = document.getElementById(`doc_${doc.id}_status`)?.value;
-    const url = document.getElementById(`doc_${doc.id}_url`)?.value?.trim();
-    const erroEl = document.getElementById(`doc_${doc.id}_erro`);
-
-    if (!status || (status !== 'Recebido' && status !== 'Validado') || !url) {
-      if (erroEl) {
-        erroEl.textContent = `⚠️ Documento pendente. Status atual: ${status || 'não definido'}${!url ? ' (URL vazia)' : ''}`;
-        erroEl.style.display = 'block';
-      }
-      temErro = true;
-    } else {
-      if (erroEl) erroEl.style.display = 'none';
+    if (!clienteEditando) {
+        exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de gerar o contrato.', '⚠️', '#b91c1c', null);
+        return;
     }
-  });
 
-  if (temErro) {
-    return; // Impede a geração do contrato
-  }
-
-  // ===== GERAR CONTRATO =====
-  const btn = event.target;
-  btn.disabled = true;
-  btn.textContent = '⏳ Gerando...';
-
-  try {
-    const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
+    // Validação de documentos
+    const docsObrigatorios = ['rg', 'cpf', 'comprovante'];
+    docsObrigatorios.forEach(doc => {
+        const erroEl = document.getElementById(`doc_${doc}_erro`);
+        if (erroEl) erroEl.style.display = 'none';
     });
-    const resultado = await resp.json();
 
-    if (resultado.success) {
-      const msg = resultado.link_assinatura
-        ? `O contrato foi gerado e enviado para assinatura. O cliente receberá o link por e-mail.<br><br><strong>Link de assinatura:</strong><br><a href="${resultado.link_assinatura}" target="_blank">${resultado.link_assinatura}</a>`
-        : 'O contrato foi gerado com sucesso!';
-      exibirModalComAcao(
-        '✅ Contrato gerado!',
-        msg,
-        '📜',
-        '#0b2f5c',
-        function() {
-          if (resultado.link_assinatura) window.open(resultado.link_assinatura, '_blank');
-          if (resultado.url) window.open(resultado.url, '_blank');
+    const docs = [
+        { id: 'rg', label: 'RG / CNH' },
+        { id: 'cpf', label: 'CPF' },
+        { id: 'comprovante', label: 'Comprovante de residência' }
+    ];
+
+    let temErro = false;
+    docs.forEach(doc => {
+        const status = document.getElementById(`doc_${doc.id}_status`)?.value;
+        const url = document.getElementById(`doc_${doc.id}_url`)?.value?.trim();
+        const erroEl = document.getElementById(`doc_${doc.id}_erro`);
+        if (!status || (status !== 'Recebido' && status !== 'Validado') || !url) {
+            if (erroEl) {
+                erroEl.textContent = `⚠️ Documento pendente. Status atual: ${status || 'não definido'}${!url ? ' (URL vazia)' : ''}`;
+                erroEl.style.display = 'block';
+            }
+            temErro = true;
+        } else {
+            if (erroEl) erroEl.style.display = 'none';
         }
-      );
-      carregarClientes();
-    } else {
-      exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+    });
+
+    if (temErro) return;
+
+    const btn = event.target;
+const textoOriginal = btn.textContent;
+const btnProposta = document.getElementById('btnGerarPropostaFinal');
+
+// Desabilita e aplica opacidade em AMBOS
+if (btnProposta) {
+    btnProposta.disabled = true;
+    btnProposta.style.opacity = '0.5';
+}
+btn.disabled = true;
+btn.style.opacity = '0.5';
+btn.textContent = '⏳ Gerando...';
+
+    try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            // Guarda dados do contrato no cliente
+            clienteEditando.documentos = clienteEditando.documentos || {};
+            clienteEditando.documentos.contrato = {
+                document_id: resultado.document_id,
+                status: 'enviado',
+                url: resultado.url_pdf,
+                link_assinatura: resultado.link_assinatura
+            };
+            contratoGerado = true;
+            atualizarBotoesContrato();
+
+            const msg = resultado.link_assinatura
+                ? `O contrato foi gerado e enviado para assinatura. O cliente receberá o link por e-mail.<br><br><strong>Link de assinatura:</strong><br><a href="${resultado.link_assinatura}" target="_blank">${resultado.link_assinatura}</a>`
+                : 'O contrato foi gerado com sucesso!';
+            exibirModalComAcao(
+                '✅ Contrato gerado!',
+                msg,
+                '📜',
+                '#0b2f5c',
+                function() {
+                    if (resultado.link_assinatura) window.open(resultado.link_assinatura, '_blank');
+                    if (resultado.url_pdf) window.open(resultado.url_pdf, '_blank');
+                }
+            );
+            carregarClientes();
+        } else {
+            exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+        }
+    } catch (err) {
+        exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
+    } finally {
+    // Reabilita e restaura opacidade em AMBOS
+    if (btnProposta) {
+        btnProposta.disabled = false;
+        btnProposta.style.opacity = '1';
     }
-  } catch (err) {
-    exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
-  } finally {
     btn.disabled = false;
-    btn.textContent = '📜 Gerar Contrato';
-  }
+    btn.style.opacity = '1';
+    btn.textContent = textoOriginal;
+}
 }
 
+async function verificarAssinatura() {
+    if (!clienteEditando) {
+        exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente primeiro.', '⚠️', '#b91c1c', null);
+        return;
+    }
+
+    const contrato = clienteEditando.documentos?.contrato || {};
+    const documentId = contrato.document_id;
+
+    if (!documentId) {
+        exibirModalComAcao('⚠️ Sem contrato', 'Este cliente ainda não tem um contrato enviado para assinatura.', '⚠️', '#b91c1c', null);
+        return;
+    }
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ Verificando...';
+
+    try {
+        const resp = await fetch('https://soliviaenergia.pythonanywhere.com/api/forcar_atualizacao_assinatura', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ document_id: documentId })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            exibirModalComAcao(
+                '✅ Contrato assinado!',
+                'O contrato foi assinado por ambas as partes. A etapa foi atualizada para Instalação.',
+                '📜',
+                '#0b2f5c',
+                function() {
+                    editarCliente(clienteEditando.id);
+                    carregarClientes();
+                }
+            );
+        } else {
+            if (resultado.message && resultado.message.includes('não está completamente assinado')) {
+                exibirModalComAcao(
+                    '⏳ Aguardando assinatura',
+                    'O contrato ainda não foi assinado por todas as partes. Tente novamente mais tarde.',
+                    '⏳',
+                    '#f59e0b',
+                    null
+                );
+            } else {
+                exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido', '❌', '#b91c1c', null);
+            }
+        }
+    } catch (err) {
+        exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ Verificar Assinatura';
+    }
+}
+function refazerContrato() {
+    if (!confirm('Deseja refazer o contrato? O contrato atual será substituído.')) return;
+    
+    // Reseta o estado
+    contratoGerado = false;
+    
+    // Remove os dados do contrato do objeto cliente
+    if (clienteEditando && clienteEditando.documentos && clienteEditando.documentos.contrato) {
+        // Remove apenas os campos que impedem a geração de um novo contrato
+        delete clienteEditando.documentos.contrato.document_id;
+        delete clienteEditando.documentos.contrato.status;
+        delete clienteEditando.documentos.contrato.link_assinatura;
+        delete clienteEditando.documentos.contrato.url_assinado;
+        delete clienteEditando.documentos.contrato.data_assinatura;
+    }
+    
+    // Atualiza a interface
+    atualizarBotoesContrato();
+    
+    // Recarrega os dados do cliente para garantir consistência
+    if (clienteEditando) {
+        editarCliente(clienteEditando.id);
+    }
+}
     // ============================================================
     // CONTRATO PRESTADOR
     // ============================================================
