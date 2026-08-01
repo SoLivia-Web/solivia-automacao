@@ -437,13 +437,13 @@
 
         /* ===== DASHBOARD ===== */
         .dashboard-container {
-            max-width: 1400px !important;
-            margin: 0 auto !important;
-            flex: 1 !important;
-            padding: 4.9rem 2rem 0.00001rem !important;   /* ← AUMENTEI O TOPO DE 2rem PARA 2.5rem */
-            min-height: 85vh !important;
-            animation: fadeSlide 0.5s ease !important;
-        }
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    flex: 1 !important;
+    padding: 4.9rem 2rem 3rem !important;  /* ← aumentei o padding-bottom */
+    min-height: 85vh !important;
+    animation: fadeSlide 0.5s ease !important;
+}
         @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -731,11 +731,13 @@
         }
 
         .metric-grid-modern {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0.9rem;
-        }
-
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* ← em vez de 4 */
+    gap: 0.9rem;
+}
+.metric-card-duplo {
+    grid-column: span 2;
+}
         .metric-card {
             display: flex;
             gap: 0.85rem;
@@ -2343,7 +2345,7 @@
     status: (() => {
         const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
         const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
-        const contratoAssinado = d.contrato && d.contrato.status === 'assinado';
+        const contratoAssinado = d.contrato && (d.contrato.status === 'assinado' || d.contrato.url_assinado);
 
         if (contratoAssinado) {
             return 'Concluído';
@@ -2358,7 +2360,7 @@
     resumo: (() => {
         const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
         const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
-        const contratoAssinado = d.contrato && d.contrato.status === 'assinado';
+        const contratoAssinado = d.contrato && (d.contrato.status === 'assinado' || d.contrato.url_assinado);
         if (contratoAssinado) return 'Contrato assinado e documentos completos';
         if (enviados === tipos.length) return 'Documentos validados, aguardando assinatura';
         return `${enviados} de ${tipos.length} documentos enviados`;
@@ -2658,7 +2660,7 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
                 alert('⚠️ Esta etapa ainda não está disponível.');
                 return;
             }
-
+          
             const grid = document.getElementById('cardsGrid');
             const area = document.getElementById('detalhesArea');
             const conteudo = document.getElementById('detalhesConteudo');
@@ -2668,6 +2670,22 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
             if (posVenda) {
                 posVenda.classList.add('oculto');
             }
+
+ // ===== MOSTRA SPINNER DE CARREGAMENTO =====
+    area.classList.add('ativo');
+    conteudo.innerHTML = `
+        <div style="display:flex; justify-content:center; align-items:center; padding:3rem;">
+            <div style="text-align:center;">
+                <div style="width:40px; height:40px; border:4px solid #e2e8f0; border-top:4px solid #0b2f5c; border-radius:50%; animation: spin 1s linear infinite; margin:0 auto 1rem;"></div>
+                <p style="color:#64748b; font-weight:500;">Carregando dados...</p>
+            </div>
+        </div>
+    `;
+    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // ==========================================
+
+    // Recarrega os dados
+    await carregarDadosCliente(App.token);
 
             const cliente = App.cliente;
             const v = cliente.dados_visita || {};
@@ -2781,7 +2799,7 @@ if (contratoAssinado) {
                                     <p>Aqui ficam reunidos o PDF, o link de assinatura e o status atualizado do contrato.</p>
                                 </div>
                                 <div class="contract-highlight__actions">
-                                    ${contrato.url ? `<a href="${contrato.url}" target="_blank" class="botao-acao botao-acao--secundario">📄 Visualizar PDF</a>` : ''}
+                                    ${contrato.url ? `<button onclick="baixarPDF('${contrato.url}')" style="background: rgba(255,255,255,0.15); color: #ffffff; border: none; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 700; cursor: pointer; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">📄 Baixar PDF</button>` : ''}
                                     ${contrato.link_assinatura ? `<a href="${contrato.link_assinatura}" target="_blank" class="botao-acao">✍️ Assinar contrato</a>` : ''}
                                     ${contrato.status ? renderBadge(contrato.status) : ''}
                                 </div>
@@ -2855,16 +2873,24 @@ if (contratoAssinado) {
                 case 'instalacao': {
                     const crono = i.cronograma || {};
                     heroStatus = i.status === 'Concluída' ? 'Concluído' : ((i.status_compra === 'Realizada' || i.status_compra === 'Paga') ? 'Em andamento' : 'Pendente');
-                    heroMeta = [
-                        renderMetric('🛒', 'Compra', renderBadge(i.status_compra || 'Pendente'), safeValue(i.fornecedor, 'Fornecedor não informado'), 'instalacao-secao-compra'),
-                        renderMetric('🚚', 'Entrega', formatDate(i.previsao_entrega), i.codigo_rastreio ? `Rastreio: ${i.codigo_rastreio}` : 'Sem rastreio disponível', 'instalacao-secao-compra'),
-                        renderMetric('📆', 'Agendamento', formatDate(i.data_agendada), safeValue(i.horario, 'Horário não definido'), 'instalacao-secao-agendamento'),
-                        renderMetric('🔧', 'Execução', renderBadge(i.status || 'Aguardando material'), i.data_conclusao ? `Concluída em ${formatDate(i.data_conclusao)}` : 'Instalação ainda em aberto', 'instalacao-secao-execucao')
-                    ].join('');
+                    // Primeiro, no início, defina um estilo para o KPI duplo
+// Adicione no CSS: .metric-card-duplo { grid-column: span 2; }
+
+// Depois, no código:
+heroMeta = [
+    renderMetric('📦', 'Compra e Logística', 
+        `${renderBadge(i.status_compra || 'Pendente')} ${i.codigo_rastreio ? ` ${i.codigo_rastreio}` : ''}`,
+        `${safeValue(i.fornecedor, 'Fornecedor não informado')} | Entrega: ${formatDate(i.previsao_entrega)}`,
+        'instalacao-secao-compra',
+        'metric-card-duplo' // ← parâmetro extra para classe
+    ),
+    renderMetric('📆', 'Agendamento', formatDate(i.data_agendada), safeValue(i.horario, 'Horário não definido'), 'instalacao-secao-agendamento'),
+    renderMetric('🔧', 'Execução', renderBadge(i.status || 'Aguardando material'), i.data_conclusao ? `Concluída em ${formatDate(i.data_conclusao)}` : 'Instalação ainda em aberto', 'instalacao-secao-execucao')
+].join('');
 
                     const cronogramaHtml = Object.entries(crono).length
-                        ? `<div class="stack-list-modern">${Object.entries(crono).map(([etapa, status]) => `<div class="stack-list-modern__item"><span>${etapa}</span>${renderBadge(status)}</div>`).join('')}</div>`
-                        : '<div class="empty-state-inline">Cronograma ainda não preenchido.</div>';
+    ? `<div class="stack-list-modern">${Object.entries(crono).map(([etapa, status]) => `<div class="stack-list-modern__item"><span>${capitalizar(etapa)}</span>${renderBadge(status)}</div>`).join('')}</div>`
+    : '<div class="empty-state-inline">Cronograma ainda não preenchido.</div>';
 
                     sections = `
                         <div id="instalacao-secao-compra" class="detail-section-card" style="display:block;">
@@ -2873,14 +2899,14 @@ if (contratoAssinado) {
                                 'Acompanhe materiais, nota fiscal e entrega',
                                 `
                                     <div class="info-grid-modern">
-                                        ${renderInfoRow('Fornecedor', safeValue(i.fornecedor))}
-                                        ${renderInfoRow('Nota fiscal', safeValue(i.nota_fiscal))}
-                                        ${renderInfoRow('Data da compra', formatDate(i.data_compra))}
-                                        ${renderInfoRow('Previsão de entrega', formatDate(i.previsao_entrega))}
-                                        ${renderInfoRow('Entrega efetiva', formatDate(i.data_entrega_efetiva))}
-                                        ${renderInfoRow('Equipamentos', safeValue(i.equipamentos))}
-                                        ${renderInfoRow('Rastreio', i.link_rastreio ? `<a href="${i.link_rastreio}" target="_blank" class="text-link-modern">${safeValue(i.codigo_rastreio, 'Abrir rastreio')}</a>` : safeValue(i.codigo_rastreio))}
-                                    </div>
+    ${renderInfoRow('Fornecedor', safeValue(i.fornecedor))}
+    ${renderInfoRow('Nota fiscal', (i.nota_fiscal && i.nota_fiscal.startsWith('http')) ? `<a href="${i.nota_fiscal}" target="_blank" class="text-link-modern">📄 Visualizar nota</a>` : safeValue(i.nota_fiscal))}
+    ${renderInfoRow('Previsão de entrega', formatDate(i.previsao_entrega))}
+    ${renderInfoRow('Entrega efetiva', formatDate(i.data_entrega_efetiva))}
+    ${renderInfoRow('Equipamentos', safeValue(i.equipamentos))}
+    ${renderInfoRow('Data da compra', formatDate(i.data_compra))}
+    ${renderInfoRow('Rastreio', i.link_rastreio ? `<a href="${i.link_rastreio}" target="_blank" class="text-link-modern">${safeValue(i.codigo_rastreio, 'Abrir rastreio')}</a>` : safeValue(i.codigo_rastreio))}
+</div>
                                     ${i.obs_compra ? `<div class="note-box-modern">${i.obs_compra}</div>` : ''}
                                 `
                             )}
@@ -3188,7 +3214,19 @@ function baixarTodosDocumentos() {
             link.click();
             document.body.removeChild(link);
         }
-
+function baixarPDF(url) {
+    // Extrai o ID do arquivo do Google Drive
+    const match = url.match(/\/d\/([^\/]+)/);
+    if (match && match[1]) {
+        const fileId = match[1];
+        // URL de download direto do Google Drive
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        window.open(downloadUrl, '_blank');
+    } else {
+        // Se não for URL do Drive, tenta abrir diretamente
+        window.open(url, '_blank');
+    }
+}
         // ============================================================
         // FUNÇÃO: FECHAR DETALHES
         // ============================================================
@@ -3208,7 +3246,15 @@ function baixarTodosDocumentos() {
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
+function capitalizar(texto) {
+    // Mapeamento de palavras que precisam de correção ortográfica
+    const correcoes = {
+        'conexao': 'Conexão'
+    };
+    // Se houver correção, usa; senão, mantém o texto original
+    const textoCorrigido = correcoes[texto] || texto;
+    return textoCorrigido.charAt(0).toUpperCase() + textoCorrigido.slice(1);
+}
         // ============================================================
         // FUNÇÃO: MOSTRAR SEÇÃO INSTALAÇÃO (NAVEGAÇÃO POR KPIs)
         // ============================================================
