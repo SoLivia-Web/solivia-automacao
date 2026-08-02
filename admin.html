@@ -1160,6 +1160,7 @@ body.admin-logged .hero-admin {
               <!-- COMPROVANTE DE RENDA – BLOCO SUBSTITUÍDO (PASSO 1)       -->
               <!-- ========================================================= -->
               <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+                
                 <label style="min-width:120px; font-weight:600;">Comprovante de renda</label>
                 <select id="doc_renda_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
                   <option value="Pendente">Pendente</option>
@@ -1344,7 +1345,7 @@ body.admin-logged .hero-admin {
           </div>
         </div>
 
-        <!-- ===== ABA HOMOLOGAÇÃO (NOVA VERSÃO) ===== -->
+        <!-- ===== ABA HOMOLOGAÇÃO (NOVA VERSÃO – CORRIGIDA) ===== -->
         <div id="tabHomologacao" class="tab-content">
           <!-- ===== SUB-ABAS ===== -->
           <div style="display:flex; gap:0.5rem; border-bottom:1px solid #e2edf2; padding-bottom:0.5rem; margin-bottom:1.5rem;">
@@ -1411,7 +1412,7 @@ body.admin-logged .hero-admin {
           </div>
 
           <!-- ============================================================ -->
-          <!-- SUB-ABA 2: COMISSIONAMENTO -->
+          <!-- SUB-ABA 2: COMISSIONAMENTO (com seções adicionais) -->
           <!-- ============================================================ -->
           <div id="subComissionamento" class="sub-tab-content">
             <!-- Seção 2.1: Status e Responsáveis -->
@@ -1430,27 +1431,72 @@ body.admin-logged .hero-admin {
                 </div>
                 <div class="campo">
                   <label>Data do comissionamento</label>
-                  <input type="date" id="comiss_data" />
+                  <input type="date" id="comiss_data">
                 </div>
                 <div class="campo">
                   <label>Responsável técnico</label>
-                  <input type="text" id="comiss_responsavel" placeholder="Nícolas Alves de Sá" />
+                  <input type="text" id="comiss_responsavel" placeholder="Nícolas Alves de Sá">
                 </div>
                 <div class="campo">
                   <label>Login do inversor</label>
-                  <input type="text" id="comiss_login" />
+                  <input type="text" id="comiss_login">
                 </div>
                 <div class="campo">
                   <label>Senha do inversor</label>
-                  <input type="password" id="comiss_senha" />
+                  <input type="password" id="comiss_senha">
                 </div>
                 <div class="campo">
                   <label>Plataforma de monitoramento</label>
-                  <input type="text" id="comiss_plataforma" placeholder="Ex: SolarEdge, Huawei, etc." />
+                  <input type="text" id="comiss_plataforma" placeholder="Ex: SolarEdge, Huawei, etc.">
                 </div>
               </div>
             </div>
-
+          <!-- ===== SEÇÃO: VERIFICAÇÕES MECÂNICAS ===== -->
+<div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #0b2f5c;">
+    <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">🔧 Verificações Mecânicas</h4>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="campo">
+            <label>Estrutura de fixação instalada corretamente?</label>
+            <select id="comiss_check_estrutura">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Módulos devidamente fixados?</label>
+            <select id="comiss_check_modulos">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Conexões mecânicas apertadas?</label>
+            <select id="comiss_check_conexoes">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Sistema de aterramento instalado?</label>
+            <select id="comiss_check_aterramento">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Cabeamento organizado e fixado?</label>
+            <select id="comiss_check_cabeamento">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+    </div>
+</div>
             <!-- Seção 2.2: Dados do Sistema -->
             <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #ffc400;">
               <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">🔧 Dados do Sistema</h4>
@@ -1655,7 +1701,117 @@ body.admin-logged .hero-admin {
               </div>
             </div>
 
-            <!-- Seção 2.5: Observações e Botão -->
+            <!-- NOVA SEÇÃO: QUADROS E CIRCUITOS -->
+            <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #8b5cf6;">
+              <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">📊 Quadros e Circuitos</h4>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                <div class="campo">
+                  <label>Tipo de quadro/disjuntores</label>
+                  <input type="text" id="comiss_tipo_quadro" placeholder="Ex: Siemens, ABB">
+                </div>
+                <div class="campo">
+                  <label>Quantidade de circuitos</label>
+                  <input type="number" id="comiss_qtd_circuitos">
+                </div>
+                <div class="campo">
+                  <label>Onde foi instalado o quadro?</label>
+                  <input type="text" id="comiss_local_quadro" placeholder="Ex: Parede externa">
+                </div>
+                <div class="campo">
+                  <label>Altura do quadro (solo)</label>
+                  <input type="text" id="comiss_altura_quadro" placeholder="Ex: 1,5 m">
+                </div>
+                <div class="campo">
+                  <label>Distância entre pontos</label>
+                  <input type="text" id="comiss_distancia_pontos" placeholder="Ex: 2,0 m">
+                </div>
+                <div class="campo">
+                  <label>Sistema está aterrado?</label>
+                  <select id="comiss_sistema_aterrado">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Duplo isolamento?</label>
+                  <select id="comiss_duplo_isolamento">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Seguir diagrama unifilar?</label>
+                  <select id="comiss_seguir_diagrama">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Circuitos verificados em ensaio</label>
+                  <input type="text" id="comiss_circuitos_verificados" placeholder="Ex: Circuito 1, 2, 3">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO: MONITORAMENTO E SEGURANÇA -->
+            <div style="background:#f8fafc; padding:0.8rem 1.2rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid #10b981;">
+              <h4 style="color:#0b2f5c; margin:0 0 0.5rem 0;">🔐 Monitoramento e Segurança</h4>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                <div class="campo">
+                  <label>Aplicativo de monitoramento</label>
+                  <input type="text" id="comiss_aplicativo_monitoramento" placeholder="Ex: SolarEdge, Huawei">
+                </div>
+                <div class="campo">
+                  <label>Login</label>
+                  <input type="text" id="comiss_login_monitoramento" placeholder="Login do cliente">
+                </div>
+                <div class="campo">
+                  <label>Senha</label>
+                  <input type="password" id="comiss_senha_monitoramento" placeholder="Senha do cliente">
+                </div>
+                <div class="campo">
+                  <label>NF enviada?</label>
+                  <select id="comiss_nf_enviada">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Proteções instaladas e testadas?</label>
+                  <select id="comiss_protecoes_testadas">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Usaram EPI e EPC?</label>
+                  <select id="comiss_usaram_epi">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Foi realizada inspeção?</label>
+                  <select id="comiss_inspecao_realizada">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="campo full">
+                  <label>Pontos de atenção</label>
+                  <textarea rows="2" id="comiss_pontos_atencao" placeholder="Observações sobre pontos que merecem atenção..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção 2.5: Observações e Botão (CORRIGIDO) -->
             <div class="form-grid">
               <div class="campo full">
                 <label>Observações de ensaios</label>
@@ -1669,10 +1825,10 @@ body.admin-logged .hero-admin {
             <div style="margin-top:1rem;">
               <button class="btn-acao-aba" onclick="gerarRelatorioComissionamento()">📋 Gerar Relatório de Comissionamento</button>
             </div>
-          </div>
+          </div> <!-- Fim subComissionamento -->
 
           <!-- ============================================================ -->
-          <!-- SUB-ABA 3: DOCUMENTOS E ANEXOS -->
+          <!-- SUB-ABA 3: DOCUMENTOS E ANEXOS – AGORA FUNCIONAL -->
           <!-- ============================================================ -->
           <div id="subAnexosHomologacao" class="sub-tab-content">
             <div class="form-grid">
@@ -1692,116 +1848,117 @@ body.admin-logged .hero-admin {
               Faça o upload das fotos para compor o relatório de comissionamento.
             </p>
 
-            <!-- Fotos em grid 2 colunas -->
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
-              <!-- Função auxiliar para gerar cada upload de foto -->
               <div id="fotos_homologacao_container">
-                <!-- As fotos serão inseridas dinamicamente pelo JavaScript para evitar repetição -->
+                <!-- As fotos serão inseridas dinamicamente pelo JavaScript -->
               </div>
             </div>
+
             <div class="campo full" style="margin-top:1rem;">
               <label>Observações de anexos</label>
               <textarea rows="2" id="homologacao_obs_anexos" placeholder="Anotações sobre os anexos..."></textarea>
             </div>
-          </div>
-        </div>
-<!-- ===== ABA ARQUIVADO ===== -->
-<div id="tabArquivado" class="tab-content">
-    <div class="form-grid">
-        <div class="campo">
-            <label>📅 Data do arquivamento</label>
-            <input type="text" id="arquivado_data" placeholder="DD/MM/AAAA" />
-        </div>
-        <div class="campo full">
-            <label>📋 Motivo do arquivamento</label>
-            <select id="arquivado_motivo">
+          </div> <!-- Fim subAnexosHomologacao -->
+        </div> <!-- Fim tabHomologacao -->
+
+        <!-- ===== ABA ARQUIVADO ===== -->
+        <div id="tabArquivado" class="tab-content">
+          <div class="form-grid">
+            <div class="campo">
+              <label>📅 Data do arquivamento</label>
+              <input type="text" id="arquivado_data" placeholder="DD/MM/AAAA" />
+            </div>
+            <div class="campo full">
+              <label>📋 Motivo do arquivamento</label>
+              <select id="arquivado_motivo">
                 <option value="">Selecione...</option>
                 <option value="Cliente não aprovou">Cliente não aprovou</option>
                 <option value="Cliente não respondeu">Cliente não respondeu</option>
                 <option value="Projeto inviável">Projeto inviável</option>
                 <option value="Projeto em pausa">Projeto em pausa</option>
                 <option value="Outro">Outro</option>
-            </select>
-        </div>
-        <div class="campo full">
-            <label>📝 Observações do arquivamento</label>
-            <textarea rows="3" id="arquivado_obs" placeholder="Anotações sobre o motivo do arquivamento..."></textarea>
-        </div>
-    </div>
+              </select>
+            </div>
+            <div class="campo full">
+              <label>📝 Observações do arquivamento</label>
+              <textarea rows="3" id="arquivado_obs" placeholder="Anotações sobre o motivo do arquivamento..."></textarea>
+            </div>
+          </div>
 
-    <!-- Ações -->
-    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; border-top:1px solid #e2edf2; padding-top:1rem;">
-        <button class="btn-acao-aba" onclick="reativarCliente()">🔄 Reativar Cliente</button>
-    </div>
-</div>
+          <!-- Ações -->
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; border-top:1px solid #e2edf2; padding-top:1rem;">
+            <button class="btn-acao-aba" onclick="reativarCliente()">🔄 Reativar Cliente</button>
+          </div>
+        </div>
+
         <!-- ===== ABA PÓS-VENDA (NOVA VERSÃO) ===== -->
-<div id="tabPosVenda" class="tab-content">
-  <div class="form-grid">
-    <div class="campo">
-      <label>Geração estimada (kWh/mês)</label>
-      <input type="number" step="0.1" id="posvenda_geracao" placeholder="Ex: 450" />
-      <small style="color:#5c7a6c;">Valor estimado de geração mensal (para referência)</small>
-    </div>
-    <div class="campo">
-      <label>Economia estimada (R$)</label>
-      <input type="number" step="0.01" id="posvenda_economia" placeholder="Ex: 350.00" />
-      <small style="color:#5c7a6c;">Economia mensal estimada</small>
-    </div>
-    <div class="campo">
-      <label>Plataforma de monitoramento (URL)</label>
-      <input type="url" id="posvenda_plataforma" placeholder="https://..." />
-    </div>
-    <div class="campo">
-      <label>Última manutenção</label>
-      <input type="date" id="posvenda_ultima_manutencao" />
-    </div>
-    <div class="campo">
-      <label>Próxima manutenção</label>
-      <input type="date" id="posvenda_proxima_manutencao" />
-      <small style="color:#5c7a6c;">Data sugerida para a próxima revisão (ex: +1 ano)</small>
-    </div>
-    <div class="campo">
-      <label>Manuais (URLs)</label>
-      <input type="text" id="posvenda_manuais" placeholder="URL1, URL2, URL3..." />
-      <small style="color:#5c7a6c;">Separar múltiplas URLs por vírgula</small>
-    </div>
-    <div class="campo">
-      <label>Status do suporte</label>
-      <select id="posvenda_status_suporte">
-        <option value="Nenhum">Nenhum</option>
-        <option value="Em análise">Em análise</option>
-        <option value="Em andamento">Em andamento</option>
-        <option value="Resolvido">Resolvido</option>
-        <option value="Fechado">Fechado</option>
-      </select>
-    </div>
-    <div class="campo">
-      <label>Último contato</label>
-      <input type="date" id="posvenda_ultimo_contato" />
-    </div>
-    <div class="campo">
-      <label>Plano de laudo</label>
-      <select id="posvenda_plano_laudo">
-        <option value="Nenhum">Nenhum</option>
-        <option value="Básico">Básico</option>
-        <option value="Essencial">Essencial</option>
-        <option value="Premium">Premium</option>
-      </select>
-    </div>
-    <div class="campo">
-      <label>Data de início do plano</label>
-      <input type="date" id="posvenda_plano_inicio" />
-    </div>
-    <div class="campo">
-      <label>Data de fim do plano</label>
-      <input type="date" id="posvenda_plano_fim" />
-    </div>
-    <div class="campo full">
-      <label>Observações de pós-venda</label>
-      <textarea rows="4" id="posvenda_observacoes" placeholder="Anotações sobre o cliente, intercorrências, histórico de contato, etc..."></textarea>
-    </div>
-  </div>
-</div>
+        <div id="tabPosVenda" class="tab-content">
+          <div class="form-grid">
+            <div class="campo">
+              <label>Geração estimada (kWh/mês)</label>
+              <input type="number" step="0.1" id="posvenda_geracao" placeholder="Ex: 450" />
+              <small style="color:#5c7a6c;">Valor estimado de geração mensal (para referência)</small>
+            </div>
+            <div class="campo">
+              <label>Economia estimada (R$)</label>
+              <input type="number" step="0.01" id="posvenda_economia" placeholder="Ex: 350.00" />
+              <small style="color:#5c7a6c;">Economia mensal estimada</small>
+            </div>
+            <div class="campo">
+              <label>Plataforma de monitoramento (URL)</label>
+              <input type="url" id="posvenda_plataforma" placeholder="https://..." />
+            </div>
+            <div class="campo">
+              <label>Última manutenção</label>
+              <input type="date" id="posvenda_ultima_manutencao" />
+            </div>
+            <div class="campo">
+              <label>Próxima manutenção</label>
+              <input type="date" id="posvenda_proxima_manutencao" />
+              <small style="color:#5c7a6c;">Data sugerida para a próxima revisão (ex: +1 ano)</small>
+            </div>
+            <div class="campo">
+              <label>Manuais (URLs)</label>
+              <input type="text" id="posvenda_manuais" placeholder="URL1, URL2, URL3..." />
+              <small style="color:#5c7a6c;">Separar múltiplas URLs por vírgula</small>
+            </div>
+            <div class="campo">
+              <label>Status do suporte</label>
+              <select id="posvenda_status_suporte">
+                <option value="Nenhum">Nenhum</option>
+                <option value="Em análise">Em análise</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Resolvido">Resolvido</option>
+                <option value="Fechado">Fechado</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Último contato</label>
+              <input type="date" id="posvenda_ultimo_contato" />
+            </div>
+            <div class="campo">
+              <label>Plano de laudo</label>
+              <select id="posvenda_plano_laudo">
+                <option value="Nenhum">Nenhum</option>
+                <option value="Básico">Básico</option>
+                <option value="Essencial">Essencial</option>
+                <option value="Premium">Premium</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Data de início do plano</label>
+              <input type="date" id="posvenda_plano_inicio" />
+            </div>
+            <div class="campo">
+              <label>Data de fim do plano</label>
+              <input type="date" id="posvenda_plano_fim" />
+            </div>
+            <div class="campo full">
+              <label>Observações de pós-venda</label>
+              <textarea rows="4" id="posvenda_observacoes" placeholder="Anotações sobre o cliente, intercorrências, histórico de contato, etc..."></textarea>
+            </div>
+          </div>
+        </div>
 
         <!-- BOTÕES DO MODAL -->
         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.5rem; justify-content:space-between; align-items:center;">
@@ -2026,7 +2183,7 @@ body.admin-logged .hero-admin {
         <h4 style="color:#0b2f5c; margin-bottom:0.8rem;">⚡ Fast Track</h4>
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
           <div class="campo"><label>Geração original *</label><input type="number" step="0.1" id="vtFTGeracaoOriginal" /></div>
-<div class="campo"><label>Geração otimizada *</label><input type="number" step="0.1" id="vtFTGeracaoOtimizada" /></div>
+          <div class="campo"><label>Geração otimizada *</label><input type="number" step="0.1" id="vtFTGeracaoOtimizada" /></div>
           <div class="campo"><label>Módulos *</label><input type="number" id="vtQtdModulosFT" /></div>
           <div class="campo"><label>Investimento estimado (R$) *</label><input type="number" step="0.01" id="vtInvestimentoFT" />
 </div>
@@ -2062,104 +2219,103 @@ body.admin-logged .hero-admin {
   </div>
 
   <!-- ===== MODAL CONTRATO PRESTADOR ===== -->
-  <!-- ===== MODAL CONTRATO PRESTADOR ===== -->
-<div class="modal-overlay" id="modalContratoPrestador">
-  <div class="modal-edicao" style="max-width: 700px;">
-    <button class="fechar" onclick="fecharModalContratoPrestador()">&times;</button>
-    <div class="titulo-modal">📜 Contrato de Prestador</div>
-    <div class="subtitulo-modal">Preencha os dados do prestador para gerar o contrato.</div>
+  <div class="modal-overlay" id="modalContratoPrestador">
+    <div class="modal-edicao" style="max-width: 700px;">
+      <button class="fechar" onclick="fecharModalContratoPrestador()">&times;</button>
+      <div class="titulo-modal">📜 Contrato de Prestador</div>
+      <div class="subtitulo-modal">Preencha os dados do prestador para gerar o contrato.</div>
 
-    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-      <!-- Nome -->
-      <div class="campo">
-        <label>Nome completo *</label>
-        <input type="text" id="prestador_nome" />
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <!-- Nome -->
+        <div class="campo">
+          <label>Nome completo *</label>
+          <input type="text" id="prestador_nome" />
+        </div>
+        <!-- CPF -->
+        <div class="campo">
+          <label>CPF *</label>
+          <input type="text" id="prestador_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" />
+        </div>
+        <!-- RG -->
+        <div class="campo">
+          <label>RG</label>
+          <input type="text" id="prestador_rg" />
+        </div>
+        <!-- Nacionalidade -->
+        <div class="campo">
+          <label>Nacionalidade</label>
+          <input type="text" id="prestador_nacionalidade" placeholder="Brasileiro" />
+        </div>
+        <!-- Estado civil -->
+        <div class="campo">
+          <label>Estado civil</label>
+          <select id="prestador_estado_civil">
+            <option value="">Selecione...</option>
+            <option value="Solteiro">Solteiro</option>
+            <option value="Casado">Casado</option>
+            <option value="Divorciado">Divorciado</option>
+            <option value="Viúvo">Viúvo</option>
+          </select>
+        </div>
+        <!-- Profissão -->
+        <div class="campo">
+          <label>Profissão</label>
+          <input type="text" id="prestador_profissao" />
+        </div>
+        <!-- Endereço -->
+        <div class="campo full">
+          <label>Endereço completo</label>
+          <input type="text" id="prestador_endereco" />
+        </div>
+        <!-- Especialidade -->
+        <div class="campo">
+          <label>Especialidade *</label>
+          <input type="text" id="prestador_especialidade" placeholder="Ex: Instalação de sistemas fotovoltaicos" />
+        </div>
+        <!-- Duração (meses) -->
+        <div class="campo">
+          <label>Duração (meses) *</label>
+          <input type="number" id="prestador_duracao_meses" value="12" min="1" />
+        </div>
+        <!-- Data de início -->
+        <div class="campo">
+          <label>Data de início *</label>
+          <input type="date" id="prestador_data_inicio" />
+        </div>
+        <!-- Valor combinado -->
+        <div class="campo">
+          <label>Valor combinado *</label>
+          <input type="text" id="prestador_valor_hora" placeholder="Ex: R$ 5.000,00 ou R$ 150,00/hora" />
+        </div>
+        <!-- Banco -->
+        <div class="campo">
+          <label>Banco</label>
+          <input type="text" id="prestador_banco" />
+        </div>
+        <!-- Agência -->
+        <div class="campo">
+          <label>Agência</label>
+          <input type="text" id="prestador_agencia" />
+        </div>
+        <!-- Conta -->
+        <div class="campo">
+          <label>Conta</label>
+          <input type="text" id="prestador_conta" />
+        </div>
+        <!-- PIX -->
+        <div class="campo">
+          <label>PIX</label>
+          <input type="text" id="prestador_pix" placeholder="E-mail, telefone ou chave aleatória" />
+        </div>
       </div>
-      <!-- CPF -->
-      <div class="campo">
-        <label>CPF *</label>
-        <input type="text" id="prestador_cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" />
-      </div>
-      <!-- RG -->
-      <div class="campo">
-        <label>RG</label>
-        <input type="text" id="prestador_rg" />
-      </div>
-      <!-- Nacionalidade -->
-      <div class="campo">
-        <label>Nacionalidade</label>
-        <input type="text" id="prestador_nacionalidade" placeholder="Brasileiro" />
-      </div>
-      <!-- Estado civil -->
-      <div class="campo">
-        <label>Estado civil</label>
-        <select id="prestador_estado_civil">
-          <option value="">Selecione...</option>
-          <option value="Solteiro">Solteiro</option>
-          <option value="Casado">Casado</option>
-          <option value="Divorciado">Divorciado</option>
-          <option value="Viúvo">Viúvo</option>
-        </select>
-      </div>
-      <!-- Profissão -->
-      <div class="campo">
-        <label>Profissão</label>
-        <input type="text" id="prestador_profissao" />
-      </div>
-      <!-- Endereço -->
-      <div class="campo full">
-        <label>Endereço completo</label>
-        <input type="text" id="prestador_endereco" />
-      </div>
-      <!-- Especialidade -->
-      <div class="campo">
-        <label>Especialidade *</label>
-        <input type="text" id="prestador_especialidade" placeholder="Ex: Instalação de sistemas fotovoltaicos" />
-      </div>
-      <!-- Duração (meses) -->
-      <div class="campo">
-        <label>Duração (meses) *</label>
-        <input type="number" id="prestador_duracao_meses" value="12" min="1" />
-      </div>
-      <!-- Data de início -->
-      <div class="campo">
-        <label>Data de início *</label>
-        <input type="date" id="prestador_data_inicio" />
-      </div>
-      <!-- Valor combinado -->
-      <div class="campo">
-        <label>Valor combinado *</label>
-        <input type="text" id="prestador_valor_hora" placeholder="Ex: R$ 5.000,00 ou R$ 150,00/hora" />
-      </div>
-      <!-- Banco -->
-      <div class="campo">
-        <label>Banco</label>
-        <input type="text" id="prestador_banco" />
-      </div>
-      <!-- Agência -->
-      <div class="campo">
-        <label>Agência</label>
-        <input type="text" id="prestador_agencia" />
-      </div>
-      <!-- Conta -->
-      <div class="campo">
-        <label>Conta</label>
-        <input type="text" id="prestador_conta" />
-      </div>
-      <!-- PIX -->
-      <div class="campo">
-        <label>PIX</label>
-        <input type="text" id="prestador_pix" placeholder="E-mail, telefone ou chave aleatória" />
-      </div>
-    </div>
 
-    <div style="display:flex; gap:0.8rem; margin-top:1.5rem; flex-wrap:wrap;">
-      <button class="btn-salvar" onclick="gerarContratoPrestador()">📄 Gerar Contrato</button>
-      <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalContratoPrestador()">Cancelar</button>
-      <span id="statusContratoPrestador" style="margin-left:auto; font-size:0.9rem; color:#0b2f5c; align-self:center;"></span>
+      <div style="display:flex; gap:0.8rem; margin-top:1.5rem; flex-wrap:wrap;">
+        <button class="btn-salvar" onclick="gerarContratoPrestador()">📄 Gerar Contrato</button>
+        <button class="btn-salvar btn-salvar--secundario" onclick="fecharModalContratoPrestador()">Cancelar</button>
+        <span id="statusContratoPrestador" style="margin-left:auto; font-size:0.9rem; color:#0b2f5c; align-self:center;"></span>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- ===== MODAL COMISSIONAMENTO ===== -->
   <div class="modal-overlay" id="modalComissionamento">
@@ -2999,6 +3155,25 @@ if (erroEl) erroEl.style.display = 'none';
       document.getElementById('comiss_obs_ensaios').value = c.obs_ensaios || '';
       document.getElementById('comiss_obs_finais').value = c.obs_finais || '';
 
+      // Novos campos adicionados:
+      document.getElementById('comiss_tipo_quadro').value = c.tipo_quadro || '';
+      document.getElementById('comiss_qtd_circuitos').value = c.qtd_circuitos || '';
+      document.getElementById('comiss_local_quadro').value = c.local_quadro || '';
+      document.getElementById('comiss_altura_quadro').value = c.altura_quadro || '';
+      document.getElementById('comiss_distancia_pontos').value = c.distancia_pontos || '';
+      document.getElementById('comiss_sistema_aterrado').value = c.sistema_aterrado || '';
+      document.getElementById('comiss_duplo_isolamento').value = c.duplo_isolamento || '';
+      document.getElementById('comiss_seguir_diagrama').value = c.seguir_diagrama || '';
+      document.getElementById('comiss_circuitos_verificados').value = c.circuitos_verificados || '';
+      document.getElementById('comiss_aplicativo_monitoramento').value = c.aplicativo_monitoramento || '';
+      document.getElementById('comiss_login_monitoramento').value = c.login_monitoramento || '';
+      document.getElementById('comiss_senha_monitoramento').value = c.senha_monitoramento || '';
+      document.getElementById('comiss_nf_enviada').value = c.nf_enviada || '';
+      document.getElementById('comiss_protecoes_testadas').value = c.protecoes_testadas || '';
+      document.getElementById('comiss_usaram_epi').value = c.usaram_epi || '';
+      document.getElementById('comiss_inspecao_realizada').value = c.inspecao_realizada || '';
+      document.getElementById('comiss_pontos_atencao').value = c.pontos_atencao || '';
+
       // Sub-aba 3: Documentos e Anexos
       document.getElementById('homologacao_laudo_comiss_url').value = h.laudo_comiss_url || '';
       document.getElementById('homologacao_art_url').value = h.art_url || '';
@@ -3134,7 +3309,7 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
 
       const formData = new FormData();
       formData.append('cliente_id', clienteId);
-      formData.append('tipo_doc', `foto_${id}`);
+      formData.append('tipo_doc', `instalacao_foto_${id}`);
       formData.append('arquivo', file);
 
       try {
@@ -3374,21 +3549,24 @@ checklist = {
 };
 
     // ===== MONTA OS CAMPOS PARA SALVAR =====
-    const campos = {
-        nome: clienteEditando.nome,
-        email: clienteEditando.email,
-        telefone: clienteEditando.telefone,
-        endereco: clienteEditando.endereco,
-        cep: clienteEditando.cep,
-        etapa_atual: novaEtapa,
-        dados_preproposta: {
-            data: document.getElementById('preproposta_data').value,
-            valor: document.getElementById('preproposta_valor').value,
-            status: document.getElementById('preproposta_status').value,
-            obs: document.getElementById('preproposta_obs').value,
-            url: document.getElementById('preproposta_url').value,
-        },
-        dados_visita: {
+    const cpfExistente = clienteEditando.dados_preproposta?.cpf_cnpj || '';
+
+const campos = {
+    nome: clienteEditando.nome,
+    email: clienteEditando.email,
+    telefone: clienteEditando.telefone,
+    endereco: clienteEditando.endereco,
+    cep: clienteEditando.cep,
+    etapa_atual: novaEtapa,
+    dados_preproposta: {
+        data: document.getElementById('preproposta_data').value,
+        valor: document.getElementById('preproposta_valor').value,
+        status: document.getElementById('preproposta_status').value,
+        obs: document.getElementById('preproposta_obs').value,
+        url: document.getElementById('preproposta_url').value,
+        cpf_cnpj: cpfExistente,   // ← Preserva o CPF
+    },
+    dados_visita: {
             engenheiro: document.getElementById('visita_engenheiro').value,
             data_agendada: document.getElementById('visita_data_agendada').value,
             data_realizacao: document.getElementById('visita_data_realizacao').value,
@@ -3509,6 +3687,29 @@ checklist = {
                 ensaio_polaridade_resultado: document.getElementById('comiss_ensaio_polaridade_resultado').value,
                 obs_ensaios: document.getElementById('comiss_obs_ensaios').value,
                 obs_finais: document.getElementById('comiss_obs_finais').value,
+                tipo_quadro: document.getElementById('comiss_tipo_quadro').value,
+                qtd_circuitos: document.getElementById('comiss_qtd_circuitos').value,
+                local_quadro: document.getElementById('comiss_local_quadro').value,
+                altura_quadro: document.getElementById('comiss_altura_quadro').value,
+                distancia_pontos: document.getElementById('comiss_distancia_pontos').value,
+                sistema_aterrado: document.getElementById('comiss_sistema_aterrado').value,
+                duplo_isolamento: document.getElementById('comiss_duplo_isolamento').value,
+                seguir_diagrama: document.getElementById('comiss_seguir_diagrama').value,
+                circuitos_verificados: document.getElementById('comiss_circuitos_verificados').value,
+                aplicativo_monitoramento: document.getElementById('comiss_aplicativo_monitoramento').value,
+                login_monitoramento: document.getElementById('comiss_login_monitoramento').value,
+                senha_monitoramento: document.getElementById('comiss_senha_monitoramento').value,
+                nf_enviada: document.getElementById('comiss_nf_enviada').value,
+                protecoes_testadas: document.getElementById('comiss_protecoes_testadas').value,
+                usaram_epi: document.getElementById('comiss_usaram_epi').value,
+                inspecao_realizada: document.getElementById('comiss_inspecao_realizada').value,
+                pontos_atencao: document.getElementById('comiss_pontos_atencao').value,
+                // Verificações mecânicas
+                check_estrutura: document.getElementById('comiss_check_estrutura').value,
+                check_modulos: document.getElementById('comiss_check_modulos').value,
+                check_conexoes: document.getElementById('comiss_check_conexoes').value,
+                check_aterramento: document.getElementById('comiss_check_aterramento').value,
+                check_cabeamento: document.getElementById('comiss_check_cabeamento').value,
             },
             laudo_comiss_url: document.getElementById('homologacao_laudo_comiss_url').value,
             art_url: document.getElementById('homologacao_art_url').value,
@@ -3544,6 +3745,7 @@ checklist = {
     };
 
     try {
+        console.log('📦 Payload enviado:', JSON.stringify(campos, null, 2));
         const resp = await fetch(URL_API, {
             method: 'POST',
             body: JSON.stringify({
