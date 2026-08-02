@@ -122,6 +122,55 @@ def gerar_marcos_20(linhas):
         indices.update(extra[:20 - len(indices)])
     return sorted(list(indices))
 
+    # ============================================================
+# FUNÇÃO PARA CONVERTER IMAGEM DO DRIVE PARA BASE64
+# ============================================================
+def imagem_drive_para_base64(url):
+    print(f"🔍 [imagem_drive] Recebeu URL: {url}")
+    if not url:
+        print("⚠️ URL vazia")
+        return ''
+    if url.startswith('data:image'):
+        print("✅ Já é base64")
+        return url
+
+    # Se for URL do Google Drive, tenta extrair o ID para usar thumbnail
+    import re
+    match = re.search(r'id=([^&]+)', url)
+    if match:
+        file_id = match.group(1)
+        # Usa o formato thumbnail que é mais amigável para download
+        url_thumb = f"https://drive.google.com/thumbnail?id={file_id}&sz=w800"
+        print(f"🔄 Usando thumbnail: {url_thumb}")
+        url = url_thumb  # substitui pela URL de thumbnail
+
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        print(f"⏳ Baixando de {url}")
+        resp = requests.get(url, timeout=30, headers=headers, allow_redirects=True)
+        print(f"📡 Status: {resp.status_code}, Content-Type: {resp.headers.get('Content-Type')}")
+
+        if resp.status_code == 200:
+            content_type = resp.headers.get('Content-Type', '')
+            if 'image' in content_type:
+                encoded = base64.b64encode(resp.content).decode()
+                print(f"✅ Base64 gerado (primeiros 60): {encoded[:60]}...")
+                return f"data:image/jpeg;base64,{encoded}"
+            else:
+                print(f"⚠️ Content-Type não é imagem: {content_type}")
+                # Tenta salvar o início da resposta para depuração
+                print(f"📄 Primeiros 200 bytes: {resp.text[:200]}")
+        else:
+            print(f"❌ Status {resp.status_code}")
+    except Exception as e:
+        print(f"❌ Exceção: {e}")
+
+    # Fallback: retorna a URL original (pode não funcionar no WeasyPrint)
+    print(f"⚠️ Usando fallback: URL original")
+    return url
+
 def gerar_grafico_payback(dados_simulacao):
     try:
         investimento = dados_simulacao.get('investimento', 0)
@@ -1822,6 +1871,9 @@ def atualizar_relatorio_url():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============================================================
+# ROTA: UPLOAD DE DOCUMENTO (CORRIGIDA INDENTAÇÃO)
+# ============================================================
 @app.route('/api/upload_documento_admin', methods=['POST'])
 def upload_documento_admin():
     try:
@@ -1831,6 +1883,17 @@ def upload_documento_admin():
 
         if not cliente_id or not tipo_doc or not arquivo:
             return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
+
+        # Determina subpasta (agora tipo_doc já existe)
+        if tipo_doc.startswith('instalacao_foto_'):
+            subpasta = 'Instalacao'
+        elif tipo_doc.startswith('homologacao_foto_'):
+            subpasta = 'Homologacao'
+        else:
+            subpasta = 'Documentos'
+
+        # LOG (agora tipo_doc e subpasta estão definidos)
+        print(f"📥 Upload: tipo_doc={tipo_doc}, subpasta={subpasta}")
 
         base64_content = base64.b64encode(arquivo.read()).decode('utf-8')
         nome_arquivo = arquivo.filename
@@ -1845,7 +1908,8 @@ def upload_documento_admin():
             'cliente_id': cliente_id,
             'tipo_doc': tipo_doc,
             'nome_arquivo': nome_arquivo,
-            'base64': base64_content
+            'base64': base64_content,
+            'subpasta': subpasta
         }
 
         response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
@@ -1930,18 +1994,18 @@ def gerar_contrato():
             investimento = 0
 
             if tipo_relatorio == 'sem_adequacao':
-    # Tenta pegar a potência do campo específico
+                # Tenta pegar a potência do campo específico
                 potencia = dados_visita.get('potencia') or '0'
-    # Se ainda estiver vazio, tenta usar a potência da pré-proposta
+                # Se ainda estiver vazio, tenta usar a potência da pré-proposta
                 if not potencia or potencia == '0':
                     potencia = dados_visita.get('potencia_kwp') or '0'
-    # Se ainda estiver vazio, tenta estimar pela geração (dividindo por HSP médio ~4.5)
+                # Se ainda estiver vazio, tenta estimar pela geração (dividindo por HSP médio ~4.5)
                 if not potencia or potencia == '0':
                     geracao_estimada = dados_visita.get('geracao_estimada') or dados_visita.get('geracao') or 0
                     if geracao_estimada and float(geracao_estimada) > 0:
-            # Estima potência = geração mensal / (HSP * 30) ~ 4.5
+                        # Estima potência = geração mensal / (HSP * 30) ~ 4.5
                         potencia = str(round(float(geracao_estimada) / 4.5, 2))
-    # Fallback final
+                # Fallback final
                 if not potencia or potencia == '0':
                     potencia = '0'
 
@@ -1989,38 +2053,38 @@ def gerar_contrato():
             num_contrato = f"CT-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
 
             context = {
-    'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
-    'NOME_FANTASIA': 'SoLivia Engenharia',
-    'CNPJ': '49.972.976/0001-15',
-    'TELEFONE': '(11) 5028-2426',
-    'EMAIL': 'contato@solivia.com.br',
-    'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
-    'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
-    'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
-    'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
-    'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
-    'NUM_CONTRATO': num_contrato,
-    'NUM_PROPOSTA': dados_visita.get('ultimo_protocolo', ''),
-    'NOME_CLIENTE': nome_cliente,
-    'CPF_CNPJ': cpf_cnpj,
-    'ENDERECO': endereco,
-    'TELEFONE_CLIENTE': telefone_cliente,
-    'REPRESENTANTE_CLIENTE': nome_cliente,
-    'CARGO_CLIENTE': 'Proprietário',
-    'REPRESENTANTE': 'Nícolas Alves de Sá',
-    'CARGO_REPRESENTANTE': 'Sócio-Administrador',
-    'TIPO_SERVICO': 'Sistema Fotovoltaico',
-    'POTENCIA': potencia,
-    'QTD_MODULOS': qtd_modulos,
-    'INVERSOR': inversor,
-    'GERACAO': geracao,
-    'VALOR_FORMATADO': format_moeda(investimento),
-    'VALOR_EXTENSO': f"R$ {float(investimento):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
-    'COND_PAGAMENTO': condicao_pagamento,
-    'PRAZO_EXECUCAO': prazo_execucao,
-    'FOTO_CAPA': None,
-    'CONCESSIONARIA': concessionaria
-}
+                'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+                'NOME_FANTASIA': 'SoLivia Engenharia',
+                'CNPJ': '49.972.976/0001-15',
+                'TELEFONE': '(11) 5028-2426',
+                'EMAIL': 'contato@solivia.com.br',
+                'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+                'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+                'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+                'SELO_QUALIDADE': 'https://i.imgur.com/hVtSG8M.png',
+                'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+                'NUM_CONTRATO': num_contrato,
+                'NUM_PROPOSTA': dados_visita.get('ultimo_protocolo', ''),
+                'NOME_CLIENTE': nome_cliente,
+                'CPF_CNPJ': cpf_cnpj,
+                'ENDERECO': endereco,
+                'TELEFONE_CLIENTE': telefone_cliente,
+                'REPRESENTANTE_CLIENTE': nome_cliente,
+                'CARGO_CLIENTE': 'Proprietário',
+                'REPRESENTANTE': 'Nícolas Alves de Sá',
+                'CARGO_REPRESENTANTE': 'Sócio-Administrador',
+                'TIPO_SERVICO': 'Sistema Fotovoltaico',
+                'POTENCIA': potencia,
+                'QTD_MODULOS': qtd_modulos,
+                'INVERSOR': inversor,
+                'GERACAO': geracao,
+                'VALOR_FORMATADO': format_moeda(investimento),
+                'VALOR_EXTENSO': f"R$ {float(investimento):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                'COND_PAGAMENTO': condicao_pagamento,
+                'PRAZO_EXECUCAO': prazo_execucao,
+                'FOTO_CAPA': None,
+                'CONCESSIONARIA': concessionaria
+            }
 
             # Gera o PDF
             html_rendered = render_template('contrato_cliente.html', **context)
@@ -2064,17 +2128,17 @@ def gerar_contrato():
 
             try:
                 posicao_engenheiro = {
-    "x": "66.0",           # 70% da largura (lado direito)
-    "y": "30.0",           # 65% da altura (ajuste fino)
-    "z": 7,                # página 7 (onde estão as assinaturas agora)
-    "element": "SIGNATURE"
-}
+                    "x": "66.0",           # 70% da largura (lado direito)
+                    "y": "30.0",           # 65% da altura (ajuste fino)
+                    "z": 7,                # página 7 (onde estão as assinaturas agora)
+                    "element": "SIGNATURE"
+                }
                 posicao_cliente = {
-    "x": "15.0",           # 30% da largura (lado esquerdo)
-    "y": "30.0",           # 65% da altura
-    "z": 7,                # página 7
-    "element": "SIGNATURE"
-}
+                    "x": "15.0",           # 30% da largura (lado esquerdo)
+                    "y": "30.0",           # 65% da altura
+                    "z": 7,                # página 7
+                    "element": "SIGNATURE"
+                }
 
                 resultado_assinatura = enviar_para_assinatura_autentique(
                     pdf_bytes=pdf_bytes,
@@ -2157,6 +2221,269 @@ def gerar_contrato():
         import traceback
         traceback.print_exc()
         return _cors_response({'success': False, 'error': str(e)}, 500)
+
+
+# ============================================================
+# ROTA: GERAR RELATÓRIO DE COMISSIONAMENTO (INSERIDA CORRETAMENTE)
+# ============================================================
+
+@app.route('/gerar_relatorio_comissionamento', methods=['OPTIONS'])
+def gerar_relatorio_comissionamento_options():
+    response = jsonify({'status': 'ok'})
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Max-Age'] = '3600'
+    return response, 200
+
+@app.route('/gerar_relatorio_comissionamento', methods=['POST'])
+def gerar_relatorio_comissionamento():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({'success': False, 'error': 'Dados não fornecidos'}), 400
+
+        cliente_id = dados.get('cliente_id')
+        if not cliente_id:
+            return jsonify({'success': False, 'error': 'cliente_id não informado'}), 400
+
+        cliente = buscar_cliente_por_id(cliente_id)
+        print("🔍 comissionamento recebido:", cliente.get('dados_homologacao', {}).get('comissionamento', {}))
+        if not cliente:
+            return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+
+            # ===== LOG DAS FOTOS RECUPERADAS =====
+        dados_homologacao = cliente.get('dados_homologacao', {})
+        fotos = dados_homologacao.get('fotos', {})
+        print("📸 Fotos recuperadas da planilha:", fotos)
+
+        # ===== EXTRAI DADOS DA HOMOLOGAÇÃO E COMISSIONAMENTO =====
+        dados_homologacao = cliente.get('dados_homologacao', {})
+        fotos = dados_homologacao.get('fotos', {})
+        print("📸 Fotos recuperadas da planilha:", fotos)
+        comiss = dados_homologacao.get('comissionamento', {})
+
+        # ===== MAPEIA STATUS PARA COR E TEXTO =====
+        status_text = comiss.get('status', 'Pendente')
+        if status_text == 'Concluído':
+            status_classe = 'status-aprovado'
+        elif status_text == 'Com falhas':
+            status_classe = 'status-reprovado'
+        else:
+            status_classe = 'status-parcial'
+
+        # ===== DADOS PARA OS ENSAIOS =====
+        def safe(valor):
+            return valor if valor else '-'
+
+        def resultado_classe(resultado):
+            if resultado == 'ok':
+                return 'ok'
+            elif resultado == 'falha':
+                return 'falha'
+            return ''
+
+            # ===== GERA HASH E PROTOCOLO UMA ÚNICA VEZ =====
+        hash_input = f"{cliente_id}{datetime.now().isoformat()}"
+        hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
+
+# Protocolo automático se não tiver
+        protocolo = dados_homologacao.get('protocolo', '')
+        if not protocolo:
+            protocolo = f"COM-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
+
+        # ===== CONTEXTO PARA O TEMPLATE =====
+        context = {
+            'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
+            'NOME_FANTASIA': 'SoLivia Engenharia',
+            'CNPJ': '49.972.976/0001-15',
+            'TELEFONE': '(11) 5028-2426',
+            'EMAIL': 'contato@solivia.com.br',
+            'SITE': 'solivia.com.br',
+            'ENDERECO_EMPRESA': 'Rua Jerônimo Bueno, 28 - São Paulo/SP',
+            'LOGO_CENTRAL': 'https://i.imgur.com/HkYPKmQ.png',
+            'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
+            'NOME_CLIENTE': cliente.get('nome', ''),
+            'CPF_CNPJ': (
+    cliente.get('dados_preproposta', {}).get('cpf_cnpj', '') or
+    cliente.get('cpf_cnpj', '') or
+    ''
+),
+            'ENDERECO': cliente.get('endereco', ''),
+            'ENGENHEIRO_RESPONSAVEL': comiss.get('responsavel', 'Nícolas Alves de Sá'),
+            'CREA_NUMERO': '5071237870',
+            'DATA_INSTALACAO': dados_homologacao.get('data_vistoria', ''),
+            'DATA_COMISSIONAMENTO': comiss.get('data', ''),
+            'STATUS': status_text,
+            'STATUS_CLASSE': status_classe,
+            'POTENCIA_KWP': comiss.get('potencia_kwp', ''),
+            'QTD_MODULOS': comiss.get('qtd_modulos', ''),
+            'MARCA_MODULOS': comiss.get('marca_modulos', ''),
+            'POTENCIA_INVERSOR': comiss.get('potencia_inversor', ''),
+            'MARCA_INVERSOR': comiss.get('marca_inversor', ''),
+            'TIPO_SISTEMA': comiss.get('tipo_sistema', ''),
+            'NUM_STRINGS': comiss.get('num_strings', ''),
+            'MODULOS_POR_STRING': comiss.get('modulos_por_string', ''),
+            'TENSAO_NOMINAL': comiss.get('tensao_nominal', ''),
+            'CORRENTE_NOMINAL': comiss.get('corrente_nominal', ''),
+            'FREQUENCIA': comiss.get('frequencia', ''),
+            'CLASSE_ISOLAMENTO': comiss.get('classe_isolamento', ''),
+            'TENSAO_CC': comiss.get('tensao_cc', ''),
+            'CORRENTE_CC': comiss.get('corrente_cc', ''),
+            'TENSAO_CA': comiss.get('tensao_ca', ''),
+            'FREQUENCIA_REDE': comiss.get('frequencia_rede', ''),
+            'TESTE_ISOLAMENTO': comiss.get('teste_isolamento', ''),
+            'TESTE_ATERRAMENTO': comiss.get('teste_aterramento', ''),
+            'IDENTIFICACAO_POLOS': comiss.get('identificacao_polos', ''),
+            'INVERSOR_LIGOU': comiss.get('inversor_ligou', ''),
+            'MONITORAMENTO_CONFIGURADO': comiss.get('monitoramento_configurado', ''),
+            'COMUNICACAO_APP': comiss.get('comunicacao_app', ''),
+            'SISTEMA_GERANDO': comiss.get('sistema_gerando', ''),
+            'ENSAIO_VOC': safe(comiss.get('ensaio_voc', '')),
+            'ENSAIO_VOC_RESULTADO': resultado_classe(comiss.get('ensaio_voc_resultado', '')),
+            'ENSAIO_ISC': safe(comiss.get('ensaio_isc', '')),
+            'ENSAIO_ISC_RESULTADO': resultado_classe(comiss.get('ensaio_isc_resultado', '')),
+            'ENSAIO_ISOLAMENTO': safe(comiss.get('ensaio_isolamento', '')),
+            'ENSAIO_ISOLAMENTO_RESULTADO': resultado_classe(comiss.get('ensaio_isolamento_resultado', '')),
+            'ENSAIO_ATERRAMENTO': safe(comiss.get('ensaio_aterramento', '')),
+            'ENSAIO_ATERRAMENTO_RESULTADO': resultado_classe(comiss.get('ensaio_aterramento_resultado', '')),
+            'ENSAIO_CONTINUIDADE': safe(comiss.get('ensaio_continuidade', '')),
+            'ENSAIO_CONTINUIDADE_RESULTADO': resultado_classe(comiss.get('ensaio_continuidade_resultado', '')),
+            'ENSAIO_POLARIDADE': safe(comiss.get('ensaio_polaridade', '')),
+            'ENSAIO_POLARIDADE_RESULTADO': resultado_classe(comiss.get('ensaio_polaridade_resultado', '')),
+            'OBSERVACOES_ENSAIOS': comiss.get('obs_ensaios', ''),
+            'OBSERVACOES_FINAIS': comiss.get('obs_finais', ''),
+            'RESUMO_COMISSIONAMENTO': f"Sistema de {comiss.get('potencia_kwp', '')} kWp comissionado em {comiss.get('data', '')}.",
+            'RESULTADO_GERAL': f"Comissionamento {status_text.lower()}",
+            'RESULTADO_FINAL': f"Comissionamento {status_text.lower()}",
+            'NUM_RELATORIO': f"RC-{datetime.now().strftime('%Y%m%d')}-{cliente_id}",
+            'DATA_EMISSAO': datetime.now().strftime('%d/%m/%Y'),
+            'HORA_EMISSAO': datetime.now().strftime('%H:%M'),
+            'NUM_PROTOCOLO': protocolo,
+            'HASH_DOCUMENTO': hash_documento,
+            'URL_VALIDACAO': f"https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec?hash={hash_documento}",
+            'FOTO_SISTEMA': dados_homologacao.get('fotos', {}).get('sistema', ''),
+            'CHECK_ESTRUTURA': comiss.get('check_estrutura', ''),
+            'CHECK_MODULOS': comiss.get('check_modulos', ''),
+            'CHECK_CONEXOES': comiss.get('check_conexoes', ''),
+            'CHECK_ATERRAMENTO': comiss.get('check_aterramento', ''),
+            'CHECK_CABEAMENTO': comiss.get('check_cabeamento', ''),
+            # Fotos
+'FOTO_ESTRUTURA_ANTES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_estrutura_antes', '')),
+'FOTO_ATERRAMENTO_SISTEMA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aterramento_sistema', '')),
+'FOTO_QUADROS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_quadros', '')),
+'FOTO_CONEXOES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_conexoes', '')),
+'FOTO_QUADRO_REDE': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_quadro_rede', '')),
+'FOTO_ATERRAMENTO_CARCACAS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aterramento_carcacas', '')),
+'FOTO_INSPECAO_LOCAL': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_inspecao_local', '')),
+'FOTO_FACHADA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_fachada', '')),
+'FOTO_IDENTIFICACAO_DISJUNTORES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_identificacao_disjuntores', '')),
+'FOTO_ETIQUETAS_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_etiquetas_circuitos', '')),
+'FOTO_TENSAO_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_tensao_circuitos', '')),
+'FOTO_CORRENTE_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_corrente_circuitos', '')),
+'FOTO_EPI': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_epi', '')),
+'FOTO_APLICATIVO': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aplicativo', '')),
+'FOTO_SISTEMA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_sistema', '')),
+# Quadros e Circuitos
+'TIPO_QUADRO': comiss.get('tipo_quadro', ''),
+'QTD_CIRCUITOS': comiss.get('qtd_circuitos', ''),
+'LOCAL_QUADRO': comiss.get('local_quadro', ''),
+'ALTURA_QUADRO': comiss.get('altura_quadro', ''),
+'DISTANCIA_PONTOS': comiss.get('distancia_pontos', ''),
+'SISTEMA_ATERRADO': comiss.get('sistema_aterrado', ''),
+'DUPLO_ISOLAMENTO': comiss.get('duplo_isolamento', ''),
+'SEGUIR_DIAGRAMA': comiss.get('seguir_diagrama', ''),
+'CIRCUITOS_VERIFICADOS': comiss.get('circuitos_verificados', ''),
+# Monitoramento e Segurança
+'APLICATIVO_MONITORAMENTO': comiss.get('aplicativo_monitoramento', ''),
+'LOGIN_MONITORAMENTO': comiss.get('login_monitoramento', ''),
+'SENHA_MONITORAMENTO': comiss.get('senha_monitoramento', ''),
+'NF_ENVIADA': comiss.get('nf_enviada', ''),
+'PROTECOES_TESTADAS': comiss.get('protecoes_testadas', ''),
+'USARAM_EPI': comiss.get('usaram_epi', ''),
+'INSPECAO_REALIZADA': comiss.get('inspecao_realizada', ''),
+'PONTOS_ATENCAO': comiss.get('pontos_atencao', ''),
+        }
+
+                # ===== LOG DAS FOTOS NO CONTEXTO =====
+        print("📸 FOTO_ESTRUTURA_ANTES (primeiros 100):", context.get('FOTO_ESTRUTURA_ANTES', '')[:100])
+        print("📸 FOTO_ATERRAMENTO_SISTEMA (primeiros 100):", context.get('FOTO_ATERRAMENTO_SISTEMA', '')[:100])
+
+        # ===== GERA O PDF =====
+        html_rendered = render_template('relatorio_comissionamento.html', **context)
+        pdf_bytes = HTML(string=html_rendered).write_pdf()
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+        # ===== SALVA NO DRIVE =====
+        nome_cliente = cliente.get('nome', 'cliente').replace(' ', '_')
+        nome_arquivo = f"Relatorio_Comissionamento_{nome_cliente}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+
+        payload_script = {
+            'token': TOKEN,
+            'acao': 'salvar_pdf',
+            'dados': {
+                'nome_cliente': cliente.get('nome', 'cliente'),
+                'pdf_base64': pdf_base64,
+                'cliente_id': cliente_id,
+                'subpasta': 'Homologacao',
+                'nome_arquivo': nome_arquivo
+            }
+        }
+
+        response = requests.post(APPS_SCRIPT_URL, json=payload_script, timeout=60)
+        if response.status_code != 200:
+            return jsonify({'success': False, 'error': f'Erro ao salvar PDF: {response.status_code}'}), 500
+
+        result = response.json()
+        if not result.get('success'):
+            return jsonify({'success': False, 'error': result.get('error', 'Erro no Apps Script')}), 500
+
+        url_pdf = result.get('url')
+
+        # ===== ATUALIZA A PLANILHA COM LINK, HASH E PROTOCOLO =====
+        try:
+            cliente_atual = buscar_cliente_por_id(cliente_id)
+            if cliente_atual:
+        # Atualiza dados_homologacao
+                h = cliente_atual.get('dados_homologacao', {})
+                h['laudo_comiss_url'] = url_pdf
+                h['hash_documento'] = hash_documento
+                h['protocolo'] = protocolo
+
+        # Também salva em dados_visita (compatibilidade com validação existente)
+                v = cliente_atual.get('dados_visita', {})
+                v['hash_documento'] = hash_documento
+
+                payload_update = {
+            "acao": "adminAtualizarCliente",
+            "idCliente": str(cliente_id),
+            "campos": {
+                "dados_homologacao": h,
+                "dados_visita": v
+            },
+            "senhaAdmin": "SoLiVi@64253798@"
+        }
+                resp_update = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                if resp_update.status_code == 200:
+                    print(f"✅ Hash e protocolo salvos para cliente {cliente_id}")
+                else:
+                    print(f"❌ Erro ao salvar hash/protocolo: {resp_update.status_code}")
+        except Exception as e:
+            print(f"⚠️ Erro ao atualizar planilha: {e}")
+
+        # ===== RESPONDE COM CORS =====
+        resp = jsonify({'success': True, 'url': url_pdf, 'message': 'Relatório gerado com sucesso!'})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 200
+
+    except Exception as e:
+        print(f"❌ Erro em /gerar_relatorio_comissionamento: {e}")
+        import traceback
+        traceback.print_exc()
+        resp = jsonify({'success': False, 'error': str(e)})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
