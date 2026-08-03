@@ -2970,6 +2970,8 @@ if (erroEl) erroEl.style.display = 'none';
     function preencherModal(cliente) {
       document.getElementById('modalTitulo').textContent = `${cliente.nome}`;
       document.getElementById('modalSubtitulo').textContent = cliente.endereco || 'Endereço não informado';
+      console.log('🔍 Dados do cliente em preencherModal:', cliente);
+console.log('🔍 Comissionamento:', cliente.dados_homologacao?.comissionamento);
 
       // ===== PRÉ-PROPOSTA =====
 const pp = cliente.dados_preproposta || {};
@@ -3174,6 +3176,13 @@ if (erroEl) erroEl.style.display = 'none';
       document.getElementById('comiss_inspecao_realizada').value = c.inspecao_realizada || '';
       document.getElementById('comiss_pontos_atencao').value = c.pontos_atencao || '';
 
+      // ===== VERIFICAÇÕES MECÂNICAS =====
+document.getElementById('comiss_check_estrutura').value = c.check_estrutura || '';
+document.getElementById('comiss_check_modulos').value = c.check_modulos || '';
+document.getElementById('comiss_check_conexoes').value = c.check_conexoes || '';
+document.getElementById('comiss_check_aterramento').value = c.check_aterramento || '';
+document.getElementById('comiss_check_cabeamento').value = c.check_cabeamento || '';
+
       // Sub-aba 3: Documentos e Anexos
       document.getElementById('homologacao_laudo_comiss_url').value = h.laudo_comiss_url || '';
       document.getElementById('homologacao_art_url').value = h.art_url || '';
@@ -3185,7 +3194,7 @@ if (erroEl) erroEl.style.display = 'none';
         document.getElementById(`foto_${foto.id}_url`).value = url;
         atualizarBotaoAbrirFoto(foto.id);
       });
-
+console.log('comiss_check_estrutura =', document.getElementById('comiss_check_estrutura')?.value);
       // --- Pós-Venda (nova estrutura) ---
 const p = cliente.dados_posvenda || {};
 
@@ -3644,73 +3653,78 @@ const campos = {
             laudo_url: document.getElementById('homologacao_laudo_url').value,
             obs_homologacao: document.getElementById('homologacao_obs_homologacao').value,
             comissionamento: {
-                status: document.getElementById('comiss_status').value,
-                data: document.getElementById('comiss_data').value,
-                responsavel: document.getElementById('comiss_responsavel').value,
-                login: document.getElementById('comiss_login').value,
-                senha: document.getElementById('comiss_senha').value,
-                plataforma: document.getElementById('comiss_plataforma').value,
-                potencia_kwp: document.getElementById('comiss_potencia_kwp').value,
-                qtd_modulos: document.getElementById('comiss_qtd_modulos').value,
-                marca_modulos: document.getElementById('comiss_marca_modulos').value,
-                potencia_inversor: document.getElementById('comiss_potencia_inversor').value,
-                marca_inversor: document.getElementById('comiss_marca_inversor').value,
-                tipo_sistema: document.getElementById('comiss_tipo_sistema').value,
-                num_strings: document.getElementById('comiss_num_strings').value,
-                modulos_por_string: document.getElementById('comiss_modulos_por_string').value,
-                tensao_nominal: document.getElementById('comiss_tensao_nominal').value,
-                corrente_nominal: document.getElementById('comiss_corrente_nominal').value,
-                frequencia: document.getElementById('comiss_frequencia').value,
-                classe_isolamento: document.getElementById('comiss_classe_isolamento').value,
-                tensao_cc: document.getElementById('comiss_tensao_cc').value,
-                corrente_cc: document.getElementById('comiss_corrente_cc').value,
-                tensao_ca: document.getElementById('comiss_tensao_ca').value,
-                frequencia_rede: document.getElementById('comiss_frequencia_rede').value,
-                teste_isolamento: document.getElementById('comiss_teste_isolamento').value,
-                teste_aterramento: document.getElementById('comiss_teste_aterramento').value,
-                identificacao_polos: document.getElementById('comiss_identificacao_polos').value,
-                inversor_ligou: document.getElementById('comiss_inversor_ligou').value,
-                monitoramento_configurado: document.getElementById('comiss_monitoramento_configurado').value,
-                comunicacao_app: document.getElementById('comiss_comunicacao_app').value,
-                sistema_gerando: document.getElementById('comiss_sistema_gerando').value,
-                ensaio_voc: document.getElementById('comiss_ensaio_voc').value,
-                ensaio_voc_resultado: document.getElementById('comiss_ensaio_voc_resultado').value,
-                ensaio_isc: document.getElementById('comiss_ensaio_isc').value,
-                ensaio_isc_resultado: document.getElementById('comiss_ensaio_isc_resultado').value,
-                ensaio_isolamento: document.getElementById('comiss_ensaio_isolamento').value,
-                ensaio_isolamento_resultado: document.getElementById('comiss_ensaio_isolamento_resultado').value,
-                ensaio_aterramento: document.getElementById('comiss_ensaio_aterramento').value,
-                ensaio_aterramento_resultado: document.getElementById('comiss_ensaio_aterramento_resultado').value,
-                ensaio_continuidade: document.getElementById('comiss_ensaio_continuidade').value,
-                ensaio_continuidade_resultado: document.getElementById('comiss_ensaio_continuidade_resultado').value,
-                ensaio_polaridade: document.getElementById('comiss_ensaio_polaridade').value,
-                ensaio_polaridade_resultado: document.getElementById('comiss_ensaio_polaridade_resultado').value,
-                obs_ensaios: document.getElementById('comiss_obs_ensaios').value,
-                obs_finais: document.getElementById('comiss_obs_finais').value,
-                tipo_quadro: document.getElementById('comiss_tipo_quadro').value,
-                qtd_circuitos: document.getElementById('comiss_qtd_circuitos').value,
-                local_quadro: document.getElementById('comiss_local_quadro').value,
-                altura_quadro: document.getElementById('comiss_altura_quadro').value,
-                distancia_pontos: document.getElementById('comiss_distancia_pontos').value,
-                sistema_aterrado: document.getElementById('comiss_sistema_aterrado').value,
-                duplo_isolamento: document.getElementById('comiss_duplo_isolamento').value,
-                seguir_diagrama: document.getElementById('comiss_seguir_diagrama').value,
-                circuitos_verificados: document.getElementById('comiss_circuitos_verificados').value,
-                aplicativo_monitoramento: document.getElementById('comiss_aplicativo_monitoramento').value,
-                login_monitoramento: document.getElementById('comiss_login_monitoramento').value,
-                senha_monitoramento: document.getElementById('comiss_senha_monitoramento').value,
-                nf_enviada: document.getElementById('comiss_nf_enviada').value,
-                protecoes_testadas: document.getElementById('comiss_protecoes_testadas').value,
-                usaram_epi: document.getElementById('comiss_usaram_epi').value,
-                inspecao_realizada: document.getElementById('comiss_inspecao_realizada').value,
-                pontos_atencao: document.getElementById('comiss_pontos_atencao').value,
-                // Verificações mecânicas
-                check_estrutura: document.getElementById('comiss_check_estrutura').value,
-                check_modulos: document.getElementById('comiss_check_modulos').value,
-                check_conexoes: document.getElementById('comiss_check_conexoes').value,
-                check_aterramento: document.getElementById('comiss_check_aterramento').value,
-                check_cabeamento: document.getElementById('comiss_check_cabeamento').value,
-            },
+    status: document.getElementById('comiss_status').value,
+    data: document.getElementById('comiss_data').value,
+    responsavel: document.getElementById('comiss_responsavel').value,
+    login: document.getElementById('comiss_login').value,
+    senha: document.getElementById('comiss_senha').value,
+    plataforma: document.getElementById('comiss_plataforma').value,
+    potencia_kwp: document.getElementById('comiss_potencia_kwp').value,
+    qtd_modulos: document.getElementById('comiss_qtd_modulos').value,
+    marca_modulos: document.getElementById('comiss_marca_modulos').value,
+    potencia_inversor: document.getElementById('comiss_potencia_inversor').value,
+    marca_inversor: document.getElementById('comiss_marca_inversor').value,
+    tipo_sistema: document.getElementById('comiss_tipo_sistema').value,
+    num_strings: document.getElementById('comiss_num_strings').value,
+    modulos_por_string: document.getElementById('comiss_modulos_por_string').value,
+    tensao_nominal: document.getElementById('comiss_tensao_nominal').value,
+    corrente_nominal: document.getElementById('comiss_corrente_nominal').value,
+    frequencia: document.getElementById('comiss_frequencia').value,
+    classe_isolamento: document.getElementById('comiss_classe_isolamento').value,
+    tensao_cc: document.getElementById('comiss_tensao_cc').value,
+    corrente_cc: document.getElementById('comiss_corrente_cc').value,
+    tensao_ca: document.getElementById('comiss_tensao_ca').value,
+    frequencia_rede: document.getElementById('comiss_frequencia_rede').value,
+    teste_isolamento: document.getElementById('comiss_teste_isolamento').value,
+    teste_aterramento: document.getElementById('comiss_teste_aterramento').value,
+    identificacao_polos: document.getElementById('comiss_identificacao_polos').value,
+    inversor_ligou: document.getElementById('comiss_inversor_ligou').value,
+    monitoramento_configurado: document.getElementById('comiss_monitoramento_configurado').value,
+    comunicacao_app: document.getElementById('comiss_comunicacao_app').value,
+    sistema_gerando: document.getElementById('comiss_sistema_gerando').value,
+    ensaio_voc: document.getElementById('comiss_ensaio_voc').value,
+    ensaio_voc_resultado: document.getElementById('comiss_ensaio_voc_resultado').value,
+    ensaio_isc: document.getElementById('comiss_ensaio_isc').value,
+    ensaio_isc_resultado: document.getElementById('comiss_ensaio_isc_resultado').value,
+    ensaio_isolamento: document.getElementById('comiss_ensaio_isolamento').value,
+    ensaio_isolamento_resultado: document.getElementById('comiss_ensaio_isolamento_resultado').value,
+    ensaio_aterramento: document.getElementById('comiss_ensaio_aterramento').value,
+    ensaio_aterramento_resultado: document.getElementById('comiss_ensaio_aterramento_resultado').value,
+    ensaio_continuidade: document.getElementById('comiss_ensaio_continuidade').value,
+    ensaio_continuidade_resultado: document.getElementById('comiss_ensaio_continuidade_resultado').value,
+    ensaio_polaridade: document.getElementById('comiss_ensaio_polaridade').value,
+    ensaio_polaridade_resultado: document.getElementById('comiss_ensaio_polaridade_resultado').value,
+    obs_ensaios: document.getElementById('comiss_obs_ensaios').value,
+    obs_finais: document.getElementById('comiss_obs_finais').value,
+
+    // ===== VERIFICAÇÕES MECÂNICAS (GARANTIDAS) =====
+    check_estrutura: document.getElementById('comiss_check_estrutura')?.value || '',
+    check_modulos: document.getElementById('comiss_check_modulos')?.value || '',
+    check_conexoes: document.getElementById('comiss_check_conexoes')?.value || '',
+    check_aterramento: document.getElementById('comiss_check_aterramento')?.value || '',
+    check_cabeamento: document.getElementById('comiss_check_cabeamento')?.value || '',
+
+    // ===== QUADROS E CIRCUITOS =====
+    tipo_quadro: document.getElementById('comiss_tipo_quadro').value,
+    qtd_circuitos: document.getElementById('comiss_qtd_circuitos').value,
+    local_quadro: document.getElementById('comiss_local_quadro').value,
+    altura_quadro: document.getElementById('comiss_altura_quadro').value,
+    distancia_pontos: document.getElementById('comiss_distancia_pontos').value,
+    sistema_aterrado: document.getElementById('comiss_sistema_aterrado').value,
+    duplo_isolamento: document.getElementById('comiss_duplo_isolamento').value,
+    seguir_diagrama: document.getElementById('comiss_seguir_diagrama').value,
+    circuitos_verificados: document.getElementById('comiss_circuitos_verificados').value,
+
+    // ===== MONITORAMENTO E SEGURANÇA =====
+    aplicativo_monitoramento: document.getElementById('comiss_aplicativo_monitoramento').value,
+    login_monitoramento: document.getElementById('comiss_login_monitoramento').value,
+    senha_monitoramento: document.getElementById('comiss_senha_monitoramento').value,
+    nf_enviada: document.getElementById('comiss_nf_enviada').value,
+    protecoes_testadas: document.getElementById('comiss_protecoes_testadas').value,
+    usaram_epi: document.getElementById('comiss_usaram_epi').value,
+    inspecao_realizada: document.getElementById('comiss_inspecao_realizada').value,
+    pontos_atencao: document.getElementById('comiss_pontos_atencao').value
+},
             laudo_comiss_url: document.getElementById('homologacao_laudo_comiss_url').value,
             art_url: document.getElementById('homologacao_art_url').value,
             obs_anexos: document.getElementById('homologacao_obs_anexos').value,
@@ -3723,6 +3737,7 @@ const campos = {
                 return fotosObj;
             })()
         },
+        
         dados_arquivado: {
             data: document.getElementById('arquivado_data').value,
             motivo: document.getElementById('arquivado_motivo').value,
