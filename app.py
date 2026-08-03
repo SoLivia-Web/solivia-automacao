@@ -2289,8 +2289,9 @@ def gerar_relatorio_comissionamento():
 
 # Protocolo automático se não tiver
         protocolo = dados_homologacao.get('protocolo', '')
-        if not protocolo:
-            protocolo = f"COM-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
+# Se não tiver protocolo, ou for o antigo fixo, gera novo
+        if not protocolo or protocolo == 'PROTO-2026-001':
+         protocolo = f"COM-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
 
         # ===== CONTEXTO PARA O TEMPLATE =====
         context = {
