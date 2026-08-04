@@ -866,7 +866,7 @@ body.admin-logged .hero-admin {
                         <input type="password" id="senhaAdmin" placeholder="Digite a senha..." autocomplete="current-password" required />
                     </div>
                     <div id="loginErroAdmin" class="erro">Senha inválida.</div>
-                    <button type="submit" class="btn-entrar">Entrar</button>
+                    <button type="submit" class="btn-entrar" id="btnEntrarAdmin">Entrar</button>
                 </form>
             </div>
         </div>
@@ -1085,76 +1085,84 @@ body.admin-logged .hero-admin {
               </p>
 
               <!-- RG / CNH -->
-              <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">RG / CNH<span style="color:#b91c1c;">*</span></label>
-                <select id="doc_rg_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
-                  <option value="Pendente">Pendente</option>
-                  <option value="Recebido">Recebido</option>
-                  <option value="Validado">Validado</option>
-                </select>
-                <button id="doc_rg_btn_upload" onclick="selecionarEEnviar('rg')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
-                  📎 Selecionar arquivo
-                </button>
-                <input type="file" id="doc_rg_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('rg')" />
-                <input type="hidden" id="doc_rg_url" value="" />
-                <button id="doc_rg_btn_abrir" onclick="abrirDoc('rg')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
-                  🔗 Abrir
-                </button>
-              </div>
-              <div id="doc_rg_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
+<div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+  <label style="min-width:120px; font-weight:600;">RG / CNH<span style="color:#b91c1c;">*</span></label>
+  <select id="doc_rg_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+    <option value="Pendente">Pendente</option>
+    <option value="Recebido">Recebido</option>
+    <option value="Validado">Validado</option>
+  </select>
+  <!-- NOVO: campo para número do documento -->
+  <input type="text" id="doc_rg_numero" placeholder="Nº do documento" style="flex:1; min-width:120px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+  <button id="doc_rg_btn_upload" onclick="selecionarEEnviar('rg')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+    📎 Selecionar arquivo
+  </button>
+  <input type="file" id="doc_rg_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('rg')" />
+  <input type="hidden" id="doc_rg_url" value="" />
+  <button id="doc_rg_btn_abrir" onclick="abrirDoc('rg')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
+    🔗 Abrir
+  </button>
+</div>
+<div id="doc_rg_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
               <!-- CPF -->
-              <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">CPF<span style="color:#b91c1c;">*</span></label>
-                <select id="doc_cpf_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
-                  <option value="Pendente">Pendente</option>
-                  <option value="Recebido">Recebido</option>
-                  <option value="Validado">Validado</option>
-                </select>
-                <button id="doc_cpf_btn_upload" onclick="selecionarEEnviar('cpf')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
-                  📎 Selecionar arquivo
-                </button>
-                <input type="file" id="doc_cpf_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('cpf')" />
-                <input type="hidden" id="doc_cpf_url" value="" />
-                <button id="doc_cpf_btn_abrir" onclick="abrirDoc('cpf')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
-                  🔗 Abrir
-                </button>
-              </div>
-              <div id="doc_cpf_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
+<div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+  <label style="min-width:120px; font-weight:600;">CPF<span style="color:#b91c1c;">*</span></label>
+  <select id="doc_cpf_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+    <option value="Pendente">Pendente</option>
+    <option value="Recebido">Recebido</option>
+    <option value="Validado">Validado</option>
+  </select>
+  <!-- NOVO: campo para número do CPF -->
+  <input type="text" id="doc_cpf_numero" placeholder="Nº do CPF" style="flex:1; min-width:120px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+  <button id="doc_cpf_btn_upload" onclick="selecionarEEnviar('cpf')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+    📎 Selecionar arquivo
+  </button>
+  <input type="file" id="doc_cpf_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('cpf')" />
+  <input type="hidden" id="doc_cpf_url" value="" />
+  <button id="doc_cpf_btn_abrir" onclick="abrirDoc('cpf')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
+    🔗 Abrir
+  </button>
+</div>
+<div id="doc_cpf_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
               <!-- Comprovante de residência -->
-              <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">Comprovante de residência<span style="color:#b91c1c;">*</span></label>
-                <select id="doc_comprovante_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
-                  <option value="Pendente">Pendente</option>
-                  <option value="Recebido">Recebido</option>
-                  <option value="Validado">Validado</option>
-                </select>
-                <button id="doc_comprovante_btn_upload" onclick="selecionarEEnviar('comprovante')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
-                  📎 Selecionar arquivo
-                </button>
-                <input type="file" id="doc_comprovante_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('comprovante')" />
-                <input type="hidden" id="doc_comprovante_url" value="" />
-                <button id="doc_comprovante_btn_abrir" onclick="abrirDoc('comprovante')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
-                  🔗 Abrir
-                </button>
-              </div>
-              <div id="doc_comprovante_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
+<div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+  <label style="min-width:120px; font-weight:600;">Comprovante de residência<span style="color:#b91c1c;">*</span></label>
+  <select id="doc_comprovante_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+    <option value="Pendente">Pendente</option>
+    <option value="Recebido">Recebido</option>
+    <option value="Validado">Validado</option>
+  </select>
+  <!-- NOVO: campo para data do comprovante -->
+  <input type="date" id="doc_comprovante_data" style="flex:1; min-width:120px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+  <button id="doc_comprovante_btn_upload" onclick="selecionarEEnviar('comprovante')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+    📎 Selecionar arquivo
+  </button>
+  <input type="file" id="doc_comprovante_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('comprovante')" />
+  <input type="hidden" id="doc_comprovante_url" value="" />
+  <button id="doc_comprovante_btn_abrir" onclick="abrirDoc('comprovante')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
+    🔗 Abrir
+  </button>
+</div>
+<div id="doc_comprovante_erro" style="color:#b91c1c; font-size:0.8rem; margin-top:0.2rem; display:none;">⚠️ Documento pendente. Faça o upload ou valide o documento.</div>
               <!-- Última fatura -->
-              <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-                <label style="min-width:120px; font-weight:600;">Última fatura</label>
-                <select id="doc_fatura_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
-                  <option value="Pendente">Pendente</option>
-                  <option value="Recebido">Recebido</option>
-                  <option value="Validado">Validado</option>
-                </select>
-                <button id="doc_fatura_btn_upload" onclick="selecionarEEnviar('fatura')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
-                  📎 Selecionar arquivo
-                </button>
-                <input type="file" id="doc_fatura_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('fatura')" />
-                <input type="hidden" id="doc_fatura_url" value="" />
-                <button id="doc_fatura_btn_abrir" onclick="abrirDoc('fatura')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
-                  🔗 Abrir
-                </button>
-              </div>
+<div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+  <label style="min-width:120px; font-weight:600;">Última fatura</label>
+  <select id="doc_fatura_status" style="flex:1; min-width:100px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;">
+    <option value="Pendente">Pendente</option>
+    <option value="Recebido">Recebido</option>
+    <option value="Validado">Validado</option>
+  </select>
+  <!-- NOVO: campo para data da fatura -->
+  <input type="date" id="doc_fatura_data" style="flex:1; min-width:120px; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #dce3ea;" />
+  <button id="doc_fatura_btn_upload" onclick="selecionarEEnviar('fatura')" style="background:#0b2f5c; color:white; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+    📎 Selecionar arquivo
+  </button>
+  <input type="file" id="doc_fatura_file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadDoc('fatura')" />
+  <input type="hidden" id="doc_fatura_url" value="" />
+  <button id="doc_fatura_btn_abrir" onclick="abrirDoc('fatura')" style="background:#eef2f6; color:#5c7a6c; border:none; border-radius:30px; padding:0.4rem 1.2rem; cursor:default; font-size:0.85rem; white-space:nowrap; opacity:0.5; pointer-events:none; transition:all 0.3s;">
+    🔗 Abrir
+  </button>
+</div>
 
               <!-- ========================================================= -->
               <!-- COMPROVANTE DE RENDA – BLOCO SUBSTITUÍDO (PASSO 1)       -->
@@ -1443,7 +1451,7 @@ body.admin-logged .hero-admin {
                 </div>
                 <div class="campo">
                   <label>Senha do inversor</label>
-                  <input type="password" id="comiss_senha">
+                  <input type="text" id="comiss_senha">
                 </div>
                 <div class="campo">
                   <label>Plataforma de monitoramento</label>
@@ -1770,7 +1778,7 @@ body.admin-logged .hero-admin {
                 </div>
                 <div class="campo">
                   <label>Senha</label>
-                  <input type="password" id="comiss_senha_monitoramento" placeholder="Senha do cliente">
+                  <input type="text" id="comiss_senha_monitoramento" placeholder="Senha do cliente">
                 </div>
                 <div class="campo">
                   <label>NF enviada?</label>
@@ -1824,6 +1832,9 @@ body.admin-logged .hero-admin {
             </div>
             <div style="margin-top:1rem;">
               <button class="btn-acao-aba" onclick="gerarRelatorioComissionamento()">📋 Gerar Relatório de Comissionamento</button>
+<button class="btn-acao-aba" id="btnAvancarPosVenda" onclick="avancarParaPosVenda()" style="display: none; background-color: #0b2f5c; color: #ffc400; border: none; padding: 0.6rem 1.8rem; border-radius: 50px; font-weight: 700; cursor: pointer; transition: background 0.2s;">
+    🚀 Avançar para Pós-venda
+</button>
             </div>
           </div> <!-- Fim subComissionamento -->
 
@@ -2515,7 +2526,32 @@ function atualizarBotoesContrato() {
         input.value = input.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '');
       }
     }
+    // ===== FUNÇÃO PARA CONFIRMAR ARQUIVAMENTO =====
+function confirmarArquivar() {
+    if (!clienteEditando) {
+        alert('Nenhum cliente selecionado.');
+        return;
+    }
 
+    // Pega os dados do modal de arquivamento
+    const dataArquivado = document.getElementById('arquivado_data').value || new Date().toLocaleDateString('pt-BR');
+    const motivo = document.getElementById('arquivado_motivo').value || 'Não informado';
+    const obs = document.getElementById('arquivado_obs').value || '';
+
+    // Atualiza o objeto do cliente
+    clienteEditando.etapa_atual = 'arquivado';
+    clienteEditando.dados_arquivado = {
+        data: dataArquivado,
+        motivo: motivo,
+        obs: obs
+    };
+
+    // Salva as alterações (reutiliza a função salvarCliente)
+    salvarCliente();
+
+    // Fecha o modal de arquivamento
+    fecharModalArquivar();
+}
     // ============================================================
     // VALIDAÇÃO DE DATA DE REALIZAÇÃO
     // ============================================================
@@ -2614,22 +2650,37 @@ function atualizarBotoesContrato() {
     // AUTENTICAÇÃO
     // ============================================================
     function adminLogin() {
-      console.log('🔐 Login: admin-logged adicionada');
-console.log('Body classes:', document.body.className);
-      const senha = document.getElementById('senhaAdmin').value.trim();
-      const erro = document.getElementById('loginErroAdmin');
-      erro.style.display = 'none';
-      if (!senha) {
+    const senha = document.getElementById('senhaAdmin').value.trim();
+    const erro = document.getElementById('loginErroAdmin');
+    const btn = document.getElementById('btnEntrarAdmin');
+    const textoOriginal = btn.textContent;
+
+    erro.style.display = 'none';
+
+    if (!senha) {
         erro.textContent = 'Digite a senha mestra.';
         erro.style.display = 'block';
         return;
-      }
-      adminToken = senha;
-      carregarClientes();
-       // Adiciona classe ao body para mostrar o header direito
-    document.body.classList.add('admin-logged');
-    document.getElementById('senhaAdmin').value = '';
     }
+
+    // ===== FEEDBACK VISUAL =====
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.innerHTML = `<span class="spinner spinner--pequeno" style="display:inline-block; margin-right:8px;"></span> Entrando...`;
+    btn.style.cursor = 'not-allowed';
+
+    // Guarda a senha para usar na requisição
+    adminToken = senha;
+
+    // Chama a função de carregar clientes
+    carregarClientes().finally(() => {
+        // Restaura o botão (caso não seja restaurado pelo carregarClientes)
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = textoOriginal;
+        btn.style.cursor = 'pointer';
+    });
+}
 
     function logoutAdmin() {
       console.log('🔓 Logout: admin-logged removida');
@@ -2711,36 +2762,54 @@ function atualizarContadores() {
     // CARREGAR CLIENTES
     // ============================================================
     async function carregarClientes() {
-      const loading = document.getElementById('loadingTabela');
-      const tabela = document.getElementById('tabelaClientesAdmin');
-      loading.style.display = 'block';
-      tabela.style.display = 'none';
-      try {
+    const loading = document.getElementById('loadingTabela');
+    const tabela = document.getElementById('tabelaClientesAdmin');
+    loading.style.display = 'block';
+    tabela.style.display = 'none';
+
+    try {
         const resp = await fetch(URL_API, {
-          method: 'POST',
-          body: JSON.stringify({ acao: 'adminListarClientes', senhaAdmin: adminToken })
+            method: 'POST',
+            body: JSON.stringify({ acao: 'adminListarClientes', senhaAdmin: adminToken })
         });
         const resultado = await resp.json();
+
         if (resultado.success) {
-          document.body.classList.add('admin-logged');
-          clientes = resultado.clientes || [];
-          document.getElementById('loginAdmin').classList.remove('ativo');
-          document.getElementById('dashboardAdmin').classList.add('ativo');
-          localStorage.setItem('adminToken', adminToken);
-          atualizarContadores();
-          renderizarTabela();
+            document.body.classList.add('admin-logged');
+            clientes = resultado.clientes || [];
+            document.getElementById('loginAdmin').classList.remove('ativo');
+            document.getElementById('dashboardAdmin').classList.add('ativo');
+            localStorage.setItem('adminToken', adminToken);
+            atualizarContadores();
+            renderizarTabela();
         } else {
-          alert('Erro: ' + (resultado.error || 'Senha inválida.'));
-          logoutAdmin();
+            const erro = document.getElementById('loginErroAdmin');
+            erro.textContent = resultado.error || 'Senha inválida. Tente novamente.';
+            erro.style.display = 'block';
+            adminToken = null;
+            document.getElementById('senhaAdmin').value = '';
+            document.getElementById('senhaAdmin').focus();
         }
-      } catch (err) {
-        alert('Erro de conexão: ' + err.message);
-        logoutAdmin();
-      } finally {
+    } catch (err) {
+        // ===== COLOQUE AQUI =====
+        const erro = document.getElementById('loginErroAdmin');
+        erro.textContent = 'Erro de conexão: ' + err.message;
+        erro.style.display = 'block';
+        adminToken = null;
+        // Restaura o botão (caso o finally do adminLogin não seja chamado)
+        const btn = document.getElementById('btnEntrarAdmin');
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.textContent = 'Entrar';
+            btn.style.cursor = 'pointer';
+        }
+        // ===== FIM DA ADIÇÃO =====
+    } finally {
         loading.style.display = 'none';
         tabela.style.display = 'table';
-      }
     }
+}
 
     async function salvarRelatorioUrl(clienteId, url) {
       try {
@@ -2766,7 +2835,153 @@ function atualizarContadores() {
         return false;
       }
     }
+    async function avancarParaPosVenda() {
+    // ===== REFERÊNCIA AO BOTÃO CLICADO (via event.target) =====
+    const btnAvancar = event.target;
+    if (!btnAvancar) {
+        alert('Erro: botão "Avançar para Pós-venda" não encontrado.');
+        return;
+    }
 
+    // ===== BUSCA O OUTRO BOTÃO POR ID (com fallback) =====
+    let btnGerar = document.getElementById('btnGerarRelatorioComissao');
+    
+    // Se não encontrar pelo ID, tenta encontrar pelo seletor de classe/onclick
+    if (!btnGerar) {
+        console.warn('⚠️ Botão "Gerar Relatório" não encontrado pelo ID. Tentando buscar por seletor alternativo...');
+        btnGerar = document.querySelector('button[onclick*="gerarRelatorioComissionamento"]');
+    }
+
+    // Se ainda não encontrar, tenta buscar pelo texto (fallback extremo)
+    if (!btnGerar) {
+        const botoes = document.querySelectorAll('button');
+        for (let btn of botoes) {
+            if (btn.textContent.includes('Gerar Relatório')) {
+                btnGerar = btn;
+                break;
+            }
+        }
+    }
+
+    if (btnGerar) {
+        console.log('✅ Botão "Gerar Relatório" encontrado:', btnGerar);
+    } else {
+        console.warn('⚠️ Botão "Gerar Relatório" não encontrado. Continuando apenas com o bloqueio do botão atual.');
+    }
+
+    if (!clienteEditando) {
+        exibirModalComAcao(
+            '⚠️ Nenhum cliente',
+            'Abra um cliente antes de avançar para Pós-venda.',
+            '⚠️',
+            '#b91c1c',
+            null
+        );
+        return;
+    }
+
+    const h = clienteEditando.dados_homologacao || {};
+    const comiss = h.comissionamento || {};
+
+    // ===== VERIFICA AS CONDIÇÕES =====
+    const erros = [];
+
+    if (h.resultado !== 'Aprovado') {
+        erros.push('A vistoria deve estar "Aprovado".');
+    }
+    if (comiss.status !== 'Concluído') {
+        erros.push('O comissionamento deve estar "Concluído".');
+    }
+    if (!h.laudo_comiss_url || h.laudo_comiss_url.trim() === '') {
+        erros.push('O relatório de comissionamento deve ser gerado.');
+    }
+    if (!h.data_liberacao || h.data_liberacao.trim() === '') {
+        erros.push('A data de liberação deve ser preenchida.');
+    }
+
+    if (erros.length > 0) {
+        const mensagem = erros.map(e => `• ${e}`).join('\n');
+        exibirModalComAcao(
+            '⚠️ Pendências para avançar',
+            mensagem,
+            '⚠️',
+            '#b91c1c',
+            null
+        );
+        return;
+    }
+
+    // ===== FUNÇÃO AUXILIAR PARA BLOQUEAR BOTÃO =====
+    function bloquearBotao(botao, texto) {
+        if (!botao) return;
+        botao.disabled = true;
+        botao.style.setProperty('opacity', '0.5', 'important');
+        botao.style.setProperty('pointer-events', 'none', 'important');
+        if (texto) botao.textContent = texto;
+    }
+
+    function desbloquearBotao(botao, textoOriginal) {
+        if (!botao) return;
+        botao.disabled = false;
+        botao.style.setProperty('opacity', '1', 'important');
+        botao.style.setProperty('pointer-events', 'auto', 'important');
+        if (textoOriginal) botao.textContent = textoOriginal;
+    }
+
+    // ===== SALVA TEXTOS ORIGINAIS =====
+    const textoOriginalAvancar = btnAvancar.textContent;
+    const textoOriginalGerar = btnGerar ? btnGerar.textContent : '';
+
+    // ===== BLOQUEIA AMBOS =====
+    bloquearBotao(btnAvancar, '⏳ Avançando...');
+    bloquearBotao(btnGerar, null); // mantém o texto original do gerar
+
+    try {
+        const resp = await fetch(URL_API, {
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'adminAtualizarCliente',
+                idCliente: clienteEditando.id,
+                campos: { etapa_atual: 'posvenda' },
+                senhaAdmin: adminToken
+            })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            exibirModalComAcao(
+                'Cliente avançado!',
+                'O cliente foi movido para a etapa de Pós-venda com sucesso.',
+                '',
+                '#0b2f5c',
+                function() {
+                    fecharModalEdicao();
+                    carregarClientes();
+                }
+            );
+        } else {
+            exibirModalComAcao(
+                '❌ Erro ao atualizar',
+                resultado.error || 'Erro desconhecido.',
+                '❌',
+                '#b91c1c',
+                null
+            );
+        }
+    } catch (err) {
+        exibirModalComAcao(
+            '❌ Erro de conexão',
+            err.message,
+            '❌',
+            '#b91c1c',
+            null
+        );
+    } finally {
+        // ===== DESBLOQUEIA AMBOS =====
+        desbloquearBotao(btnAvancar, textoOriginalAvancar);
+        desbloquearBotao(btnGerar, textoOriginalGerar);
+    }
+}
     // ============================================================
     // RENDERIZAR TABELA
     // ============================================================
@@ -3047,6 +3262,19 @@ if (erroEl) erroEl.style.display = 'none';
       // ===== PASSO 2 – Sincronizar checkbox =====
       document.getElementById('doc_renda_visivel').checked = d.renda?.visivel !== false;
 
+      // ===== CARREGAR CAMPOS EXTRAS (RG, CPF, COMPROVANTE, FATURA) =====
+const elRgNum = document.getElementById('doc_rg_numero');
+if (elRgNum) elRgNum.value = d.rg?.numero || '';
+
+const elCpfNum = document.getElementById('doc_cpf_numero');
+if (elCpfNum) elCpfNum.value = d.cpf?.numero || '';
+
+const elCompData = document.getElementById('doc_comprovante_data');
+if (elCompData) elCompData.value = d.comprovante?.data || '';
+
+const elFatData = document.getElementById('doc_fatura_data');
+if (elFatData) elFatData.value = d.fatura?.data || '';
+
       // --- Instalação (nova estrutura) ---
       const i = cliente.dados_instalacao || {};
 
@@ -3182,6 +3410,27 @@ document.getElementById('comiss_check_modulos').value = c.check_modulos || '';
 document.getElementById('comiss_check_conexoes').value = c.check_conexoes || '';
 document.getElementById('comiss_check_aterramento').value = c.check_aterramento || '';
 document.getElementById('comiss_check_cabeamento').value = c.check_cabeamento || '';
+
+     // ===== CONTROLE DO BOTÃO AVANÇAR PARA PÓS-VENDA =====
+const btnAvancar = document.getElementById('btnAvancarPosVenda');
+if (btnAvancar) {
+    const podeAvancar = (
+        h.resultado === 'Aprovado' &&
+        c.status === 'Concluído' &&
+        h.laudo_comiss_url && h.laudo_comiss_url.trim() !== '' &&
+        h.data_liberacao && h.data_liberacao.trim() !== ''
+    );
+
+    if (podeAvancar) {
+        btnAvancar.style.display = 'inline-flex';
+        btnAvancar.disabled = false;
+        btnAvancar.style.opacity = '1';
+        btnAvancar.title = 'Todas as condições atendidas. Clique para avançar.';
+    } else {
+        btnAvancar.style.display = 'none';
+        btnAvancar.disabled = true;
+    }
+}
 
       // Sub-aba 3: Documentos e Anexos
       document.getElementById('homologacao_laudo_comiss_url').value = h.laudo_comiss_url || '';
@@ -3568,13 +3817,15 @@ const campos = {
     cep: clienteEditando.cep,
     etapa_atual: novaEtapa,
     dados_preproposta: {
-        data: document.getElementById('preproposta_data').value,
-        valor: document.getElementById('preproposta_valor').value,
-        status: document.getElementById('preproposta_status').value,
-        obs: document.getElementById('preproposta_obs').value,
-        url: document.getElementById('preproposta_url').value,
-        cpf_cnpj: cpfExistente,   // ← Preserva o CPF
-    },
+    data: document.getElementById('preproposta_data')?.value || '',
+    valor: document.getElementById('preproposta_valor')?.value || '',
+    status: document.getElementById('preproposta_status')?.value || 'Aguardando retorno',
+    obs: document.getElementById('preproposta_obs')?.value || '',
+    url: document.getElementById('preproposta_url')?.value || '',
+    cpf_cnpj: document.getElementById('preproposta_cpf')?.value || 
+              document.getElementById('doc_cpf_numero')?.value?.trim() || 
+              cpfExistente,
+},
     dados_visita: {
             engenheiro: document.getElementById('visita_engenheiro').value,
             data_agendada: document.getElementById('visita_data_agendada').value,
@@ -3589,27 +3840,30 @@ const campos = {
     const docsExistentes = clienteEditando.documentos || {};
     return {
         rg: {
-            status: document.getElementById('doc_rg_status').value,
-            url: document.getElementById('doc_rg_url').value.trim()
+            status: document.getElementById('doc_rg_status')?.value || 'Pendente',
+            url: document.getElementById('doc_rg_url')?.value?.trim() || '',
+            numero: document.getElementById('doc_rg_numero')?.value?.trim() || ''
         },
         cpf: {
-            status: document.getElementById('doc_cpf_status').value,
-            url: document.getElementById('doc_cpf_url').value.trim()
+            status: document.getElementById('doc_cpf_status')?.value || 'Pendente',
+            url: document.getElementById('doc_cpf_url')?.value?.trim() || '',
+            numero: document.getElementById('doc_cpf_numero')?.value?.trim() || ''
         },
         comprovante: {
-            status: document.getElementById('doc_comprovante_status').value,
-            url: document.getElementById('doc_comprovante_url').value.trim()
+            status: document.getElementById('doc_comprovante_status')?.value || 'Pendente',
+            url: document.getElementById('doc_comprovante_url')?.value?.trim() || '',
+            data: document.getElementById('doc_comprovante_data')?.value || ''
         },
         fatura: {
-            status: document.getElementById('doc_fatura_status').value,
-            url: document.getElementById('doc_fatura_url').value.trim()
+            status: document.getElementById('doc_fatura_status')?.value || 'Pendente',
+            url: document.getElementById('doc_fatura_url')?.value?.trim() || '',
+            data: document.getElementById('doc_fatura_data')?.value || ''
         },
         renda: {
-            status: document.getElementById('doc_renda_status').value,
-            url: document.getElementById('doc_renda_url').value.trim(),
-            visivel: document.getElementById('doc_renda_visivel').checked
+            status: document.getElementById('doc_renda_status')?.value || 'Pendente',
+            url: document.getElementById('doc_renda_url')?.value?.trim() || '',
+            visivel: document.getElementById('doc_renda_visivel')?.checked || false
         },
-        // Preserva os dados existentes
         contrato: docsExistentes.contrato || {},
         proposta_final: docsExistentes.proposta_final || {}
     };
@@ -3760,51 +4014,65 @@ const campos = {
     };
 
     try {
-        console.log('📦 Payload enviado:', JSON.stringify(campos, null, 2));
-        const resp = await fetch(URL_API, {
-            method: 'POST',
-            body: JSON.stringify({
-                acao: 'adminAtualizarCliente',
-                idCliente: clienteEditando.id,
-                campos: campos,
-                senhaAdmin: adminToken
-            })
-        });
-        const resultado = await resp.json();
+    console.log('📦 Payload enviado:', JSON.stringify(campos, null, 2));
+    
+    const resp = await fetch(URL_API, {
+        method: 'POST',
+        body: JSON.stringify({
+            acao: 'adminAtualizarCliente',
+            idCliente: clienteEditando.id,
+            campos: campos,
+            senhaAdmin: adminToken
+        })
+    });
 
-        if (resultado.success) {
-            exibirModalComAcao(
-                'Cliente atualizado com sucesso!',
-                'As alterações foram salvas permanentemente.',
-                '',
-                '#0b2f5c',
-                function() {
-                    fecharModalEdicao();
-                    carregarClientes();
-                }
-            );
-        } else {
-            exibirModalComAcao(
-                '❌ Erro ao atualizar',
-                resultado.error || 'Erro desconhecido',
-                '❌',
-                '#b91c1c',
-                null
-            );
-        }
-    } catch (err) {
+    // ===== LÊ A RESPOSTA COMO TEXTO PRIMEIRO =====
+    const respostaBruta = await resp.text();
+    console.log('📄 Resposta bruta (primeiros 200 caracteres):', respostaBruta.substring(0, 200));
+
+    // ===== TENTA CONVERTER PARA JSON =====
+    let resultado;
+    try {
+        resultado = JSON.parse(respostaBruta);
+    } catch (parseError) {
+        console.error('❌ Resposta não é JSON. Conteúdo completo:', respostaBruta);
+        throw new Error('Resposta inválida do servidor. Verifique a URL do Apps Script e a publicação.');
+    }
+
+    if (resultado.success) {
         exibirModalComAcao(
-            '❌ Erro de conexão',
-            err.message,
+            'Cliente atualizado com sucesso!',
+            'As alterações foram salvas permanentemente.',
+            '',
+            '#0b2f5c',
+            function() {
+                fecharModalEdicao();
+                carregarClientes();
+            }
+        );
+    } else {
+        exibirModalComAcao(
+            '❌ Erro ao atualizar',
+            resultado.error || 'Erro desconhecido',
             '❌',
             '#b91c1c',
             null
         );
-    } finally {
-        btn.disabled = false;
-        spinner.style.display = 'none';
-        texto.textContent = '💾 Salvar alterações';
     }
+} catch (err) {
+    console.error('❌ Erro em salvarCliente:', err);
+    exibirModalComAcao(
+        '❌ Erro de conexão',
+        err.message,
+        '❌',
+        '#b91c1c',
+        null
+    );
+} finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    texto.textContent = '💾 Salvar alterações';
+}
 }
 // ============================================================
 // COMPRESSÃO DE IMAGEM (SUBSTITUI O fileToBase64)
@@ -4894,49 +5162,103 @@ function refazerContrato() {
     // COMISSIONAMENTO (ATUALIZADO PARA NOVOS IDs)
     // ============================================================
     async function gerarRelatorioComissionamento() {
-      if (!clienteEditando) {
+    // ===== REFERÊNCIA AO BOTÃO CLICADO (via event.target) =====
+    const btnGerar = event.target;
+    if (!btnGerar) {
+        alert('Erro: botão "Gerar Relatório" não encontrado.');
+        return;
+    }
+
+    // ===== BUSCA O OUTRO BOTÃO POR ID =====
+    const btnAvancar = document.getElementById('btnAvancarPosVenda');
+
+    if (!clienteEditando) {
         alert('Nenhum cliente associado. Abra um cliente antes de gerar o relatório.');
         return;
-      }
-      const clienteId = clienteEditando.id;
-      const comissao = {
-        potencia_kwp: document.getElementById('comiss_potencia_kwp').value || null,
-        qtd_modulos: document.getElementById('comiss_qtd_modulos').value || null,
-      };
-      if (!comissao.potencia_kwp || !comissao.qtd_modulos) {
-        alert('Preencha pelo menos a Potência instalada (kWp) e a Quantidade de módulos.');
-        return;
-      }
-      const btn = event.target;
-      btn.disabled = true;
-      btn.textContent = '⏳ Gerando...';
-      const payload = {
-        cliente_id: clienteId,
-        comissionamento: comissao,
-        engenheiro: document.getElementById('comiss_responsavel').value || 'Nícolas Alves de Sá',
-        crea: '5071237870' // Pode ser substituído por um campo se desejar
-      };
-      try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_comissionamento', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const resultado = await resp.json();
-        if (resultado.success) {
-          alert('✅ Relatório de comissionamento gerado com sucesso!');
-          if (resultado.url) window.open(resultado.url, '_blank');
-          carregarClientes();
-        } else {
-          alert('❌ Erro: ' + (resultado.error || ''));
-        }
-      } catch (err) {
-        alert('❌ Erro de conexão: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '📋 Gerar Relatório de Comissionamento';
-      }
     }
+
+    // ===== FUNÇÃO AUXILIAR PARA BLOQUEAR BOTÃO =====
+    function bloquearBotao(botao, texto) {
+        if (!botao) return;
+        botao.disabled = true;
+        botao.style.setProperty('opacity', '0.5', 'important');
+        botao.style.setProperty('pointer-events', 'none', 'important');
+        if (texto) botao.textContent = texto;
+    }
+
+    function desbloquearBotao(botao, textoOriginal) {
+        if (!botao) return;
+        botao.disabled = false;
+        botao.style.setProperty('opacity', '1', 'important');
+        botao.style.setProperty('pointer-events', 'auto', 'important');
+        if (textoOriginal) botao.textContent = textoOriginal;
+    }
+
+    // ===== SALVA TEXTOS ORIGINAIS =====
+    const textoOriginalGerar = btnGerar.textContent;
+    const textoOriginalAvancar = btnAvancar ? btnAvancar.textContent : '';
+
+    // ===== BLOQUEIA AMBOS =====
+    bloquearBotao(btnGerar, '⏳ Gerando...');
+    bloquearBotao(btnAvancar, null); // mantém o texto original
+
+    // ===== PAYLOAD =====
+    const payload = {
+        cliente_id: clienteEditando.id
+    };
+
+    try {
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_comissionamento', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            throw new Error(`Erro HTTP: ${resp.status} - ${resp.statusText}`);
+        }
+
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            // ===== MODAL PERSONALIZADO =====
+            const modalSucesso = document.getElementById('modalSucesso');
+            const msg = document.getElementById('modalSucessoMsg');
+            const btnAbrir = document.getElementById('modalSucessoAbrir');
+            const btnFechar = document.getElementById('modalSucessoFechar');
+
+            if (modalSucesso) {
+                msg.textContent = 'Clique no botão abaixo para visualizar o relatório.';
+                btnAbrir.textContent = '📄 Visualizar';
+                btnAbrir.onclick = function() {
+                    if (resultado.url) {
+                        window.open(resultado.url, '_blank');
+                    }
+                    modalSucesso.classList.remove('active');
+                };
+                btnFechar.textContent = 'Fechar';
+                btnFechar.onclick = function() {
+                    modalSucesso.classList.remove('active');
+                };
+                modalSucesso.classList.add('active');
+            } else {
+                alert('✅ Relatório gerado com sucesso!\nURL: ' + (resultado.url || ''));
+                if (resultado.url) window.open(resultado.url, '_blank');
+            }
+
+            carregarClientes();
+        } else {
+            alert('❌ Erro ao gerar relatório: ' + (resultado.error || 'Erro desconhecido'));
+        }
+    } catch (err) {
+        console.error('❌ Erro em gerarRelatorioComissionamento:', err);
+        alert('❌ Erro ao gerar relatório: ' + err.message);
+    } finally {
+        // ===== DESBLOQUEIA AMBOS =====
+        desbloquearBotao(btnGerar, textoOriginalGerar);
+        desbloquearBotao(btnAvancar, textoOriginalAvancar);
+    }
+}
 
     // ============================================================
     // EXCLUSÃO DE CLIENTE
