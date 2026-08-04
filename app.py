@@ -809,7 +809,8 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
                 'nome_cliente': nome_cliente or 'cliente',
                 'pdf_base64': pdf_base64,
                 'nome_arquivo': f"PreProposta_{nome_cliente or 'cliente'}_{date.today().strftime('%Y%m%d')}.pdf",
-                'pasta_id': pasta_id_destino
+                'pasta_id': pasta_id_destino,
+                'cliente_id': cliente_id   # <-- ADICIONAR ESTA LINHA
             }
         }
 
