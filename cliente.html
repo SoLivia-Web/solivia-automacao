@@ -273,7 +273,7 @@
             position: relative;
             padding: 5%;
             margin-bottom: 0;
-            min-height: 600px;
+            min-height: 700px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -1286,7 +1286,28 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
-
+/* ===== CORREÇÃO: HOMOLOGAÇÃO NÃO CORTA ===== */
+.detalhes-area {
+    overflow: visible !important;
+    max-height: none !important;
+}
+#detalhesConteudo {
+    overflow: visible !important;
+}
+.detail-section-card {
+    overflow: visible !important;
+}
+.detail-section-card__body {
+    overflow: visible !important;
+}
+.table-wrap-modern {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+}
+.tabela-ensaios.modernizada {
+    min-width: auto !important;
+    width: 100% !important;
+}
         @media (max-width: 768px) {
             .detalhes-area {
                 padding: 1.1rem;
@@ -1302,6 +1323,141 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            
+            /* ===== MODAL PLANOS MOBILE - GRID EM LINHA ===== */
+.modal-planos {
+    padding: 0.5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.modal-planos__content {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0.8rem !important;
+    border-radius: 1rem !important;
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+}
+.modal-planos__close {
+    top: 6px !important;
+    right: 10px !important;
+    font-size: 1.6rem !important;
+}
+.modal-planos__content h2 {
+    font-size: 1.1rem !important;
+    margin: 0.2rem 0 !important;
+}
+.modal-planos__content > p {
+    font-size: 0.8rem !important;
+    margin: 0.3rem 0 !important;
+    padding: 0 0.3rem !important;
+}
+
+/* === CARDS EM GRID (2 colunas no mobile) === */
+.modal-planos__content > div:last-of-type {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 0.6rem !important;
+    margin-top: 0.5rem !important;
+}
+.modal-planos__content > div:last-of-type > div {
+    padding: 0.8rem 0.6rem !important;
+    border-radius: 0.8rem !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* CARD ESSENCIAL (mais vendido) ocupa 2 colunas (destaque) */
+.modal-planos__content > div:last-of-type > div:nth-child(2) {
+    
+    padding: 1rem 0.8rem !important;
+    border-width: 2px !important;
+    padding-top: 1.5rem !important;
+}
+.modal-planos__content > div:last-of-type > div:nth-child(2) > span {
+    position: absolute !important;
+    top: -10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    font-size: 0.55rem !important;
+    padding: 0.1rem 0.6rem !important;
+    white-space: nowrap !important;
+}
+
+/* TÍTULOS DOS CARDS */
+.modal-planos__content > div:last-of-type h3 {
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+    text-align: center !important;
+}
+
+/* PREÇOS */
+.modal-planos__content > div:last-of-type div[style*="font-size:1.6rem"] {
+    font-size: 1.1rem !important;
+    text-align: center !important;
+    margin: 0.2rem 0 !important;
+}
+.modal-planos__content > div:last-of-type div[style*="font-size:1.6rem"] span {
+    font-size: 0.6rem !important;
+}
+
+/* LISTAS DE BENEFÍCIOS */
+.modal-planos__content ul {
+    font-size: 0.65rem !important;
+    padding-left: 0 !important;
+    margin: 0.3rem 0 !important;
+    list-style: none !important;
+    text-align: left !important;
+    width: 100% !important;
+}
+.modal-planos__content ul li {
+    padding: 0.15rem 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.2rem !important;
+    font-size: 0.65rem !important;
+}
+
+/* BOTÕES "VER PLANO" */
+.modal-planos__content a.botao-acao {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    padding: 0.3rem !important;
+    font-size: 0.7rem !important;
+    border-radius: 50px !important;
+    box-sizing: border-box !important;
+    margin-top: 0.3rem !important;
+    text-decoration: none !important;
+    font-weight: 700 !important;
+}
+
+/* TEXTO DA TAXA DE ATIVAÇÃO */
+.modal-planos__content > div:last-of-type ~ div {
+    font-size: 0.65rem !important;
+    padding: 0.5rem !important;
+    margin-top: 0.5rem !important;
+}
+
+             /* ===== LOGO MOBILE NA ÁREA INTERNA ===== */
+    .header-minimal .header__right .logo-desktop {
+        display: none !important;
+    }
+    .header-minimal .header__right .logo-mobile {
+    display: block !important;
+    height: 65px !important;
+    width: auto !important;
+    max-height: none !important;   /* ← ADICIONE ESTA LINHA */
+    margin-top: 0.2rem !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
             .metric-grid-modern,
             .info-grid-modern,
             .info-grid-modern.compacta,
@@ -1321,7 +1477,20 @@
                 align-items: flex-start;
             }
         }
+@media (max-width: 768px) {
+    /* ... outras regras ... */
 
+    /* ===== RODAPÉ INTERNO (logado) MOBILE ===== */
+    .footer-minimal .footer-text {
+        text-align: center !important;
+        display: block !important;
+        width: 100% !important;
+    }
+    .footer-minimal .footer-text a {
+        display: inline-block !important;
+        white-space: nowrap !important;
+    }
+}
         /* ===== RESPONSIVO GERAL ===== */
         @media (max-width: 1024px) {
             .cards-grid {
@@ -1344,11 +1513,16 @@
                 display: flex;
             }
             .hero-cliente {
-                min-height: 300px;
-            }
-            .login-card {
-                padding: 1.8rem 1.2rem;
-            }
+        min-height: 220px !important;
+        padding: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+         /* ===== LOGO MOBILE NA ÁREA INTERNA ===== */
+.header-minimal .header__right .logo-desktop {
+    display: none !important;
+}
+
             .dashboard-container {
                 padding: 1rem 1rem 4rem !important;
             }
@@ -1359,6 +1533,93 @@
                 grid-template-columns: 1fr;
                 text-align: center;
             }
+                /* ===== RODAPÉ MOBILE (forçado com !important) ===== */
+.footer-publico .footer__container {
+    grid-template-columns: 1fr !important;
+    text-align: center !important;
+    gap: 2rem !important;
+}
+/* === ALINHAMENTO DA LOGO E DESCRIÇÃO === */
+.footer-publico .footer__col:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+.footer-publico .footer__logo {
+    height: 40px !important;        /* ← tamanho reduzido igual ao mock */
+    width: auto !important;
+    margin: 0 auto 1rem !important;
+    display: block !important;
+    max-width: 100% !important;
+}
+.footer-publico .footer__description {
+    text-align: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+.footer-publico .footer__title {
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+}
+.footer-publico .footer__links {
+    align-items: center !important;
+    text-align: center !important;
+    padding-left: 0 !important;
+    list-style: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.footer-publico .footer__links li {
+    display: block !important;
+    margin: 0.25rem 0 !important;
+    text-align: center !important;
+}
+.footer-publico .footer__links a {
+    display: inline-block !important;
+    text-align: center !important;
+}
+.footer-publico .footer__contact p {
+    text-align: center !important;
+}
+.footer-publico .footer__social {
+    justify-content: center !important;
+}
+.footer-publico .footer__bottom-container {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.5rem !important;
+}
+.footer-publico .footer__copy,
+.footer-publico .footer__cnpj,
+.footer-publico .footer__privacy {
+    text-align: center !important;
+    display: block !important;
+}
+            /* PASSO 1: centralizar logo no mobile */
+    .header-publico .header__container {
+        position: relative;
+        justify-content: flex-start;
+    }
+    .header-publico .header__logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        margin-top: 0;
+    }
+    .header-publico .header__logo img {
+        width: 110px;
+        padding: 4px 8px;
+    }
+
+    .header-publico {
+        padding: 1.7rem 1.5rem; /* antes era 0.8rem */
+    }
         }
         @media (max-width: 640px) {
             .cards-grid {
@@ -1573,13 +1834,15 @@
             margin-bottom: 0.3rem;
         }
         .modal-aviso .conteudo .campo-modal input {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            border: 1px solid #dce3ea;
-            border-radius: 1.5rem;
-            font-size: 0.95rem;
-            background: #f9fbfd;
-        }
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.25rem;
+    border: 1px solid #dce3ea;
+    border-radius: 1.5rem;
+    font-size: 0.95rem;
+    background: #f9fbfd;
+}
         .modal-aviso .conteudo .campo-modal input:focus {
             outline: none;
             border-color: #ffc400;
@@ -1712,19 +1975,27 @@
         cursor: not-allowed !important;
         pointer-events: none !important;
     }
+    .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top: 2px solid #0b2f5c;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
 
     <!-- =========================================================
          REDIRECIONAMENTO CONDICIONAL
          ========================================================= -->
-    <script>
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            if (window.location.pathname.endsWith('.html')) {
-                var newUrl = window.location.pathname.replace('.html', '');
-                window.location.replace(newUrl);
-            }
-        }
-    </script>
+    
 </head>
 <body>
 
@@ -1765,8 +2036,11 @@
                 <button class="logout" id="btnLogout">Sair</button>
             </div>
             <div class="header__right">
-                <img src="assets/img/logo.png" alt="SoLivia">
-            </div>
+    <!-- Logo antigo (desktop e padrão) -->
+    <img src="assets/img/logo.png" alt="SoLivia" class="logo-desktop">
+    <!-- Logo novo (mobile) -->
+    <img src="https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/LOGO-HD-SEM-FUNDO-SOMBRA-_INTERNO_.webp" alt="SoLivia" class="logo-mobile" style="display:none;">
+</div>
         </div>
     </header>
 
@@ -1920,7 +2194,7 @@
         <!-- ==================== FOOTER MINIMALISTA (AGORA DENTRO DA view-logged) ==================== -->
         <footer class="footer-minimal">
             <span class="footer-text">
-                &copy; 2026 SoLivia Engenharia – Todos os direitos reservados | <a href="#">Política de Privacidade</a>
+                &copy; 2026 SoLivia Engenharia – Todos os direitos reservados  <a href="#">Política de Privacidade</a>
             </span>
         </footer>
 
@@ -2063,7 +2337,66 @@
                 render();
             }
         };
+        // ===== VALIDAÇÃO DE SENHA EM TEMPO REAL =====
+function validarSenha() {
+    const senha = document.getElementById('novaSenhaObrigatoria').value;
+    const confirmar = document.getElementById('confirmarSenhaObrigatoria').value;
+    // ===== VALIDAÇÃO DE SENHA EM TEMPO REAL =====
+const novaSenhaInput = document.getElementById('novaSenhaObrigatoria');
+const confirmarSenhaInput = document.getElementById('confirmarSenhaObrigatoria');
 
+if (novaSenhaInput) {
+    novaSenhaInput.addEventListener('input', validarSenha);
+}
+if (confirmarSenhaInput) {
+    confirmarSenhaInput.addEventListener('input', validarSenha);
+}
+
+    // Requisitos
+    const temComprimento = senha.length >= 8;
+    const temMaiuscula = /[A-Z]/.test(senha);
+    const temMinuscula = /[a-z]/.test(senha);
+    const temNumero = /[0-9]/.test(senha);
+    const temEspecial = /[!@#$%^&*]/.test(senha);
+
+    // Atualiza cores dos requisitos
+    document.getElementById('req-comprimento').style.color = temComprimento ? '#0a6b3b' : '#b91c1c';
+    document.getElementById('req-comprimento').textContent = (temComprimento ? '' : '') + ' Mínimo 8 caracteres';
+
+    document.getElementById('req-maiuscula').style.color = temMaiuscula ? '#0a6b3b' : '#b91c1c';
+    document.getElementById('req-maiuscula').textContent = (temMaiuscula ? '' : '') + ' Pelo menos 1 letra maiúscula';
+
+    document.getElementById('req-minuscula').style.color = temMinuscula ? '#0a6b3b' : '#b91c1c';
+    document.getElementById('req-minuscula').textContent = (temMinuscula ? '' : '') + ' Pelo menos 1 letra minúscula';
+
+    document.getElementById('req-numero').style.color = temNumero ? '#0a6b3b' : '#b91c1c';
+    document.getElementById('req-numero').textContent = (temNumero ? '' : '') + ' Pelo menos 1 número';
+
+    document.getElementById('req-especial').style.color = temEspecial ? '#0a6b3b' : '#b91c1c';
+    document.getElementById('req-especial').textContent = (temEspecial ? '' : '') + ' Pelo menos 1 caractere especial (!@#$%^&*)';
+
+    // Validação de confirmação (se houver texto em ambos)
+    const erroEl = document.getElementById('erroTrocarSenha');
+    if (senha.length > 0 && confirmar.length > 0) {
+        if (senha !== confirmar) {
+            erroEl.textContent = '⚠️ As senhas não coincidem.';
+            erroEl.style.display = 'block';
+            erroEl.style.color = '#b91c1c';
+        } else {
+            erroEl.textContent = '✅ As senhas coincidem.';
+            erroEl.style.display = 'block';
+            erroEl.style.color = '#0a6b3b';
+        }
+    } else {
+        erroEl.style.display = 'none';
+    }
+
+    // Habilita/desabilita o botão
+    const btn = document.getElementById('btnTrocarSenhaObrigatoria');
+    const todosRequisitos = temComprimento && temMaiuscula && temMinuscula && temNumero && temEspecial && senha === confirmar && senha.length > 0;
+    btn.disabled = !todosRequisitos;
+    btn.style.opacity = todosRequisitos ? '1' : '0.5';
+}
         // ============================================================
         // FUNÇÃO: LOGIN
         // ============================================================
@@ -2082,8 +2415,14 @@
             }
 
             btnEntrar.disabled = true;
-            const originalText = btnEntrar.textContent;
-            btnEntrar.textContent = '⏳ Entrando...';
+const originalText = btnEntrar.textContent;
+
+// Limpa e adiciona spinner + texto
+btnEntrar.innerHTML = '';
+var spinner = document.createElement('span');
+spinner.className = 'spinner';
+btnEntrar.appendChild(spinner);
+btnEntrar.appendChild(document.createTextNode(' Entrando...'));
 
             try {
                 const resp = await fetch(URL_SCRIPT, {
@@ -2093,10 +2432,11 @@
                 const resultado = await resp.json();
 
                 if (resultado.success) {
-                    AuthService.setToken(resultado.token);
-                    App.token = resultado.token;
-                    location.reload();
-                } else {
+    AuthService.setToken(resultado.token);
+    App.token = resultado.token;
+    localStorage.setItem('senhaPadrao', resultado.senha_padrao ? 'true' : 'false'); // ← ADICIONE
+    location.reload();
+} else {
                     loginErro.textContent = resultado.error || 'E-mail ou senha inválidos.';
                     loginErro.style.display = 'block';
                     btnEntrar.disabled = false;
@@ -2110,7 +2450,67 @@
                 btnEntrar.textContent = originalText;
             }
         }
+        // ===== TROCA SENHA OBRIGATÓRIA =====
+async function trocarSenhaObrigatoria() {
+    const novaSenha = document.getElementById('novaSenhaObrigatoria').value.trim();
+    const confirmarSenha = document.getElementById('confirmarSenhaObrigatoria').value.trim();
+    const erroEl = document.getElementById('erroTrocarSenha');
+    const btn = document.getElementById('btnTrocarSenhaObrigatoria');
 
+    erroEl.style.display = 'none';
+    erroEl.textContent = '';
+
+    if (novaSenha.length < 6) {
+        erroEl.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+        erroEl.style.display = 'block';
+        return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+        erroEl.textContent = 'As senhas não coincidem.';
+        erroEl.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Salvando...';
+
+    try {
+        const resp = await fetch(URL_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'adminAtualizarCliente',
+                idCliente: App.cliente.id,
+                campos: { senha: novaSenha },
+                senhaAdmin: 'SoLiVi@64253798@'
+            })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            // Atualiza o cliente local
+            App.cliente.senha_padrao = false;
+            // Fecha o modal
+            document.getElementById('modalTrocarSenha').classList.remove('active');
+            document.getElementById('modalTrocarSenha').style.display = 'none';
+            // Exibe mensagem de sucesso
+            exibirModalAviso('✅ Senha alterada!', 'Sua senha foi atualizada com sucesso.', '#0a6b3b');
+            // Recarrega os dados do cliente
+            await carregarDadosCliente(App.token);
+            // Re-renderiza a tela
+            render();
+        } else {
+            erroEl.textContent = resultado.error || 'Erro ao alterar senha.';
+            erroEl.style.display = 'block';
+        }
+    } catch (err) {
+        erroEl.textContent = 'Erro de conexão: ' + err.message;
+        erroEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Alterar senha';
+    }
+}
         // ============================================================
         // FUNÇÃO: CARREGAR DADOS DO CLIENTE
         // ============================================================
@@ -2124,6 +2524,14 @@
 
         if (resultado.success) {
             App.cliente = resultado.cliente;
+            // Mantém a informação de senha padrão
+            const senhaPadraoSalva = localStorage.getItem('senhaPadrao');
+App.cliente.senha_padrao = senhaPadraoSalva === 'true';
+console.log('🔍 senha_padrao (do localStorage):', App.cliente.senha_padrao);
+if (App.senhaPadrao !== undefined) {
+    App.cliente.senha_padrao = App.senhaPadrao;
+}
+            console.log('🔍 senha_padrao:', App.cliente.senha_padrao);
             App.autenticado = true;
             App.token = token;
 
@@ -2203,7 +2611,25 @@
                 const area = document.getElementById('detalhesArea');
                 if (area) area.classList.remove('ativo');
                 document.documentElement.classList.add('is-logged-in');
-            } else {
+            } 
+            if (App.autenticado && App.cliente) {
+    const nome = App.cliente.nome || 'Cliente';
+    document.getElementById('nomeCliente').textContent = 'Olá, ' + nome;
+    // ... outras linhas ...
+    gerarCards();
+    document.documentElement.classList.add('is-logged-in');
+    // ===== VERIFICA SE PRECISA TROCAR A SENHA =====
+if (App.cliente && App.cliente.senha_padrao === true) {
+    mostrarModalTrocarSenha();
+    localStorage.removeItem('senhaPadrao');
+}
+
+    // ===== VERIFICA SE PRECISA TROCAR A SENHA =====
+    if (App.cliente.senha_padrao === true) {
+        mostrarModalTrocarSenha();
+    }
+} 
+            else {
                 document.documentElement.classList.remove('is-logged-in');
                 document.getElementById('cardsGrid').innerHTML = '';
                 const btn = document.querySelector('.login-card .btn-entrar');
@@ -2231,18 +2657,18 @@
             document.body.appendChild(input);
 
             input.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) {
-                    document.body.removeChild(input);
-                    return;
-                }
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('❌ A imagem deve ter no máximo 2MB.');
-                    document.body.removeChild(input);
-                    return;
-                }
-                enviarFotoPerfil(file, input);
-            });
+    const file = e.target.files[0];
+    if (!file) {
+        document.body.removeChild(input);
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {  // ← AGORA 10MB
+        alert('❌ A imagem deve ter no máximo 10MB.');
+        document.body.removeChild(input);
+        return;
+    }
+    enviarFotoPerfil(file, input);
+});
 
             input.click();
         }
@@ -2315,7 +2741,28 @@
                 reader.readAsDataURL(file);
             });
         }
+function exibirModalAviso(titulo, mensagem, cor = '#0b2f5c') {
+    const modal = document.getElementById('modalAvisoCustom');
+    const tituloEl = document.getElementById('modalAvisoTitulo');
+    const msgEl = document.getElementById('modalAvisoMensagem');
 
+    if (!modal) return;
+
+    tituloEl.textContent = titulo;
+    msgEl.textContent = mensagem;
+    tituloEl.style.color = cor;
+
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+}
+
+function fecharModalAviso() {
+    const modal = document.getElementById('modalAvisoCustom');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+}
         // ============================================================
         // FUNÇÃO: GERAR CARDS (PRINCIPAL)
         // ============================================================
@@ -2648,7 +3095,19 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
                 </div>
             `;
         }
-
+        // ===== MOSTRA MODAL DE TROCA DE SENHA OBRIGATÓRIA =====
+function mostrarModalTrocarSenha() {
+    const modal = document.getElementById('modalTrocarSenha');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.getElementById('novaSenhaObrigatoria').value = '';
+        document.getElementById('confirmarSenhaObrigatoria').value = '';
+        document.getElementById('erroTrocarSenha').style.display = 'none';
+        validarSenha(); // ← ADICIONE ESTA LINHA para resetar os requisitos
+        setTimeout(() => document.getElementById('novaSenhaObrigatoria').focus(), 100);
+    }
+}
         // ============================================================
         // FUNÇÃO: MOSTRAR DETALHES (NOVA VERSÃO)
         // ============================================================
@@ -2672,20 +3131,39 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
             }
 
  // ===== MOSTRA SPINNER DE CARREGAMENTO =====
-    area.classList.add('ativo');
-    conteudo.innerHTML = `
-        <div style="display:flex; justify-content:center; align-items:center; padding:3rem;">
-            <div style="text-align:center;">
-                <div style="width:40px; height:40px; border:4px solid #e2e8f0; border-top:4px solid #0b2f5c; border-radius:50%; animation: spin 1s linear infinite; margin:0 auto 1rem;"></div>
-                <p style="color:#64748b; font-weight:500;">Carregando dados...</p>
-            </div>
+area.classList.add('ativo');
+conteudo.innerHTML = `
+    <div style="display:flex; justify-content:center; align-items:center; padding:3rem;">
+        <div style="text-align:center;">
+            <div style="width:40px; height:40px; border:4px solid #e2e8f0; border-top:4px solid #0b2f5c; border-radius:50%; animation: spin 1s linear infinite; margin:0 auto 1rem;"></div>
+            <p style="color:#64748b; font-weight:500;">Carregando dados...</p>
         </div>
-    `;
-    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // ==========================================
+    </div>
+`;
+area.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Recarrega os dados
+// ===== TIMEOUT DE SEGURANÇA =====
+const timeoutId = setTimeout(() => {
+    if (conteudo.innerHTML.includes('Carregando dados')) {
+        conteudo.innerHTML = `
+            <div style="text-align:center; padding:2rem;">
+                <p style="color:#b91c1c;">⏳ O carregamento está demorando mais que o esperado.</p>
+                <button onclick="mostrarDetalhes('${tipo}')" style="background:#ffc400; border:none; padding:0.5rem 1.5rem; border-radius:50px; font-weight:700; cursor:pointer;">Tentar novamente</button>
+            </div>
+        `;
+    }
+}, 15000); // 15 segundos
+
+// ==========================================
+
+// Dados já estão em App.cliente – usa direto
+// Se por algum motivo não estiver, recarrega
+if (!App.cliente) {
     await carregarDadosCliente(App.token);
+}
+
+// === LIMPA O TIMEOUT APÓS O CARREGAMENTO ===
+clearTimeout(timeoutId);
 
             const cliente = App.cliente;
             const v = cliente.dados_visita || {};
@@ -3085,7 +3563,7 @@ renderSection(
     `,
     // Botão único com estilo padrão (arredondado)
     `
-        <button class="botao-acao" onclick="window.open('https://wa.me/5511916866075', '_blank')" style="border-radius:50px; padding:0.6rem 1.8rem; font-weight:700; font-size:0.9rem; background:#0b2f5c; color:white; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; transition:background 0.2s;">📱 Falar com suporte</button>
+        
     `
 ),
 
@@ -3442,34 +3920,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Gatilho: quando o cliente estiver na página de pós-venda
         function iniciarGatilhoPlanos() {
-            // Se o modal já foi fechado nesta sessão, não faz nada
-            if (sessionStorage.getItem('planosModalFechado') === 'true') return;
+    // Se o modal já foi fechado nesta sessão, não faz nada
+    if (sessionStorage.getItem('planosModalFechado') === 'true') return;
 
-            // Se o cliente já está vendo os planos (está na página de planos), não mostra
-            if (window.location.pathname.includes('planosdemonitoramentosolar')) return;
+    // Se o cliente não estiver na etapa de pós-venda, não ativa
+    if (!App.cliente || App.etapaAtual !== 5) return;
 
-            // Reseta qualquer timeout anterior
-            if (timeoutPlanos) {
-                clearTimeout(timeoutPlanos);
-                timeoutPlanos = null;
-            }
+    // Verifica se a área de detalhes da pós-venda está aberta
+    const detalhesArea = document.getElementById('detalhesArea');
+    const conteudo = document.getElementById('detalhesConteudo');
+    
+    // Se a área de detalhes não estiver ativa ou não for pós-venda, não ativa
+    if (!detalhesArea || !detalhesArea.classList.contains('ativo')) return;
+    
+    // Verifica se o conteúdo atual é da pós-venda (contém elementos específicos)
+    if (conteudo) {
+        const temPosVenda = conteudo.innerHTML.includes('🛡️ Pós-venda') || 
+                            conteudo.innerHTML.includes('posvenda') ||
+                            conteudo.querySelector('.detail-hero-modern h2')?.textContent === 'Pós-venda';
+        if (!temPosVenda) return;
+    }
 
-            // Após 20 segundos, mostra o modal
-            timeoutPlanos = setTimeout(function() {
-                // Verifica se o cliente ainda está na página e não está interagindo com outro modal
-                if (!document.querySelector('.modal-aviso.active') && !document.querySelector('.modal-overlay.active')) {
+    // Se o cliente já está na página de planos, não mostra
+    if (window.location.pathname.includes('planosdemonitoramentosolar')) return;
+
+    // Reseta qualquer timeout anterior
+    if (timeoutPlanos) {
+        clearTimeout(timeoutPlanos);
+        timeoutPlanos = null;
+    }
+
+    // Após 20 segundos, mostra o modal
+    timeoutPlanos = setTimeout(function() {
+        // Verifica se o cliente ainda está na pós-venda e o modal não está aberto
+        if (!document.querySelector('.modal-aviso.active') && 
+            !document.querySelector('.modal-overlay.active') &&
+            App.etapaAtual === 5) {
+            
+            // Verifica novamente se a área de pós-venda ainda está aberta
+            const area = document.getElementById('detalhesArea');
+            const conteudo2 = document.getElementById('detalhesConteudo');
+            if (area && area.classList.contains('ativo') && conteudo2) {
+                const aindaPosVenda = conteudo2.innerHTML.includes('🛡️ Pós-venda') || 
+                                      conteudo2.innerHTML.includes('posvenda') ||
+                                      conteudo2.querySelector('.detail-hero-modern h2')?.textContent === 'Pós-venda';
+                if (aindaPosVenda) {
                     mostrarModalPlanos();
                 }
-            }, 20000); // 20 segundos
-        }
-
-        // Quando a página carregar, inicia o gatilho
-        document.addEventListener('DOMContentLoaded', function() {
-            // Só inicia se estiver na área do cliente (logado) e na etapa de pós-venda
-            if (document.querySelector('.view-logged') && App.cliente && App.etapaAtual === 5) {
-                iniciarGatilhoPlanos();
             }
-        });
+        }
+    }, 20000);
+}
 
         // Se o usuário clicar em qualquer lugar ou rolar a página, reinicia o timer (opcional)
         // Isso evita que o modal apareça enquanto o usuário está ativo
@@ -3494,40 +3995,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // ============================================================
-        // EVENTOS E INICIALIZAÇÃO
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = AuthService.getToken();
+// EVENTOS E INICIALIZAÇÃO
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const token = AuthService.getToken();
 
-            const btnLogout = document.getElementById('btnLogout');
-            if (btnLogout) {
-                btnLogout.addEventListener('click', function() {
-                    AuthService.logout();
-                });
-            }
-
-            if (token) {
-                carregarDadosCliente(token);
-            } else {
-                document.documentElement.classList.remove('is-logged-in');
-                render();
-            }
-
-            // Força a área de detalhes a ficar oculta e limpa (garantia)
-            const area = document.getElementById('detalhesArea');
-            const conteudo = document.getElementById('detalhesConteudo');
-            if (area) area.classList.remove('ativo');
-            if (conteudo) conteudo.innerHTML = '';
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', function() {
+            AuthService.logout();
         });
+    }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const area = document.getElementById('detalhesArea');
-                if (area && area.classList.contains('ativo')) {
-                    fecharDetalhes();
-                }
+    // ===== EVENTO PARA TROCAR SENHA OBRIGATÓRIA =====
+    const btnTrocar = document.getElementById('btnTrocarSenhaObrigatoria');
+    if (btnTrocar) {
+        btnTrocar.addEventListener('click', trocarSenhaObrigatoria);
+    }
+
+    // Permite enviar com a tecla Enter no campo de confirmação
+    const confirmarInput = document.getElementById('confirmarSenhaObrigatoria');
+    if (confirmarInput) {
+        confirmarInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                trocarSenhaObrigatoria();
             }
         });
+    }
+
+    if (token) {
+        carregarDadosCliente(token);
+    } else {
+        document.documentElement.classList.remove('is-logged-in');
+        render();
+    }
+
+    // Força a área de detalhes a ficar oculta e limpa (garantia)
+    const area = document.getElementById('detalhesArea');
+    const conteudo = document.getElementById('detalhesConteudo');
+    if (area) area.classList.remove('ativo');
+    if (conteudo) conteudo.innerHTML = '';
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const area = document.getElementById('detalhesArea');
+        if (area && area.classList.contains('ativo')) {
+            fecharDetalhes();
+        }
+    }
+});
 
         // ============================================================
         // MENU MOBILE (público)
@@ -3570,12 +4087,44 @@ document.addEventListener('DOMContentLoaded', function() {
             fecharModal('modalEsqueciSenha');
         });
 
-        document.getElementById('enviarRecuperacao').addEventListener('click', function() {
-            const email = document.getElementById('email_recuperar').value.trim();
-            if (!email) { alert('Por favor, informe seu e-mail.'); return; }
-            alert('📩 Instruções de redefinição enviadas para ' + email + ' (simulação).');
-            fecharModal('modalEsqueciSenha');
+        document.getElementById('enviarRecuperacao').addEventListener('click', async function() {
+    const email = document.getElementById('email_recuperar').value.trim();
+    const btn = this;
+    const originalText = btn.textContent;
+
+    if (!email) {
+        alert('Por favor, informe seu e-mail.');
+        return;
+    }
+
+    // Feedback visual
+    btn.disabled = true;
+    btn.textContent = '⏳ Enviando...';
+
+    try {
+        const resp = await fetch(URL_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'solicitarRedefinicaoSenha',
+                email: email
+            })
         });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+    exibirModalAviso('✅ Sucesso!', resultado.message, '#0a6b3b');
+    fecharModal('modalEsqueciSenha');
+    document.getElementById('email_recuperar').value = '';
+} else {
+    exibirModalAviso('❌ Erro', resultado.error || 'Erro desconhecido.', '#b91c1c');
+}
+    } catch (err) {
+        alert('❌ Erro de conexão: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
 
         document.getElementById('solicitarAcesso').addEventListener('click', function(e) {
             e.preventDefault();
@@ -3586,17 +4135,52 @@ document.addEventListener('DOMContentLoaded', function() {
             fecharModal('modalSolicitarAcesso');
         });
 
-        document.getElementById('enviarSolicitacao').addEventListener('click', function() {
-            const nome = document.getElementById('nome_solicitacao').value.trim();
-            const email = document.getElementById('email_solicitacao').value.trim();
-            const telefone = document.getElementById('telefone_solicitacao').value.trim();
-            if (!nome || !email || !telefone) {
-                alert('Preencha todos os campos.');
-                return;
-            }
-            alert('✅ Solicitação enviada! Entraremos em contato em breve.');
-            fecharModal('modalSolicitarAcesso');
+        document.getElementById('enviarSolicitacao').addEventListener('click', async function() {
+    const nome = document.getElementById('nome_solicitacao').value.trim();
+    const email = document.getElementById('email_solicitacao').value.trim();
+    const telefone = document.getElementById('telefone_solicitacao').value.trim();
+    const btn = this;
+    const originalText = btn.textContent;
+
+    // Validação
+    if (!nome || !email || !telefone) {
+        exibirModalAviso('⚠️ Campos obrigatórios', 'Preencha todos os campos para solicitar acesso.', '#b91c1c');
+        return;
+    }
+
+    // Feedback visual
+    btn.disabled = true;
+    btn.textContent = '⏳ Enviando...';
+
+    try {
+        const resp = await fetch(URL_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({
+                acao: 'solicitarAcesso',
+                nome: nome,
+                email: email,
+                telefone: telefone
+            })
         });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            exibirModalAviso('✅ Solicitação enviada!', resultado.message || 'Entraremos em contato em breve.', '#0a6b3b');
+            fecharModal('modalSolicitarAcesso');
+            // Limpa os campos
+            document.getElementById('nome_solicitacao').value = '';
+            document.getElementById('email_solicitacao').value = '';
+            document.getElementById('telefone_solicitacao').value = '';
+        } else {
+            exibirModalAviso('❌ Erro', resultado.error || 'Erro desconhecido. Tente novamente.', '#b91c1c');
+        }
+    } catch (err) {
+        exibirModalAviso('❌ Erro de conexão', err.message, '#b91c1c');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
 
         document.querySelectorAll('.modal-aviso').forEach(function(modal) {
             modal.addEventListener('click', function(e) {
@@ -3901,5 +4485,147 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="btn-modal" id="modalAvisoBtn">OK</button>
     </div>
 </div>
+<!-- ===== MODAL TROCAR SENHA OBRIGATÓRIA ===== -->
+<div class="modal-aviso" id="modalTrocarSenha" style="display: none;">
+    <div class="conteudo" style="max-width: 460px;">
+        <h3 style="color: #0b2f5c;">🔐 Alterar senha obrigatória</h3>
+        <p style="color: #5c7a6c; margin-bottom: 1.5rem;">
+            Por segurança, você precisa alterar sua senha padrão antes de continuar.
+        </p>
+
+        <div class="campo-modal">
+            <label for="novaSenhaObrigatoria">Nova senha *</label>
+            <input type="password" id="novaSenhaObrigatoria" placeholder="Digite sua nova senha" minlength="8" style="width:100%; padding:0.7rem 1rem; border-radius:1.5rem; border:1px solid #dce3ea; font-size:0.95rem; background:#f9fbfd;">
+        </div>
+
+        <!-- REQUISITOS DA SENHA -->
+        <div id="requisitosSenha" style="font-size:0.8rem; margin-top:-0.3rem; margin-bottom:0.8rem; background:#f8fafc; padding:0.8rem 1rem; border-radius:1rem; text-align: left;">
+            <div id="req-comprimento" style="color:#b91c1c;">Mínimo 8 caracteres</div>
+            <div id="req-maiuscula" style="color:#b91c1c;">Pelo menos 1 letra maiúscula</div>
+            <div id="req-minuscula" style="color:#b91c1c;">Pelo menos 1 letra minúscula</div>
+            <div id="req-numero" style="color:#b91c1c;">Pelo menos 1 número</div>
+            <div id="req-especial" style="color:#b91c1c;">Pelo menos 1 caractere especial (!@#$%^&*)</div>
+        </div>
+
+        <div class="campo-modal">
+            <label for="confirmarSenhaObrigatoria">Confirmar senha *</label>
+            <input type="password" id="confirmarSenhaObrigatoria" placeholder="Digite novamente" minlength="8" style="width:100%; padding:0.7rem 1rem; border-radius:1.5rem; border:1px solid #dce3ea; font-size:0.95rem; background:#f9fbfd;">
+        </div>
+
+        <div id="erroTrocarSenha" style="color:#b91c1c; font-size:0.85rem; display:none; margin-bottom:0.5rem;"></div>
+
+        <button class="btn-modal" id="btnTrocarSenhaObrigatoria" style="width:100%; background:#ffc400; color:#0b2f5c; border:none; padding:0.8rem; border-radius:2rem; font-weight:700; font-size:1rem; cursor:pointer;">Alterar senha</button>
+    </div>
+</div>
+<script>
+(function() {
+    // Função que move o card para fora da hero no mobile
+    function ajustarLayoutMobile() {
+        var hero = document.querySelector('.hero-cliente');
+        var container = document.querySelector('.hero-cliente .container');
+        var card = document.querySelector('.hero-cliente .login-card');
+        var loginSection = document.querySelector('.login-section');
+
+        // Se já estiver no desktop ou os elementos não existirem, não faz nada
+        if (!hero || !container || !card) return;
+
+        // Se a largura da tela for maior que 768px, restaura o layout original
+        if (window.innerWidth >= 769) {
+            // Se o card foi movido para fora, coloca de volta
+            if (card.parentNode !== container) {
+                container.appendChild(card);
+                // Reaplica o estilo original do container (se necessário)
+                container.style.display = '';
+                hero.style.display = '';
+            }
+            return;
+        }
+
+        // MOBILE: move o card para fora do container, colocando-o após a hero
+        if (card.parentNode === container) {
+            // Cria a section .login-section se não existir
+            if (!loginSection) {
+                loginSection = document.createElement('section');
+                loginSection.className = 'login-section';
+                hero.parentNode.insertBefore(loginSection, hero.nextSibling);
+            }
+            // Move o card para dentro da login-section
+            loginSection.appendChild(card);
+            // Ajusta estilos para evitar duplicação
+            container.style.display = 'none'; // esconde o container vazio
+            hero.style.display = 'flex';
+            hero.style.flexDirection = 'column';
+            hero.style.minHeight = '200px';
+            hero.style.padding = '0';
+            hero.style.marginBottom = '0';
+            hero.style.justifyContent = 'flex-start';
+            hero.style.alignItems = 'stretch';
+            hero.style.backgroundSize = 'cover';
+            hero.style.backgroundPosition = 'center 30%';
+            // Aplica estilos ao card
+            card.style.margin = '1.5rem 1.9rem';
+            card.style.width = 'auto';
+            card.style.maxWidth = '440px';
+            card.style.padding = '1.2rem 1.2rem';
+            card.style.borderRadius = '2rem';
+            card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)';
+            card.style.border = '1px solid rgba(255, 196, 0, 0.3)';
+            card.style.background = 'white';
+            card.style.alignSelf = 'center';
+
+            // ===== AJUSTA OS INPUTS DO LOGIN (e-mail e senha) =====
+            var inputs = card.querySelectorAll('.campo input');
+            inputs.forEach(function(input) {
+                input.style.width = '85%';
+                input.style.maxWidth = '85%';
+                input.style.margin = '0 auto';
+                input.style.display = 'block';
+            });
+        }
+    } // <-- FECHA A FUNÇÃO AQUI
+
+    // Executa ao carregar e ao redimensionar
+    document.addEventListener('DOMContentLoaded', ajustarLayoutMobile);
+    window.addEventListener('resize', ajustarLayoutMobile);
+})();
+</script>
+<!-- ===== SCROLL LOGO COM INTERSECTION OBSERVER (DEFINITIVO) ===== -->
+<script>
+(function() {
+    'use strict';
+
+    var logo = document.querySelector('.header-publico .header__logo');
+    var hero = document.querySelector('.hero-cliente');
+
+    if (!logo || !hero) {
+        console.warn('⚠️ Elementos não encontrados');
+        return;
+    }
+
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) {
+                logo.style.display = 'none';
+            } else {
+                logo.style.display = '';
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '-50px 0px 0px 0px'
+    });
+
+    observer.observe(hero);
+
+    setTimeout(function() {
+        var rect = hero.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+            logo.style.display = 'none';
+        } else {
+            logo.style.display = '';
+        }
+    }, 100);
+})();
+</script>
 </body>
 </html>
