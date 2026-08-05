@@ -288,7 +288,7 @@ def buscar_cliente_por_id(cliente_id):
             "senhaAdmin": senha_admin
         }
         print(f"🔍 Buscando cliente com ID: {cliente_id_str}")
-        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=60)
         print(f"📡 Status da resposta: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
@@ -1338,18 +1338,74 @@ def gerar_relatorio_conformidade():
                             dados_visita['ultimo_tipo_relatorio'] = tipo
 
                             # ---- DADOS ESPECÍFICOS ----
+                            # ===== SALVAR DADOS DO RELATÓRIO DE FORMA ESTRUTURADA =====
+                            dados_visita['relatorios'] = dados_visita.get('relatorios', {})
+
+                            # Monta o objeto base do relatório (comum a todos os tipos)
+                            relatorio_data = {
+                                'data_geracao': datetime.now().isoformat(),
+                                'url': url,  # URL do PDF gerado
+                            }
+
                             if tipo == 'sem_adequacao':
+                                # Dados específicos do sem_adequacao
+                                relatorio_data.update({
+                                    'potencia': dados.get('potencia', ''),
+                                    'qtd_modulos': dados.get('qtd_modulos', ''),
+                                    'inversor': dados.get('inversor', ''),
+                                    'geracao_estimada': dados.get('geracao', ''),
+                                    'investimento': dados.get('investimento', 0),
+                                    'observacoes': dados.get('observacoes', ''),
+                                })
+
+                                # Também mantém os campos soltos para compatibilidade com código antigo
                                 dados_visita['potencia'] = dados.get('potencia', '')
                                 dados_visita['qtd_modulos'] = dados.get('qtd_modulos', '')
                                 dados_visita['inversor'] = dados.get('inversor', '')
                                 dados_visita['geracao_estimada'] = dados.get('geracao', '')
                                 dados_visita['investimento'] = dados.get('investimento', 0)
+
                                 linhas = dados.get('linhas', [])
                                 if linhas and len(linhas) >= 2:
                                     dados_visita['projecao'] = linhas[:5]
+
                                 print(f"✅ Dados do relatório 'sem adequação' salvos")
 
                             elif tipo == 'com_adequacao':
+                                # Dados específicos do com_adequacao
+                                # ===== ADICIONA OS CAMPOS BÁSICOS TAMBÉM =====
+                                relatorio_data.update({
+                                    'potencia': dados.get('potencia', ''),  # Se não vier, fica vazio
+                                    'qtd_modulos': dados.get('qtd_modulos', '') or dados.get('modulos_op1', '') or dados.get('modulos_op2', ''),
+                                    'inversor': dados.get('inversor', '') or dados.get('inversor_op1', '') or dados.get('inversor_op2', '') or 'Conforme projeto',
+                                    'geracao_estimada': dados.get('geracao_otimizada', '') or dados.get('geracao_op1', '') or dados.get('geracao_op2', ''),
+                                    'investimento': dados.get('investimento', 0) or dados.get('valor_op1', 0) or dados.get('valor_op2', 0),
+                                    'geracao_original': dados.get('geracao_original', ''),
+                                    'geracao_otimizada': dados.get('geracao_otimizada', ''),
+                                    'valor_adequacoes': dados.get('valor_adequacoes', 0),
+                                    'modulos_op1': dados.get('modulos_op1', ''),
+                                    'inversor_op1': dados.get('inversor_op1', ''),
+                                    'valor_op1': dados.get('valor_op1', 0),
+                                    'geracao_op1': dados.get('geracao_op1', ''),
+                                    'modulos_op2': dados.get('modulos_op2', ''),
+                                    'inversor_op2': dados.get('inversor_op2', ''),
+                                    'valor_op2': dados.get('valor_op2', 0),
+                                    'geracao_op2': dados.get('geracao_op2', ''),
+                                    'desafio1': dados.get('desafio1', ''),
+                                    'desafio2': dados.get('desafio2', ''),
+                                    'desafio3': dados.get('desafio3', ''),
+                                    'recomendacao': dados.get('recomendacao', ''),
+                                    'adequacao_layout1': dados.get('adequacao_layout1', ''),
+                                    'adequacao_layout2': dados.get('adequacao_layout2', ''),
+                                    'local_quadro': dados.get('local_quadro', ''),
+                                    'reforco_estrutural': dados.get('reforco_estrutural', ''),
+                                    'adequacao_tec1': dados.get('adequacao_tec1', ''),
+                                    'adequacao_tec2': dados.get('adequacao_tec2', ''),
+                                    'adequacao_tec3': dados.get('adequacao_tec3', ''),
+                                    'adequacoes': dados.get('adequacoes', ['geracao', 'homologacao']),
+                                })
+
+                                # Mantém os campos soltos para compatibilidade
                                 dados_visita['geracao_original'] = dados.get('geracao_original', '')
                                 dados_visita['geracao_otimizada'] = dados.get('geracao_otimizada', '')
                                 dados_visita['valor_adequacoes'] = dados.get('valor_adequacoes', 0)
@@ -1374,7 +1430,7 @@ def gerar_relatorio_conformidade():
                                 dados_visita['adequacao_tec3'] = dados.get('adequacao_tec3', '')
                                 dados_visita['adequacoes'] = dados.get('adequacoes', ['geracao', 'homologacao'])
 
-                                # ===== RECALCULA A PROJEÇÃO COM A GERAÇÃO OTIMIZADA =====
+                                # ===== RECALCULA A PROJEÇÃO COM A GERAÇÃO OTIMIZADA (mantido) =====
                                 try:
                                     projecao_original = dados_visita.get('projecao_preproposta', [])
 
@@ -1465,12 +1521,28 @@ def gerar_relatorio_conformidade():
                                 print(f"✅ Dados do relatório 'com adequação' salvos")
 
                             elif tipo == 'fast_track':
+                                # Dados específicos do fast_track
+                                relatorio_data.update({
+                                    'potencia': dados.get('potencia_inversor', '') or dados.get('potencia', ''),
+                                    'qtd_modulos': dados.get('qtd_modulos', ''),
+                                    'inversor': 'Conforme projeto',
+                                    'geracao_estimada': dados.get('geracao_otimizada', ''),
+                                    'investimento': dados.get('investimento', 0),
+                                    'geracao_original': dados.get('geracao_original', ''),
+                                    'geracao_otimizada': dados.get('geracao_otimizada', ''),
+                                    'potencia_inversor': dados.get('potencia_inversor', ''),
+                                    'local_inversor': dados.get('local_inversor', ''),
+                                    'observacoes': dados.get('observacoes', ''),
+                                    'investimento': dados.get('investimento', 0),
+                                })
+
+                                # Mantém os campos soltos para compatibilidade
                                 dados_visita['geracao_original'] = dados.get('geracao_original', '')
                                 dados_visita['geracao_otimizada'] = dados.get('geracao_otimizada', '')
                                 dados_visita['potencia_inversor'] = dados.get('potencia_inversor', '')
                                 dados_visita['local_inversor'] = dados.get('local_inversor', '')
 
-                                # ===== RECALCULA A PROJEÇÃO COM A GERAÇÃO OTIMIZADA =====
+                                # ===== RECALCULA A PROJEÇÃO COM A GERAÇÃO OTIMIZADA (mantido) =====
                                 try:
                                     projecao_original = dados_visita.get('projecao_preproposta', [])
 
@@ -1561,6 +1633,12 @@ def gerar_relatorio_conformidade():
 
                                 print(f"✅ Dados do relatório 'fast track' salvos")
 
+                            # ===== SALVA O RELATÓRIO NA ESTRUTURA ORGANIZADA =====
+                            dados_visita['relatorios'][tipo] = relatorio_data
+                            dados_visita['ultimo_tipo_relatorio'] = tipo
+
+                            print(f"📦 Relatório '{tipo}' salvo em dados_visita.relatorios")
+
                             # ---- ATUALIZA O CLIENTE ----
                             payload_hash = {
                                 "acao": "adminAtualizarCliente",
@@ -1608,32 +1686,51 @@ def gerar_proposta_final():
         if not cliente:
             return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-        # ===== BUSCA CPF/CNPJ DE dados_preproposta =====
+        # ===== BUSCA CPF/CNPJ =====
         dados_preproposta = cliente.get('dados_preproposta', {})
+        documentos = cliente.get('documentos', {})
         cpf_cnpj = dados_preproposta.get('cpf_cnpj', '')
-        print(f"🔍 CPF/CNPJ recuperado de dados_preproposta: {cpf_cnpj}")
+        if not cpf_cnpj:
+            cpf_cnpj = documentos.get('cpf', {}).get('numero', '')
+        print(f"🔍 CPF/CNPJ final: {cpf_cnpj}")
 
         dados_visita = cliente.get('dados_visita', {})
-        documentos = cliente.get('documentos', {})
-
         nome_cliente = cliente.get('nome', '')
         email_cliente = cliente.get('email', '')
         telefone_cliente = cliente.get('telefone', '')
         endereco = cliente.get('endereco', '')
 
-        # ===== PRIORIZA DADOS SALVOS (com fallback) =====
-        potencia = dados_visita.get('potencia_inversor') or dados_visita.get('potencia') or dados_visita.get('potencia_kwp') or '0'
-        qtd_modulos = dados_visita.get('qtd_modulos') or dados_visita.get('modulos') or '0'
-        inversor = dados_visita.get('inversor') or 'Microinversor'
-        geracao = dados_visita.get('geracao_otimizada') or dados_visita.get('geracao') or dados_visita.get('geracao_estimada') or '0'
-        investimento = dados_visita.get('investimento') or 0
+        # ===== BUSCA DADOS DO ÚLTIMO RELATÓRIO =====
+        relatorios = dados_visita.get('relatorios', {})
+        ultimo_tipo = dados_visita.get('ultimo_tipo_relatorio', '')
+        dados_relatorio = relatorios.get(ultimo_tipo, {})
+
+        # Usa os dados do relatório (ou fallback vazio)
+        potencia = dados_relatorio.get('potencia') or '0'
+        qtd_modulos = dados_relatorio.get('qtd_modulos') or '0'
+        inversor = dados_relatorio.get('inversor') or 'Conforme projeto'
+        geracao = dados_relatorio.get('geracao_estimada') or '0'
+        investimento = dados_relatorio.get('investimento') or 0
         concessionaria = dados_visita.get('concessionaria') or cliente.get('concessionaria') or 'Concessionária local'
+
+        print(f"🔍 Último relatório: {ultimo_tipo}")
+        print(f"📊 Dados usados na proposta: potência={potencia}, módulos={qtd_modulos}, inversor={inversor}, geração={geracao}, investimento={investimento}")
 
         condicao_pagamento = dados.get('condicao_pagamento', 'À vista, cartão de crédito ou financiamento')
         prazo_execucao = dados.get('prazo_execucao', '30 dias úteis')
 
         num_proposta = f"PF-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
 
+        # ===== DETERMINA O TEMPLATE =====
+        template_map = {
+            'sem_adequacao': 'proposta_final.html',
+            'com_adequacao': 'proposta_final_com_adequacao.html',
+            'fast_track': 'proposta_final_fast_track.html',
+        }
+        template_file = template_map.get(ultimo_tipo, 'proposta_final.html')
+        print(f"📄 Usando template: {template_file}")
+
+        # ===== MONTAGEM DO CONTEXTO (já existente) =====
         beneficios = [
             "💰 Redução de até 95% na conta de luz",
             "🔋 Energia limpa e sustentável",
@@ -1660,7 +1757,7 @@ def gerar_proposta_final():
             {'desc': 'Cabeamento e conectores', 'marca': 'Conforme projeto', 'qtd': '1', 'preco': '0,00'},
         ]
 
-        # ===== COMPARATIVO FINANCEIRO (VERSÃO SEGURA) =====
+        # ===== COMPARATIVO FINANCEIRO =====
         projecao = dados_visita.get('projecao', [])
         if projecao and len(projecao) >= 2:
             comparativo_real = []
@@ -1679,7 +1776,6 @@ def gerar_proposta_final():
             tarifa = float(dados_visita.get('tarifa_preproposta') or 0.75)
             producao_mensal = float(geracao) if geracao and str(geracao).strip() else 0
             invest = float(investimento) if investimento else 0
-
             if producao_mensal > 0 and invest > 0:
                 comparativo_real = []
                 for ano in range(1, 6):
@@ -1713,7 +1809,6 @@ def gerar_proposta_final():
         # ===== FOTO DA CAPA =====
         croqui_imagem = dados_visita.get('croqui_imagem')
         croqui_url = dados_visita.get('croqui_url')
-
         if croqui_imagem:
             foto_capa = f"data:image/png;base64,{croqui_imagem}"
             print(f"📸 Usando base64 do croqui (tamanho: {len(croqui_imagem)} caracteres)")
@@ -1724,6 +1819,7 @@ def gerar_proposta_final():
             foto_capa = 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&h=300&fit=crop'
             print("📸 Usando imagem fallback (Unsplash)")
 
+        # ===== CONTEXTO =====
         context = {
             'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
             'NOME_FANTASIA': 'SoLivia Engenharia',
@@ -1765,14 +1861,26 @@ def gerar_proposta_final():
             'NUM_PROTOCOLO': f'PF-{datetime.now().strftime("%Y%m%d")}-{cliente_id}'
         }
 
+        # ===== ADICIONA VARIÁVEIS ESPECÍFICAS PARA CADA TIPO =====
+        if ultimo_tipo == 'com_adequacao':
+            context['GERACAO_ORIGINAL'] = dados_relatorio.get('geracao_original', '')
+            context['GERACAO_OTIMIZADA'] = dados_relatorio.get('geracao_otimizada', '')
+            context['VALOR_ADEQUACOES'] = format_moeda(dados_relatorio.get('valor_adequacoes', 0))
+        elif ultimo_tipo == 'fast_track':
+            context['GERACAO_ORIGINAL'] = dados_relatorio.get('geracao_original', '')
+            context['GERACAO_OTIMIZADA'] = dados_relatorio.get('geracao_otimizada', '')
+            context['POTENCIA_INVERSOR'] = dados_relatorio.get('potencia_inversor', '')
+            context['LOCAL_INVERSOR'] = dados_relatorio.get('local_inversor', '')
+
         print(f"🔍 Contexto completo: {context.keys()}")
         print(f"🔍 CPF_CNPJ no contexto: {context.get('CPF_CNPJ', '')}")
 
-        html_rendered = render_template('proposta_final.html', **context)
+        # ===== RENDERIZA O TEMPLATE CORRETO =====
+        html_rendered = render_template(template_file, **context)
         pdf_bytes = HTML(string=html_rendered).write_pdf()
-
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
+        # ===== SALVA O PDF NO DRIVE =====
         payload_script = {
             'token': TOKEN,
             'acao': 'salvar_pdf',
@@ -2465,7 +2573,7 @@ def gerar_relatorio_comissionamento():
             },
             "senhaAdmin": "SoLiVi@64253798@"
         }
-                resp_update = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
+                resp_update = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=60)  # ← AUMENTEI PARA 60
                 if resp_update.status_code == 200:
                     print(f"✅ Hash e protocolo salvos para cliente {cliente_id}")
                 else:
