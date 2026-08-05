@@ -584,17 +584,100 @@ body.admin-logged .header-admin .header-right {
     }
 
     /* ===== RESPONSIVO ===== */
-    @media (max-width: 768px) {
-      .main-admin { padding: 1rem; }
-      .form-grid { grid-template-columns: 1fr; }
-      .toolbar { flex-direction: column; align-items: stretch; }
-      .toolbar .busca input { width: 100%; }
-      .modal-edicao { padding: 1.2rem; }
-      .modal-calculadora { padding: 0.2rem; }
-      .modal-calculadora iframe { height: 80vh; }
-      table { font-size: 0.75rem; }
-      th, td { padding: 0.6rem 0.8rem; }
+/* ===== HERO ADMIN MOBILE ===== */
+@media (max-width: 768px) {
+    .hero-admin {
+        background-image: none !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        background: #f1f5f9 !important;
     }
+    /* ===== AJUSTAR STATUS (ETAPAS) NO MOBILE ===== */
+.status-etapa {
+    font-size: 0.5rem !important;
+    padding: 0.1rem 0.5rem !important;
+}
+    .hero-admin::after {
+        display: none !important;
+    }
+    /* ===== DIMINUIR LARGURA DA COLUNA "CLIENTE" NO MOBILE ===== */
+.tabela-wrapper table td:first-child,
+.tabela-wrapper table th:first-child {
+    max-width: 80px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+    /* ===== IMAGEM NO TOPO ===== */
+    .hero-admin::before {
+        content: '' !important;
+        display: block !important;
+        width: 100% !important;
+        height: 200px !important;
+        background-image: url('https://raw.githubusercontent.com/SoLivia-Web/termos-solivia/main/assets/img/logo-hero-adm.webp') !important;
+        background-size: cover !important;
+        background-position: center 30% !important;
+        background-repeat: no-repeat !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ===== LOGIN CENTRALIZADO ===== */
+    .hero-admin .login-admin {
+        transform: none !important;
+        margin: 0 !important;
+        padding: 2rem 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex: 1 !important;
+    }
+    .hero-admin .login-admin .login-card {
+        margin: 0 !important;
+        padding: 2rem 1.5rem !important;
+        border-radius: 2rem !important;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        border: 1px solid rgba(255, 196, 0, 0.3) !important;
+        background: white !important;
+        width: 100% !important;
+        max-width: 400px !important;
+        box-sizing: border-box !important;
+    }
+    .hero-admin .login-admin .campo input {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ===== OCULTAR FILTROS NO MOBILE ===== */
+    .filtros-etapa {
+        display: none !important;
+    }
+
+    /* ===== AJUSTAR TABELA NO MOBILE ===== */
+    .tabela-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    table {
+        font-size: 0.6rem !important;
+        min-width: 500px !important;
+    }
+    th, td {
+        padding: 0.4rem 0.5rem !important;
+        white-space: nowrap !important;
+    }
+}
+    
     @media (max-width: 480px) {
       .header-admin .logo { font-size: 0.9rem; }
       .header-admin .user span { display: none; }
@@ -853,11 +936,13 @@ body.admin-logged .hero-admin {
   </main>
 <!-- HERO + TELA DE LOGIN -->
     <div class="hero-admin" id="heroLogin">
+    <!-- Container da imagem (só vai aparecer no mobile) -->
+    <div class="hero-container"></div>
+    <!-- Wrapper do login -->
+    <div class="login-wrapper">
         <div class="login-admin" id="loginAdmin">
             <div class="login-card">
-                <div class="logo-mini">
-                    
-                </div>
+                <div class="logo-mini"></div>
                 <h2>Acesso Administrativo</h2>
                 <p class="subtitulo">Digite a senha mestra para acessar o painel.</p>
                 <form id="formLoginAdmin" onsubmit="event.preventDefault(); adminLogin();">
@@ -871,6 +956,7 @@ body.admin-logged .hero-admin {
             </div>
         </div>
     </div>
+</div>
   <!-- ===== RODAPÉ ===== -->
   <footer class="footer">
     &copy; 2026 SoLivia Engenharia – Painel Administrativo
