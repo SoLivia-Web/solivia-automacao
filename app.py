@@ -14,7 +14,10 @@ import json
 import os
 import hashlib
 import threading
-
+import jwt
+import bcrypt
+from datetime import datetime, timedelta
+from functools import wraps
 
 warnings.filterwarnings("ignore")
 
@@ -27,6 +30,13 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     return response
+
+# ============================================================
+# CONFIGURAÇÃO DE SEGURANÇA (JWT)
+# ============================================================
+SECRET_KEY = os.environ.get('JWT_SECRET', 'sua-chave-secreta-padrao-mude-urgentemente')
+ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASS_HASH')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'SoLiVi@64253798@')  # fallback apenas para chamadas internas
 
 # ============================================================
 # CONFIGURAÇÃO DO GOOGLE APPS SCRIPT (salvar PDF)
@@ -122,53 +132,36 @@ def gerar_marcos_20(linhas):
         indices.update(extra[:20 - len(indices)])
     return sorted(list(indices))
 
-    # ============================================================
+# ============================================================
 # FUNÇÃO PARA CONVERTER IMAGEM DO DRIVE PARA BASE64
 # ============================================================
 def imagem_drive_para_base64(url):
-    print(f"🔍 [imagem_drive] Recebeu URL: {url}")
     if not url:
-        print("⚠️ URL vazia")
         return ''
     if url.startswith('data:image'):
-        print("✅ Já é base64")
         return url
 
-    # Se for URL do Google Drive, tenta extrair o ID para usar thumbnail
     import re
     match = re.search(r'id=([^&]+)', url)
     if match:
         file_id = match.group(1)
-        # Usa o formato thumbnail que é mais amigável para download
         url_thumb = f"https://drive.google.com/thumbnail?id={file_id}&sz=w800"
-        print(f"🔄 Usando thumbnail: {url_thumb}")
-        url = url_thumb  # substitui pela URL de thumbnail
+        url = url_thumb
 
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-        print(f"⏳ Baixando de {url}")
         resp = requests.get(url, timeout=30, headers=headers, allow_redirects=True)
-        print(f"📡 Status: {resp.status_code}, Content-Type: {resp.headers.get('Content-Type')}")
 
         if resp.status_code == 200:
             content_type = resp.headers.get('Content-Type', '')
             if 'image' in content_type:
                 encoded = base64.b64encode(resp.content).decode()
-                print(f"✅ Base64 gerado (primeiros 60): {encoded[:60]}...")
                 return f"data:image/jpeg;base64,{encoded}"
-            else:
-                print(f"⚠️ Content-Type não é imagem: {content_type}")
-                # Tenta salvar o início da resposta para depuração
-                print(f"📄 Primeiros 200 bytes: {resp.text[:200]}")
-        else:
-            print(f"❌ Status {resp.status_code}")
     except Exception as e:
-        print(f"❌ Exceção: {e}")
+        pass
 
-    # Fallback: retorna a URL original (pode não funcionar no WeasyPrint)
-    print(f"⚠️ Usando fallback: URL original")
     return url
 
 def gerar_grafico_payback(dados_simulacao):
@@ -270,39 +263,34 @@ def gerar_grafico_payback(dados_simulacao):
         return base64.b64encode(buf.getvalue()).decode('utf-8')
 
     except Exception as e:
-        print(f"❌ Erro no gráfico: {e}")
         import traceback
         traceback.print_exc()
         return None
 
 # ============================================================
-# FUNÇÕES DE BUSCA E CRIAÇÃO
+# FUNÇÕES DE BUSCA E CRIAÇÃO (com ADMIN_PASSWORD)
 # ============================================================
 def buscar_cliente_por_id(cliente_id):
     try:
-        senha_admin = 'SoLiVi@64253798@'
+        senha_admin = ADMIN_PASSWORD
         cliente_id_str = str(cliente_id)
         payload = {
             "acao": "adminObterCliente",
             "idCliente": cliente_id_str,
             "senhaAdmin": senha_admin
         }
-        print(f"🔍 Buscando cliente com ID: {cliente_id_str}")
         response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=60)
-        print(f"📡 Status da resposta: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            print(f"📦 Dados retornados: {data}")
             if data.get('success'):
                 return data.get('cliente')
         return None
     except Exception as e:
-        print(f"❌ Erro ao buscar cliente: {e}")
         return None
 
 def buscar_cliente_por_documento_id(document_id):
     try:
-        senha_admin = 'SoLiVi@64253798@'
+        senha_admin = ADMIN_PASSWORD
         payload = {
             "acao": "adminListarClientes",
             "senhaAdmin": senha_admin
@@ -329,11 +317,9 @@ def buscar_cliente_por_documento_id(document_id):
                                 return cliente_completo
         return None
     except Exception as e:
-        print(f"❌ Erro ao buscar cliente por document_id: {e}")
         return None
 
 def atualizar_aprovacao_cliente(cliente_id):
-    print(f"✅ Atualizando aprovação do cliente {cliente_id}")
     pass
 
 def criar_cliente_area_cliente(dados_cliente):
@@ -352,7 +338,6 @@ def criar_cliente_area_cliente(dados_cliente):
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"❌ Erro ao criar cliente na Área do Cliente: {e}")
         return {'success': False, 'error': str(e)}
 
 # ============================================================
@@ -371,9 +356,9 @@ def enviar_para_assinatura_autentique(
         assinante_empresa = ASSINANTE_SOLIVIA
 
     if posicao_engenheiro is None:
-        posicao_engenheiro = {"x": 450, "y": 650, "z": 1, "page": 6}  # assinatura da empresa (SoLivia) – lado direito
+        posicao_engenheiro = {"x": 450, "y": 650, "z": 1, "page": 6}
     if posicao_cliente is None:
-        posicao_cliente = {"x": 150, "y": 650, "z": 1, "page": 6}     # assinatura do cliente – lado esquerd
+        posicao_cliente = {"x": 150, "y": 650, "z": 1, "page": 6}
 
     api_key = assinante_empresa["api_key"]
 
@@ -433,7 +418,6 @@ mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInpu
     operations = {"query": query, "variables": variables}
     map_payload = {"file": ["variables.file"]}
 
-
     url = "https://autentique-proxy.ncalves91.workers.dev/v2/graphql"
 
     response = requests.post(
@@ -447,20 +431,16 @@ mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInpu
 
     if response.status_code == 200:
         dados = response.json()
-        # LOG DA RESPOSTA COMPLETA (MELHORIA A)
-        print(f"🔍 Resposta completa da Autentique: {json.dumps(dados, indent=2)}")
         if "errors" in dados:
             return {"success": False, "error": dados["errors"]}
         resultado = dados.get("data", {}).get("createDocument", {})
         link_assinatura = None
         signatures = resultado.get("signatures", [])
         for sig in signatures:
-            # Tenta diferentes caminhos (MELHORIA A)
             link = sig.get("link", {})
             if link and link.get("short_link"):
                 link_assinatura = link["short_link"]
                 break
-            # Se não tiver link, pode estar diretamente no signature
             if sig.get("short_link"):
                 link_assinatura = sig["short_link"]
                 break
@@ -477,7 +457,6 @@ mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInpu
 # FUNÇÃO: BAIXAR PDF ASSINADO
 # ============================================================
 def baixar_pdf_assinado(document_id, api_key):
-    print(f"📥 [baixar_pdf] Iniciando download para {document_id}")
     query = """
     query DownloadDocument($id: UUID!) {
         document(id: $id) {
@@ -488,7 +467,6 @@ def baixar_pdf_assinado(document_id, api_key):
     }
     """
     variables = {"id": document_id}
-    print(f"📥 [baixar_pdf] Query preparada")
     try:
         response = requests.post(
             "https://autentique-proxy.ncalves91.workers.dev/v2/graphql",
@@ -497,38 +475,189 @@ def baixar_pdf_assinado(document_id, api_key):
             timeout=60,
             proxies={}
         )
-        print(f"📥 [baixar_pdf] Status da resposta: {response.status_code}")
         if response.status_code != 200:
-            print(f"❌ Erro na requisição GraphQL: {response.status_code}")
             return None
         data = response.json()
-        print(f"📥 [baixar_pdf] Resposta JSON recebida (keys): {data.keys()}")
         if "errors" in data:
-            print(f"❌ Erro GraphQL: {data['errors']}")
             return None
         signed_url = data.get("data", {}).get("document", {}).get("files", {}).get("signed")
         if not signed_url:
-            print("❌ Nenhum signed URL encontrado")
             return None
-        print(f"📥 [baixar_pdf] URL obtida: {signed_url}")
 
         pdf_response = requests.get(
             f"https://autentique-proxy.ncalves91.workers.dev/?url={signed_url}",
             timeout=60,
             proxies={}
         )
-        print(f"📥 [baixar_pdf] Download do PDF - status: {pdf_response.status_code}")
         if pdf_response.status_code == 200:
-            print(f"✅ PDF baixado com sucesso: {len(pdf_response.content)} bytes")
             return pdf_response.content
         else:
-            print(f"❌ Erro ao baixar PDF via Worker: {pdf_response.status_code}")
             return None
     except Exception as e:
-        print(f"❌ Exceção em baixar_pdf_assinado: {e}")
         import traceback
         traceback.print_exc()
         return None
+
+# ============================================================
+# ROTA DE LOGIN (gera token JWT)
+# ============================================================
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    try:
+        data = request.get_json()
+        senha = data.get('senha')
+
+        if not senha:
+            return jsonify({'success': False, 'error': 'Senha obrigatória'}), 400
+
+        # Comparação direta com a senha mestra (texto puro)
+        if senha != ADMIN_PASSWORD:
+            return jsonify({'success': False, 'error': 'Senha inválida'}), 401
+
+        token = jwt.encode({
+            'exp': datetime.utcnow() + timedelta(hours=24),
+            'iat': datetime.utcnow(),
+            'role': 'admin'
+        }, SECRET_KEY, algorithm='HS256')
+
+        return jsonify({'success': True, 'token': token})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# MIDDLEWARE DE AUTENTICAÇÃO (JWT)
+# ============================================================
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Token ausente'}), 401
+
+        try:
+            token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
+            payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expirado'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token inválido'}), 401
+
+        return f(*args, **kwargs)
+    return decorated
+
+# ============================================================
+# ROTAS PROTEGIDAS (ADMIN) – PROXY PARA O GOOGLE APPS SCRIPT
+# ============================================================
+
+@app.route('/api/admin/clientes', methods=['GET'])
+@token_required
+def admin_listar_clientes():
+    try:
+        payload = {
+            "acao": "adminListarClientes",
+            "senhaAdmin": ADMIN_PASSWORD
+        }
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/cliente/<int:cliente_id>', methods=['GET'])
+@token_required
+def admin_obter_cliente(cliente_id):
+    try:
+        payload = {
+    "acao": "adminObterCliente",
+    "idCliente": str(cliente_id),
+    "senhaAdmin": ADMIN_PASSWORD
+}
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'success': False, 'error': 'Erro ao obter cliente'}), response.status_code
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/cliente', methods=['POST'])
+@token_required
+def admin_atualizar_cliente():
+    try:
+        dados = request.get_json()
+        cliente_id = dados.get('idCliente')
+        campos = dados.get('campos', {})
+        if not cliente_id:
+            return jsonify({'success': False, 'error': 'idCliente é obrigatório'}), 400
+
+        payload = {
+    "acao": "adminAtualizarCliente",
+    "idCliente": str(cliente_id),
+    "campos": campos,
+    "senhaAdmin": ADMIN_PASSWORD
+}
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'success': False, 'error': 'Erro ao atualizar cliente'}), response.status_code
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/cliente', methods=['DELETE'])
+@token_required
+def admin_excluir_cliente():
+    try:
+        dados = request.get_json()
+        cliente_id = dados.get('idCliente')
+        if not cliente_id:
+            return jsonify({'success': False, 'error': 'idCliente é obrigatório'}), 400
+
+        payload = {
+            "acao": "adminExcluirCliente",
+            "idCliente": str(cliente_id),
+            "senhaAdmin": ADMIN_PASSWORD
+        }
+
+        response = requests.post(URL_AREA_CLIENTE, json=payload, timeout=30)
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'success': False, 'error': 'Erro ao excluir cliente'}), response.status_code
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ROTA PROXY PARA O GOOGLE APPS SCRIPT (COM SENHA INTERNA)
+# ============================================================
+@app.route('/api/admin/proxy', methods=['POST'])
+@token_required
+def admin_proxy():
+    try:
+        dados = request.get_json()
+        acao = dados.get('acao')
+        payload = dados.get('payload', {})
+
+        if not acao:
+            return jsonify({'success': False, 'error': 'acao é obrigatória'}), 400
+
+        # Adiciona a senha mestra internamente (não exposta ao front-end)
+        payload['senhaAdmin'] = ADMIN_PASSWORD
+
+        response = requests.post(URL_AREA_CLIENTE, json={
+            'acao': acao,
+            **payload
+        }, timeout=60)
+
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'success': False, 'error': f'Erro no Apps Script: {response.status_code}'}), response.status_code
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
 # ROTAS
@@ -542,26 +671,19 @@ def gerar_proposta_api():
             return jsonify({'error': 'Dados não fornecidos'}), 400
 
         sim_data = dados.get('dados', {})
-        print("📦 Nome do cliente:", sim_data.get('nome_cliente'))
-        print("📦 Investimento recebido:", sim_data.get('investimento'))
-        print(f"🔍 Imagens recebidas no payload: {dados.get('imagens', {})}")
 
-        # ===== FALLBACK PARA E-MAIL (SE VAZIO) =====
         email_cliente = sim_data.get('email', '').strip()
         if not email_cliente:
             nome_sanitizado = sim_data.get('nome_cliente', 'cliente').replace(' ', '_').lower()
             timestamp = int(datetime.now().timestamp())
             email_cliente = f"{nome_sanitizado}.{timestamp}@temp.solivia.com.br"
             sim_data['email'] = email_cliente
-            print(f"📧 E-mail temporário gerado: {email_cliente}")
 
-        # ===== CRIAÇÃO DO CLIENTE =====
         resultado_cliente = criar_cliente_area_cliente(sim_data)
         pasta_id_destino = None
         if resultado_cliente.get('success'):
             cliente_id = resultado_cliente.get('id')
 
-            # ===== SALVA CPF/CNPJ EM dados_preproposta =====
             cpf_cnpj = sim_data.get('cpf_cnpj', '')
             if cpf_cnpj:
                 try:
@@ -575,20 +697,17 @@ def gerar_proposta_api():
                             "campos": {
                                 "dados_preproposta": dados_preproposta
                             },
-                            "senhaAdmin": "SoLiVi@64253798@"
+                            "senhaAdmin": ADMIN_PASSWORD
                         }
                         requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
-                        print(f"✅ CPF/CNPJ salvo em dados_preproposta: {cpf_cnpj}")
                 except Exception as e:
-                    print(f"⚠️ Erro ao salvar CPF: {e}")
+                    pass
 
             pasta_id_destino = resultado_cliente.get('pastaId')
             senha = resultado_cliente.get('senha_temporaria')
-            print(f"✅ Cliente criado: ID {cliente_id}, Pasta {pasta_id_destino}, Senha: {senha}")
         else:
-            print(f"⚠️ Cliente não criado: {resultado_cliente.get('error')}")
+            pass
 
-        # ===== RESTO DA FUNÇÃO (GERAÇÃO DO PDF, SALVAMENTO, ETC.) =====
         nome_cliente = sim_data.get('nome_cliente', '')
         telefone = sim_data.get('telefone', '')
         email = sim_data.get('email', '')
@@ -654,12 +773,9 @@ def gerar_proposta_api():
                 'linhas': linhas_recebidas
             }
             grafico_base64 = gerar_grafico_payback(dados_grafico)
-            if grafico_base64:
-                print("✅ Gráfico gerado com sucesso")
 
-        # ===== CORREÇÃO: projecao_20 sem depender de string para cálculo =====
         projecao_20 = []
-        resultado_acumulado_numerico = 0  # variável numérica para cálculo
+        resultado_acumulado_numerico = 0
 
         if linhas_recebidas and len(linhas_recebidas) >= 2:
             indices = gerar_marcos_20(linhas_recebidas)
@@ -810,7 +926,7 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
                 'pdf_base64': pdf_base64,
                 'nome_arquivo': f"PreProposta_{nome_cliente or 'cliente'}_{date.today().strftime('%Y%m%d')}.pdf",
                 'pasta_id': pasta_id_destino,
-                'cliente_id': cliente_id   # <-- ADICIONAR ESTA LINHA
+                'cliente_id': cliente_id
             }
         }
 
@@ -818,19 +934,16 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
         if response.status_code == 200:
             result = response.json()
             if result.get('success'):
-                # ===== SALVA A PROJEÇÃO DA PRÉ-PROPOSTA NO CLIENTE =====
                 try:
                     cliente_id = resultado_cliente.get('id')
                     if cliente_id:
                         cliente = buscar_cliente_por_id(cliente_id)
                         if cliente:
                             dados_visita = cliente.get('dados_visita', {})
-                            # Salva as primeiras 5 linhas da projeção
                             if linhas_recebidas and len(linhas_recebidas) >= 2:
                                 dados_visita['projecao_preproposta'] = linhas_recebidas[:5]
                                 dados_visita['investimento_preproposta'] = investimento
                                 dados_visita['tarifa_preproposta'] = tarifa
-                                print(f"✅ Projeção da pré-proposta salva para cliente {cliente_id}")
 
                             payload_update = {
                                 "acao": "adminAtualizarCliente",
@@ -838,11 +951,11 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
                                 "campos": {
                                     "dados_visita": dados_visita
                                 },
-                                "senhaAdmin": "SoLiVi@64253798@"
+                                "senhaAdmin": ADMIN_PASSWORD
                             }
                             requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
                 except Exception as e:
-                    print(f"⚠️ Erro ao salvar projeção da pré-proposta: {e}")
+                    pass
 
                 return jsonify({'success': True, 'url': result.get('url'), 'message': 'Proposta salva no Google Drive'})
             else:
@@ -851,12 +964,12 @@ Vale ressaltar que esta é uma <span class="destaque-pre-proposta">pré-proposta
             return jsonify({'success': False, 'error': f'Erro ao comunicar com o Google Apps Script: {response.status_code}'}), 500
 
     except Exception as e:
-        print(f"❌ Erro: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/enviar_para_assinatura', methods=['POST'])
+@token_required
 def api_enviar_para_assinatura():
     try:
         dados = request.get_json()
@@ -916,12 +1029,11 @@ def api_enviar_para_assinatura():
                             "documentos": docs,
                             "etapa_atual": "documentos"
                         },
-                        "senhaAdmin": "SoLiVi@64253798@"
+                        "senhaAdmin": ADMIN_PASSWORD
                     }
                     requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
-                    print(f"✅ document_id {document_id} salvo no cliente {cliente_id}")
             except Exception as e:
-                print(f"⚠️ Erro ao salvar document_id: {e}")
+                pass
 
             return jsonify({
                 'success': True,
@@ -932,40 +1044,30 @@ def api_enviar_para_assinatura():
             return jsonify({'success': False, 'error': resultado['error']}), 500
 
     except Exception as e:
-        print(f"❌ Erro em /api/enviar_para_assinatura: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# FUNÇÃO AUXILIAR: PROCESSAR CONTRATO ASSINADO (MELHORIA B)
+# FUNÇÃO AUXILIAR: PROCESSAR CONTRATO ASSINADO
 # ============================================================
 def processar_contrato_assinado(document_id):
     try:
-        print(f"🔍 [BACKGROUND] Iniciando processamento para {document_id}")
-        # Busca cliente (com retry)
         cliente = buscar_cliente_por_documento_id(document_id)
         if not cliente:
-            print(f"❌ [BACKGROUND] Cliente não encontrado, tentando novamente em 3s...")
             import time
             time.sleep(3)
             cliente = buscar_cliente_por_documento_id(document_id)
             if not cliente:
-                print(f"❌ [BACKGROUND] Cliente não encontrado após retry.")
                 return
-        print(f"✅ [BACKGROUND] Cliente encontrado: {cliente['nome']} (ID: {cliente['id']})")
 
-        # Baixa o PDF assinado
         pdf_bytes = baixar_pdf_assinado(document_id, AUTENTIQUE_API_KEY_SOLIVIA)
         if not pdf_bytes:
-            print("❌ [BACKGROUND] Falha no download do PDF")
             return
-        print(f"✅ [BACKGROUND] PDF baixado: {len(pdf_bytes)} bytes")
 
-        # 1. Substitui o PDF na pasta do cliente
         payload = {
             'acao': 'substituirPdfAssinado',
-            'senhaAdmin': 'SoLiVi@64253798@',
+            'senhaAdmin': ADMIN_PASSWORD,
             'cliente_id': cliente['id'],
             'pdf_bytes': base64.b64encode(pdf_bytes).decode('utf-8'),
             'nome_arquivo': f"Contrato_Assinado_{cliente['nome'].replace(' ', '_')}.pdf"
@@ -974,9 +1076,6 @@ def processar_contrato_assinado(document_id):
         if resp.status_code == 200:
             result = resp.json()
             if result.get('success'):
-                print(f"✅ [BACKGROUND] PDF assinado salvo: {result.get('url')}")
-
-                # 2. Atualizar status do contrato e avançar etapa
                 try:
                     cliente_atual = buscar_cliente_por_id(cliente['id'])
                     if cliente_atual:
@@ -993,53 +1092,36 @@ def processar_contrato_assinado(document_id):
                                 "documentos": docs,
                                 "etapa_atual": "instalacao"
                             },
-                            "senhaAdmin": "SoLiVi@64253798@"
+                            "senhaAdmin": ADMIN_PASSWORD
                         }
                         resp_update = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
-                        if resp_update.status_code == 200:
-                            print(f"✅ [BACKGROUND] Etapa atualizada para 'instalacao' e contrato marcado como assinado")
-                        else:
-                            print(f"❌ [BACKGROUND] Erro ao atualizar etapa: {resp_update.status_code}")
                 except Exception as e:
-                    print(f"⚠️ [BACKGROUND] Erro ao atualizar status: {e}")
-            else:
-                print(f"❌ [BACKGROUND] Erro ao salvar PDF: {result.get('error')}")
-        else:
-            print(f"❌ [BACKGROUND] Erro HTTP: {resp.status_code}")
+                    pass
 
     except Exception as e:
-        print(f"❌ [BACKGROUND] Exceção: {e}")
         import traceback
         traceback.print_exc()
 
 # ============================================================
-# WEBHOOK AUTENTIQUE (MELHORIA C)
+# WEBHOOK AUTENTIQUE
 # ============================================================
-
 @app.route('/webhook/autentique', methods=['POST'])
 def webhook_autentique():
     try:
         data = request.json
-        print(f"📨 Webhook recebido: {data}")
         event = data.get('event', {})
         event_type = event.get('type') if isinstance(event, dict) else None
-        # Se o event for um dicionário, o document_id pode estar em event['data']['id']
         document_id = event.get('data', {}).get('id') if isinstance(event, dict) else None
 
         if not document_id:
-            # Fallback: tenta buscar em outro lugar
             document_id = data.get('data', {}).get('id')
 
-        print(f"📌 Evento: {event_type}, Documento: {document_id}")
-
         if event_type == 'document.finished' and document_id:
-            print("✅ Documento finalizado – iniciando processamento em background...")
             threading.Thread(target=processar_contrato_assinado, args=(document_id,)).start()
             return jsonify({'status': 'ok'}), 200
 
         return jsonify({'status': 'ignored'}), 200
     except Exception as e:
-        print(f"❌ Exceção no webhook: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -1048,6 +1130,7 @@ def webhook_autentique():
 # ROTA MANUAL: FORÇAR ATUALIZAÇÃO DE ASSINATURA
 # ============================================================
 @app.route('/api/forcar_atualizacao_assinatura', methods=['POST'])
+@token_required
 def forcar_atualizacao_assinatura():
     try:
         dados = request.get_json()
@@ -1055,7 +1138,6 @@ def forcar_atualizacao_assinatura():
         if not document_id:
             return jsonify({'success': False, 'error': 'document_id não fornecido'}), 400
 
-        # 1. Verificar se o documento está finalizado
         api_key = AUTENTIQUE_API_KEY_SOLIVIA
         query = """
         query DocumentStatus($id: UUID!) {
@@ -1071,7 +1153,6 @@ def forcar_atualizacao_assinatura():
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             timeout=30
         )
-        print(f"📡 Resposta da consulta de status: {response.text}")
         if response.status_code != 200:
             return jsonify({'success': False, 'error': 'Erro ao consultar status do documento'}), 500
         data = response.json()
@@ -1085,13 +1166,11 @@ def forcar_atualizacao_assinatura():
                 'status': status
             }), 200
 
-        # 2. Se estiver finalizado, baixa o PDF e atualiza
         processar_contrato_assinado(document_id)
 
         return jsonify({'success': True, 'message': 'Contrato assinado e planilha atualizada'})
 
     except Exception as e:
-        print(f"❌ Exceção: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1099,10 +1178,9 @@ def forcar_atualizacao_assinatura():
 # ============================================================
 # ROTA PRINCIPAL: GERAR RELATÓRIO DE CONFORMIDADE
 # ============================================================
-
 @app.route('/gerar_relatorio_conformidade', methods=['POST'])
+@token_required
 def gerar_relatorio_conformidade():
-    # ===== FUNÇÃO AUXILIAR PARA FORÇAR CORS =====
     def _cors_response(data, status=200):
         resp = jsonify(data)
         resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -1153,14 +1231,13 @@ def gerar_relatorio_conformidade():
                         "campos": {
                             "dados_visita": dados_visita
                         },
-                        "senhaAdmin": "SoLiVi@64253798@"
+                        "senhaAdmin": ADMIN_PASSWORD
                     }
                     requests.post(URL_AREA_CLIENTE, json=payload_protocolo, timeout=30)
-                    print(f"✅ Protocolo gerado: {protocolo}")
                 else:
-                    print("⚠️ Cliente não encontrado para gerar protocolo")
+                    pass
             except Exception as e:
-                print(f"⚠️ Erro ao gerar protocolo: {e}")
+                pass
 
         context = {
             'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
@@ -1267,7 +1344,6 @@ def gerar_relatorio_conformidade():
                 url = result.get('url')
                 croqui_url = None
 
-                # ===== SALVA A IMAGEM DO CROQUI NO DRIVE =====
                 if dados.get('imagens') and dados['imagens'].get('croqui_layout'):
                     try:
                         imagem_base64 = dados['imagens']['croqui_layout']
@@ -1288,22 +1364,19 @@ def gerar_relatorio_conformidade():
                             result_img = response_img.json()
                             if result_img.get('success'):
                                 croqui_url = result_img.get('url')
-                                print(f"✅ Croqui salvo no Drive: {croqui_url}")
                             else:
-                                print(f"⚠️ Erro ao salvar imagem no Drive: {result_img.get('error')}")
+                                pass
                         else:
-                            print(f"⚠️ Erro ao comunicar com Apps Script: {response_img.status_code}")
+                            pass
                     except Exception as e:
-                        print(f"⚠️ Erro ao salvar imagem: {e}")
+                        pass
 
-                # ===== SALVA DADOS TÉCNICOS =====
                 if cliente_id:
                     try:
                         cliente = buscar_cliente_por_id(cliente_id)
                         if cliente:
                             dados_visita = cliente.get('dados_visita', {})
 
-                            # ---- SALVA DADOS COMUNS ----
                             dados_visita['hash_documento'] = hash_documento
                             dados_visita['relatorio_url'] = url
                             if protocolo and 'ultimo_protocolo' not in dados_visita:
@@ -1311,15 +1384,10 @@ def gerar_relatorio_conformidade():
 
                             if dados.get('imagens') and dados['imagens'].get('croqui_layout'):
                                 dados_visita['croqui_imagem'] = dados['imagens']['croqui_layout']
-                                print("✅ Croqui encontrado, salvando...")
-                            else:
-                                print("⚠️ Croqui não encontrado no payload")
 
                             if croqui_url:
                                 dados_visita['croqui_url'] = croqui_url
-                                print(f"✅ URL do croqui salva: {croqui_url}")
 
-                            # ---- DADOS COMUNS ----
                             dados_visita['potencia'] = dados.get('potencia') or dados.get('potencia_kwp') or ''
                             dados_visita['qtd_modulos'] = dados.get('qtd_modulos') or ''
                             dados_visita['inversor'] = dados.get('inversor') or ''
@@ -1333,22 +1401,17 @@ def gerar_relatorio_conformidade():
                             linhas = dados.get('linhas', [])
                             if linhas and len(linhas) >= 2:
                                 dados_visita['projecao'] = linhas[:5]
-                                print(f"✅ Projeção salva (primeiras {len(linhas[:5])} linhas)")
 
                             dados_visita['ultimo_tipo_relatorio'] = tipo
 
-                            # ---- DADOS ESPECÍFICOS ----
-                            # ===== SALVAR DADOS DO RELATÓRIO DE FORMA ESTRUTURADA =====
                             dados_visita['relatorios'] = dados_visita.get('relatorios', {})
 
-                            # Monta o objeto base do relatório (comum a todos os tipos)
                             relatorio_data = {
                                 'data_geracao': datetime.now().isoformat(),
-                                'url': url,  # URL do PDF gerado
+                                'url': url,
                             }
 
                             if tipo == 'sem_adequacao':
-                                # Dados específicos do sem_adequacao
                                 relatorio_data.update({
                                     'potencia': dados.get('potencia', ''),
                                     'qtd_modulos': dados.get('qtd_modulos', ''),
@@ -1357,25 +1420,18 @@ def gerar_relatorio_conformidade():
                                     'investimento': dados.get('investimento', 0),
                                     'observacoes': dados.get('observacoes', ''),
                                 })
-
-                                # Também mantém os campos soltos para compatibilidade com código antigo
                                 dados_visita['potencia'] = dados.get('potencia', '')
                                 dados_visita['qtd_modulos'] = dados.get('qtd_modulos', '')
                                 dados_visita['inversor'] = dados.get('inversor', '')
                                 dados_visita['geracao_estimada'] = dados.get('geracao', '')
                                 dados_visita['investimento'] = dados.get('investimento', 0)
-
                                 linhas = dados.get('linhas', [])
                                 if linhas and len(linhas) >= 2:
                                     dados_visita['projecao'] = linhas[:5]
 
-                                print(f"✅ Dados do relatório 'sem adequação' salvos")
-
                             elif tipo == 'com_adequacao':
-                                # Dados específicos do com_adequacao
-                                # ===== ADICIONA OS CAMPOS BÁSICOS TAMBÉM =====
                                 relatorio_data.update({
-                                    'potencia': dados.get('potencia', ''),  # Se não vier, fica vazio
+                                    'potencia': dados.get('potencia', ''),
                                     'qtd_modulos': dados.get('qtd_modulos', '') or dados.get('modulos_op1', '') or dados.get('modulos_op2', ''),
                                     'inversor': dados.get('inversor', '') or dados.get('inversor_op1', '') or dados.get('inversor_op2', '') or 'Conforme projeto',
                                     'geracao_estimada': dados.get('geracao_otimizada', '') or dados.get('geracao_op1', '') or dados.get('geracao_op2', ''),
@@ -1404,8 +1460,6 @@ def gerar_relatorio_conformidade():
                                     'adequacao_tec3': dados.get('adequacao_tec3', ''),
                                     'adequacoes': dados.get('adequacoes', ['geracao', 'homologacao']),
                                 })
-
-                                # Mantém os campos soltos para compatibilidade
                                 dados_visita['geracao_original'] = dados.get('geracao_original', '')
                                 dados_visita['geracao_otimizada'] = dados.get('geracao_otimizada', '')
                                 dados_visita['valor_adequacoes'] = dados.get('valor_adequacoes', 0)
@@ -1430,7 +1484,6 @@ def gerar_relatorio_conformidade():
                                 dados_visita['adequacao_tec3'] = dados.get('adequacao_tec3', '')
                                 dados_visita['adequacoes'] = dados.get('adequacoes', ['geracao', 'homologacao'])
 
-                                # ===== RECALCULA A PROJEÇÃO COM A GERAÇÃO OTIMIZADA (mantido) =====
                                 try:
                                     projecao_original = dados_visita.get('projecao_preproposta', [])
 
@@ -1481,13 +1534,10 @@ def gerar_relatorio_conformidade():
                                     if geracao_otimizada_mensal < 50:
                                         geracao_otimizada_mensal = consumo_atual * 0.7
 
-                                    # === SALVA DADOS PARA A PROPOSTA FINAL ===
                                     dados_visita['geracao_estimada'] = geracao_otimizada_mensal
                                     qtd_modulos_salvar = dados.get('modulos_op1') or dados.get('modulos_op2') or dados.get('qtd_modulos')
                                     if qtd_modulos_salvar:
                                         dados_visita['qtd_modulos'] = qtd_modulos_salvar
-
-                                    print(f"📊 Dados Com Adequação: consumo={consumo_atual:.1f}, tarifa={tarifa:.4f}, geração_otimizada={geracao_otimizada_mensal:.1f}")
 
                                     nova_projecao = []
                                     for i in range(5):
@@ -1511,17 +1561,12 @@ def gerar_relatorio_conformidade():
                                         })
 
                                     dados_visita['projecao'] = nova_projecao
-                                    print(f"✅ Projeção Com Adequação gerada com sucesso!")
 
                                 except Exception as e:
-                                    print(f"⚠️ Erro ao gerar projeção Com Adequação: {e}")
                                     import traceback
                                     traceback.print_exc()
 
-                                print(f"✅ Dados do relatório 'com adequação' salvos")
-
                             elif tipo == 'fast_track':
-                                # Dados específicos do fast_track
                                 relatorio_data.update({
                                     'potencia': dados.get('potencia_inversor', '') or dados.get('potencia', ''),
                                     'qtd_modulos': dados.get('qtd_modulos', ''),
@@ -1535,14 +1580,11 @@ def gerar_relatorio_conformidade():
                                     'observacoes': dados.get('observacoes', ''),
                                     'investimento': dados.get('investimento', 0),
                                 })
-
-                                # Mantém os campos soltos para compatibilidade
                                 dados_visita['geracao_original'] = dados.get('geracao_original', '')
                                 dados_visita['geracao_otimizada'] = dados.get('geracao_otimizada', '')
                                 dados_visita['potencia_inversor'] = dados.get('potencia_inversor', '')
                                 dados_visita['local_inversor'] = dados.get('local_inversor', '')
 
-                                # ===== RECALCULA A PROJEÇÃO COM A GERAÇÃO OTIMIZADA (mantido) =====
                                 try:
                                     projecao_original = dados_visita.get('projecao_preproposta', [])
 
@@ -1593,14 +1635,11 @@ def gerar_relatorio_conformidade():
                                     if geracao_otimizada_mensal < 50:
                                         geracao_otimizada_mensal = consumo_atual * 0.7
 
-                                    # === SALVA DADOS PARA A PROPOSTA FINAL ===
                                     dados_visita['geracao_estimada'] = geracao_otimizada_mensal
                                     if not dados_visita.get('qtd_modulos'):
                                         qtd_modulos_salvar = dados.get('qtd_modulos')
                                         if qtd_modulos_salvar:
                                             dados_visita['qtd_modulos'] = qtd_modulos_salvar
-
-                                    print(f"📊 Dados Fast Track: consumo={consumo_atual:.1f}, tarifa={tarifa:.4f}, geração_otimizada={geracao_otimizada_mensal:.1f}")
 
                                     nova_projecao = []
                                     for i in range(5):
@@ -1624,35 +1663,25 @@ def gerar_relatorio_conformidade():
                                         })
 
                                     dados_visita['projecao'] = nova_projecao
-                                    print(f"✅ Projeção Fast Track gerada com sucesso!")
 
                                 except Exception as e:
-                                    print(f"⚠️ Erro ao gerar projeção Fast Track: {e}")
                                     import traceback
                                     traceback.print_exc()
 
-                                print(f"✅ Dados do relatório 'fast track' salvos")
-
-                            # ===== SALVA O RELATÓRIO NA ESTRUTURA ORGANIZADA =====
                             dados_visita['relatorios'][tipo] = relatorio_data
                             dados_visita['ultimo_tipo_relatorio'] = tipo
 
-                            print(f"📦 Relatório '{tipo}' salvo em dados_visita.relatorios")
-
-                            # ---- ATUALIZA O CLIENTE ----
                             payload_hash = {
                                 "acao": "adminAtualizarCliente",
                                 "idCliente": str(cliente_id),
                                 "campos": {
                                     "dados_visita": dados_visita
                                 },
-                                "senhaAdmin": "SoLiVi@64253798@"
+                                "senhaAdmin": ADMIN_PASSWORD
                             }
                             requests.post(URL_AREA_CLIENTE, json=payload_hash, timeout=30)
-                            print(f"✅ Hash salvo na planilha via Área do Cliente: {hash_documento}")
 
                     except Exception as e:
-                        print(f"⚠️ Erro ao salvar dados via Área do Cliente: {e}")
                         import traceback
                         traceback.print_exc()
 
@@ -1663,7 +1692,6 @@ def gerar_relatorio_conformidade():
             return _cors_response({'success': False, 'error': f'Erro ao comunicar com o Apps Script: {response.status_code}'}, 500)
 
     except Exception as e:
-        print(f"❌ Erro: {e}")
         import traceback
         traceback.print_exc()
         return _cors_response({'success': False, 'error': str(e)}, 500)
@@ -1672,6 +1700,7 @@ def gerar_relatorio_conformidade():
 # ROTA GERAR PROPOSTA FINAL
 # ============================================================
 @app.route('/gerar_proposta_final', methods=['POST'])
+@token_required
 def gerar_proposta_final():
     try:
         dados = request.get_json()
@@ -1686,13 +1715,11 @@ def gerar_proposta_final():
         if not cliente:
             return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-        # ===== BUSCA CPF/CNPJ =====
         dados_preproposta = cliente.get('dados_preproposta', {})
         documentos = cliente.get('documentos', {})
         cpf_cnpj = dados_preproposta.get('cpf_cnpj', '')
         if not cpf_cnpj:
             cpf_cnpj = documentos.get('cpf', {}).get('numero', '')
-        print(f"🔍 CPF/CNPJ final: {cpf_cnpj}")
 
         dados_visita = cliente.get('dados_visita', {})
         nome_cliente = cliente.get('nome', '')
@@ -1700,12 +1727,10 @@ def gerar_proposta_final():
         telefone_cliente = cliente.get('telefone', '')
         endereco = cliente.get('endereco', '')
 
-        # ===== BUSCA DADOS DO ÚLTIMO RELATÓRIO =====
         relatorios = dados_visita.get('relatorios', {})
         ultimo_tipo = dados_visita.get('ultimo_tipo_relatorio', '')
         dados_relatorio = relatorios.get(ultimo_tipo, {})
 
-        # Usa os dados do relatório (ou fallback vazio)
         potencia = dados_relatorio.get('potencia') or '0'
         qtd_modulos = dados_relatorio.get('qtd_modulos') or '0'
         inversor = dados_relatorio.get('inversor') or 'Conforme projeto'
@@ -1713,24 +1738,18 @@ def gerar_proposta_final():
         investimento = dados_relatorio.get('investimento') or 0
         concessionaria = dados_visita.get('concessionaria') or cliente.get('concessionaria') or 'Concessionária local'
 
-        print(f"🔍 Último relatório: {ultimo_tipo}")
-        print(f"📊 Dados usados na proposta: potência={potencia}, módulos={qtd_modulos}, inversor={inversor}, geração={geracao}, investimento={investimento}")
-
         condicao_pagamento = dados.get('condicao_pagamento', 'À vista, cartão de crédito ou financiamento')
         prazo_execucao = dados.get('prazo_execucao', '30 dias úteis')
 
         num_proposta = f"PF-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
 
-        # ===== DETERMINA O TEMPLATE =====
         template_map = {
             'sem_adequacao': 'proposta_final.html',
             'com_adequacao': 'proposta_final_com_adequacao.html',
             'fast_track': 'proposta_final_fast_track.html',
         }
         template_file = template_map.get(ultimo_tipo, 'proposta_final.html')
-        print(f"📄 Usando template: {template_file}")
 
-        # ===== MONTAGEM DO CONTEXTO (já existente) =====
         beneficios = [
             "💰 Redução de até 95% na conta de luz",
             "🔋 Energia limpa e sustentável",
@@ -1757,7 +1776,6 @@ def gerar_proposta_final():
             {'desc': 'Cabeamento e conectores', 'marca': 'Conforme projeto', 'qtd': '1', 'preco': '0,00'},
         ]
 
-        # ===== COMPARATIVO FINANCEIRO =====
         projecao = dados_visita.get('projecao', [])
         if projecao and len(projecao) >= 2:
             comparativo_real = []
@@ -1806,20 +1824,15 @@ def gerar_proposta_final():
         hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
         url_validacao = f"https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec?hash={hash_documento}"
 
-        # ===== FOTO DA CAPA =====
         croqui_imagem = dados_visita.get('croqui_imagem')
         croqui_url = dados_visita.get('croqui_url')
         if croqui_imagem:
             foto_capa = f"data:image/png;base64,{croqui_imagem}"
-            print(f"📸 Usando base64 do croqui (tamanho: {len(croqui_imagem)} caracteres)")
         elif croqui_url:
             foto_capa = croqui_url
-            print(f"📸 Usando URL do croqui: {croqui_url}")
         else:
             foto_capa = 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&h=300&fit=crop'
-            print("📸 Usando imagem fallback (Unsplash)")
 
-        # ===== CONTEXTO =====
         context = {
             'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
             'NOME_FANTASIA': 'SoLivia Engenharia',
@@ -1861,7 +1874,6 @@ def gerar_proposta_final():
             'NUM_PROTOCOLO': f'PF-{datetime.now().strftime("%Y%m%d")}-{cliente_id}'
         }
 
-        # ===== ADICIONA VARIÁVEIS ESPECÍFICAS PARA CADA TIPO =====
         if ultimo_tipo == 'com_adequacao':
             context['GERACAO_ORIGINAL'] = dados_relatorio.get('geracao_original', '')
             context['GERACAO_OTIMIZADA'] = dados_relatorio.get('geracao_otimizada', '')
@@ -1872,15 +1884,10 @@ def gerar_proposta_final():
             context['POTENCIA_INVERSOR'] = dados_relatorio.get('potencia_inversor', '')
             context['LOCAL_INVERSOR'] = dados_relatorio.get('local_inversor', '')
 
-        print(f"🔍 Contexto completo: {context.keys()}")
-        print(f"🔍 CPF_CNPJ no contexto: {context.get('CPF_CNPJ', '')}")
-
-        # ===== RENDERIZA O TEMPLATE CORRETO =====
         html_rendered = render_template(template_file, **context)
         pdf_bytes = HTML(string=html_rendered).write_pdf()
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
-        # ===== SALVA O PDF NO DRIVE =====
         payload_script = {
             'token': TOKEN,
             'acao': 'salvar_pdf',
@@ -1914,12 +1921,11 @@ def gerar_proposta_final():
                             "campos": {
                                 "documentos": docs
                             },
-                            "senhaAdmin": "SoLiVi@64253798@"
+                            "senhaAdmin": ADMIN_PASSWORD
                         }
                         requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
-                        print(f"✅ Proposta final salva para cliente {cliente_id}")
                 except Exception as e:
-                    print(f"⚠️ Erro ao atualizar planilha: {e}")
+                    pass
 
                 return jsonify({'success': True, 'url': url_pdf, 'message': 'Proposta final gerada com sucesso!'})
             else:
@@ -1928,7 +1934,6 @@ def gerar_proposta_final():
             return jsonify({'success': False, 'error': f'Erro no Apps Script: {response.status_code}'}), 500
 
     except Exception as e:
-        print(f"❌ Erro: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1942,12 +1947,13 @@ def ping():
     return {'status': 'ok', 'message': 'SoLivia Engenharia - Gerador de Propostas e Relatórios'}
 
 @app.route('/api/atualizar_relatorio_url', methods=['POST'])
+@token_required
 def atualizar_relatorio_url():
     try:
         dados = request.get_json()
         cliente_id = dados.get('cliente_id')
         relatorio_url = dados.get('relatorio_url')
-        senha_admin = dados.get('senhaAdmin', 'SoLiVi@64253798@')
+        senha_admin = dados.get('senhaAdmin', ADMIN_PASSWORD)
 
         if not cliente_id or not relatorio_url:
             return jsonify({'success': False, 'error': 'cliente_id e relatorio_url são obrigatórios'}), 400
@@ -1981,9 +1987,10 @@ def atualizar_relatorio_url():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ROTA: UPLOAD DE DOCUMENTO (CORRIGIDA INDENTAÇÃO)
+# ROTA: UPLOAD DE DOCUMENTO
 # ============================================================
 @app.route('/api/upload_documento_admin', methods=['POST'])
+@token_required
 def upload_documento_admin():
     try:
         cliente_id = request.form.get('cliente_id')
@@ -1993,16 +2000,12 @@ def upload_documento_admin():
         if not cliente_id or not tipo_doc or not arquivo:
             return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
 
-        # Determina subpasta (agora tipo_doc já existe)
         if tipo_doc.startswith('instalacao_foto_'):
             subpasta = 'Instalacao'
         elif tipo_doc.startswith('homologacao_foto_'):
             subpasta = 'Homologacao'
         else:
             subpasta = 'Documentos'
-
-        # LOG (agora tipo_doc e subpasta estão definidos)
-        print(f"📥 Upload: tipo_doc={tipo_doc}, subpasta={subpasta}")
 
         base64_content = base64.b64encode(arquivo.read()).decode('utf-8')
         nome_arquivo = arquivo.filename
@@ -2013,7 +2016,7 @@ def upload_documento_admin():
 
         payload = {
             'acao': 'uploadDocumentoAdmin',
-            'senhaAdmin': 'SoLiVi@64253798@',
+            'senhaAdmin': ADMIN_PASSWORD,
             'cliente_id': cliente_id,
             'tipo_doc': tipo_doc,
             'nome_arquivo': nome_arquivo,
@@ -2032,15 +2035,13 @@ def upload_documento_admin():
             return jsonify({'success': False, 'error': f'Erro no Apps Script: {response.status_code}'}), 500
 
     except Exception as e:
-        print(f"❌ Erro: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ROTA: GERAR CONTRATO (CLIENTE E PRESTADOR)
+# ROTA: GERAR CONTRATO
 # ============================================================
-
 @app.route('/gerar_contrato', methods=['OPTIONS'])
 def gerar_contrato_options():
     response = jsonify({'status': 'ok'})
@@ -2051,6 +2052,7 @@ def gerar_contrato_options():
     return response, 200
 
 @app.route('/gerar_contrato', methods=['POST'])
+@token_required
 def gerar_contrato():
     def _cors_response(data, status=200):
         resp = jsonify(data)
@@ -2066,12 +2068,9 @@ def gerar_contrato():
 
         tipo = dados.get('tipo', 'cliente')
 
-        # ===== CONTRATO DO PRESTADOR =====
         if tipo in ('prestador', 'parceiro'):
-            # ... (código existente, sem alterações) ...
-            pass
+            return _cors_response({'success': False, 'error': 'Contrato de prestador não implementado nesta versão'}), 400
 
-        # ===== CONTRATO DO CLIENTE =====
         elif tipo == 'cliente':
             cliente_id = dados.get('cliente_id')
             if not cliente_id:
@@ -2079,23 +2078,18 @@ def gerar_contrato():
 
             cliente = buscar_cliente_por_id(cliente_id)
             if not cliente:
-                return _cors_response({'success': False, 'error': 'Cliente não encontrado'}, 404)
+                return _cors_response({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-            ## --- Dados do cliente ---
             nome_cliente = cliente.get('nome', '')
             email_cliente = cliente.get('email', '')
             telefone_cliente = cliente.get('telefone', '')
             endereco = cliente.get('endereco', '')
             dados_preproposta = cliente.get('dados_preproposta', {})
             cpf_cnpj = dados_preproposta.get('cpf_cnpj', '')
-            print(f"🔍 CPF/CNPJ recuperado de dados_preproposta: {cpf_cnpj}")
 
             dados_visita = cliente.get('dados_visita', {})
-
-            # ===== DETERMINA OS DADOS DO SISTEMA BASEADO NO TIPO DE RELATÓRIO =====
             tipo_relatorio = dados_visita.get('ultimo_tipo_relatorio', '')
 
-            # Valores padrão
             potencia = '0'
             qtd_modulos = '0'
             inversor = 'Conforme projeto'
@@ -2103,18 +2097,13 @@ def gerar_contrato():
             investimento = 0
 
             if tipo_relatorio == 'sem_adequacao':
-                # Tenta pegar a potência do campo específico
                 potencia = dados_visita.get('potencia') or '0'
-                # Se ainda estiver vazio, tenta usar a potência da pré-proposta
                 if not potencia or potencia == '0':
                     potencia = dados_visita.get('potencia_kwp') or '0'
-                # Se ainda estiver vazio, tenta estimar pela geração (dividindo por HSP médio ~4.5)
                 if not potencia or potencia == '0':
                     geracao_estimada = dados_visita.get('geracao_estimada') or dados_visita.get('geracao') or 0
                     if geracao_estimada and float(geracao_estimada) > 0:
-                        # Estima potência = geração mensal / (HSP * 30) ~ 4.5
                         potencia = str(round(float(geracao_estimada) / 4.5, 2))
-                # Fallback final
                 if not potencia or potencia == '0':
                     potencia = '0'
 
@@ -2124,8 +2113,7 @@ def gerar_contrato():
                 investimento = dados_visita.get('investimento', 0)
 
             elif tipo_relatorio == 'com_adequacao':
-                # Usa a opção 1 como padrão
-                potencia = '0'  # Não temos kWp para com adequação
+                potencia = '0'
                 qtd_modulos = dados_visita.get('modulos_op1') or dados_visita.get('modulos_op2') or '0'
                 inversor = dados_visita.get('inversor_op1') or dados_visita.get('inversor_op2') or 'Conforme projeto'
                 geracao = dados_visita.get('geracao_op1') or dados_visita.get('geracao_op2') or '0'
@@ -2139,7 +2127,6 @@ def gerar_contrato():
                 investimento = dados_visita.get('investimento', 0)
 
             else:
-                # Fallback
                 potencia = dados_visita.get('potencia') or dados_visita.get('potencia_kwp') or '0'
                 qtd_modulos = dados_visita.get('qtd_modulos') or dados_visita.get('modulos') or '0'
                 inversor = dados_visita.get('inversor') or 'Conforme projeto'
@@ -2150,10 +2137,6 @@ def gerar_contrato():
                     dados_visita.get('investimento_preproposta') or
                     0
                 )
-
-            print(f"🔍 Tipo: {tipo_relatorio}")
-            print(f"   Potência: {potencia} kWp | Módulos: {qtd_modulos} | Inversor: {inversor}")
-            print(f"   Geração: {geracao} kWh/mês | Investimento: R$ {investimento}")
 
             concessionaria = dados_visita.get('concessionaria') or cliente.get('concessionaria') or 'Concessionária local'
             condicao_pagamento = dados.get('condicao_pagamento', 'À vista, cartão de crédito ou financiamento')
@@ -2195,7 +2178,6 @@ def gerar_contrato():
                 'CONCESSIONARIA': concessionaria
             }
 
-            # Gera o PDF
             html_rendered = render_template('contrato_cliente.html', **context)
             pdf_bytes = HTML(string=html_rendered).write_pdf()
             pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -2205,7 +2187,6 @@ def gerar_contrato():
             hash_input = f"{cliente_id}{datetime.now().isoformat()}"
             hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
 
-            # 1. Salva o PDF no Drive (sempre)
             payload_script = {
                 'token': TOKEN,
                 'acao': 'salvar_pdf',
@@ -2229,7 +2210,6 @@ def gerar_contrato():
 
             url_pdf = result_save.get('url')
 
-            # 2. Tenta enviar para assinatura (mas não quebra se falhar)
             resultado_assinatura = None
             document_id = None
             link_assinatura = None
@@ -2237,15 +2217,15 @@ def gerar_contrato():
 
             try:
                 posicao_engenheiro = {
-                    "x": "66.0",           # 70% da largura (lado direito)
-                    "y": "30.0",           # 65% da altura (ajuste fino)
-                    "z": 7,                # página 7 (onde estão as assinaturas agora)
+                    "x": "66.0",
+                    "y": "30.0",
+                    "z": 7,
                     "element": "SIGNATURE"
                 }
                 posicao_cliente = {
-                    "x": "15.0",           # 30% da largura (lado esquerdo)
-                    "y": "30.0",           # 65% da altura
-                    "z": 7,                # página 7
+                    "x": "15.0",
+                    "y": "30.0",
+                    "z": 7,
                     "element": "SIGNATURE"
                 }
 
@@ -2263,15 +2243,12 @@ def gerar_contrato():
                     document_id = resultado_assinatura.get('document_id')
                     link_assinatura = resultado_assinatura.get('link_assinatura')
                     assinatura_ok = True
-                    print(f"✅ Envio para assinatura bem-sucedido. Document ID: {document_id}")
                 else:
-                    print(f"⚠️ Falha no envio para assinatura: {resultado_assinatura.get('error') if resultado_assinatura else 'Erro desconhecido'}")
+                    pass
             except Exception as e:
-                print(f"⚠️ Exceção ao enviar para assinatura: {e}")
                 import traceback
                 traceback.print_exc()
 
-            # 3. Atualiza a planilha com as informações do contrato
             try:
                 cliente_atual = buscar_cliente_por_id(cliente_id)
                 if cliente_atual:
@@ -2297,14 +2274,12 @@ def gerar_contrato():
                             "documentos": docs,
                             "etapa_atual": "documentos"
                         },
-                        "senhaAdmin": "SoLiVi@64253798@"
+                        "senhaAdmin": ADMIN_PASSWORD
                     }
                     requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=30)
-                    print(f"✅ Planilha atualizada para cliente {cliente_id}")
             except Exception as e:
-                print(f"⚠️ Erro ao atualizar planilha: {e}")
+                pass
 
-            # 4. Retorna a resposta final
             if assinatura_ok:
                 return _cors_response({
                     'success': True,
@@ -2314,7 +2289,6 @@ def gerar_contrato():
                     'url_pdf': url_pdf
                 })
             else:
-                # Mesmo sem assinatura, retorna o PDF gerado
                 return _cors_response({
                     'success': True,
                     'message': 'Contrato gerado com sucesso, mas ocorreu um problema no envio para assinatura. Entre em contato com o suporte.',
@@ -2326,16 +2300,13 @@ def gerar_contrato():
             return _cors_response({'success': False, 'error': 'Tipo de contrato inválido'}, 400)
 
     except Exception as e:
-        print(f"❌ Exceção em /gerar_contrato: {e}")
         import traceback
         traceback.print_exc()
-        return _cors_response({'success': False, 'error': str(e)}, 500)
-
+        return _cors_response({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ROTA: GERAR RELATÓRIO DE COMISSIONAMENTO (INSERIDA CORRETAMENTE)
+# ROTA: GERAR RELATÓRIO DE COMISSIONAMENTO
 # ============================================================
-
 @app.route('/gerar_relatorio_comissionamento', methods=['OPTIONS'])
 def gerar_relatorio_comissionamento_options():
     response = jsonify({'status': 'ok'})
@@ -2346,6 +2317,7 @@ def gerar_relatorio_comissionamento_options():
     return response, 200
 
 @app.route('/gerar_relatorio_comissionamento', methods=['POST'])
+@token_required
 def gerar_relatorio_comissionamento():
     try:
         dados = request.get_json()
@@ -2357,22 +2329,14 @@ def gerar_relatorio_comissionamento():
             return jsonify({'success': False, 'error': 'cliente_id não informado'}), 400
 
         cliente = buscar_cliente_por_id(cliente_id)
-        print("🔍 comissionamento recebido:", cliente.get('dados_homologacao', {}).get('comissionamento', {}))
         if not cliente:
             return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
 
-            # ===== LOG DAS FOTOS RECUPERADAS =====
         dados_homologacao = cliente.get('dados_homologacao', {})
         fotos = dados_homologacao.get('fotos', {})
-        print("📸 Fotos recuperadas da planilha:", fotos)
 
-        # ===== EXTRAI DADOS DA HOMOLOGAÇÃO E COMISSIONAMENTO =====
-        dados_homologacao = cliente.get('dados_homologacao', {})
-        fotos = dados_homologacao.get('fotos', {})
-        print("📸 Fotos recuperadas da planilha:", fotos)
         comiss = dados_homologacao.get('comissionamento', {})
 
-        # ===== MAPEIA STATUS PARA COR E TEXTO =====
         status_text = comiss.get('status', 'Pendente')
         if status_text == 'Concluído':
             status_classe = 'status-aprovado'
@@ -2381,7 +2345,6 @@ def gerar_relatorio_comissionamento():
         else:
             status_classe = 'status-parcial'
 
-        # ===== DADOS PARA OS ENSAIOS =====
         def safe(valor):
             return valor if valor else '-'
 
@@ -2392,17 +2355,13 @@ def gerar_relatorio_comissionamento():
                 return 'falha'
             return ''
 
-            # ===== GERA HASH E PROTOCOLO UMA ÚNICA VEZ =====
         hash_input = f"{cliente_id}{datetime.now().isoformat()}"
         hash_documento = hashlib.sha256(hash_input.encode()).hexdigest()
 
-# Protocolo automático se não tiver
         protocolo = dados_homologacao.get('protocolo', '')
-# Se não tiver protocolo, ou for o antigo fixo, gera novo
         if not protocolo or protocolo == 'PROTO-2026-001':
-         protocolo = f"COM-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
+            protocolo = f"COM-{datetime.now().strftime('%Y%m%d')}-{cliente_id}"
 
-        # ===== CONTEXTO PARA O TEMPLATE =====
         context = {
             'RAZAO_SOCIAL': 'SoLivia Engenharia LTDA',
             'NOME_FANTASIA': 'SoLivia Engenharia',
@@ -2415,10 +2374,10 @@ def gerar_relatorio_comissionamento():
             'LOGO_RODAPE': 'https://i.imgur.com/gdnq1ok.png',
             'NOME_CLIENTE': cliente.get('nome', ''),
             'CPF_CNPJ': (
-    cliente.get('dados_preproposta', {}).get('cpf_cnpj', '') or
-    cliente.get('cpf_cnpj', '') or
-    ''
-),
+                cliente.get('dados_preproposta', {}).get('cpf_cnpj', '') or
+                cliente.get('cpf_cnpj', '') or
+                ''
+            ),
             'ENDERECO': cliente.get('endereco', ''),
             'ENGENHEIRO_RESPONSAVEL': comiss.get('responsavel', 'Nícolas Alves de Sá'),
             'CREA_NUMERO': '5071237870',
@@ -2478,53 +2437,44 @@ def gerar_relatorio_comissionamento():
             'CHECK_CONEXOES': comiss.get('check_conexoes', ''),
             'CHECK_ATERRAMENTO': comiss.get('check_aterramento', ''),
             'CHECK_CABEAMENTO': comiss.get('check_cabeamento', ''),
-            # Fotos
-'FOTO_ESTRUTURA_ANTES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_estrutura_antes', '')),
-'FOTO_ATERRAMENTO_SISTEMA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aterramento_sistema', '')),
-'FOTO_QUADROS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_quadros', '')),
-'FOTO_CONEXOES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_conexoes', '')),
-'FOTO_QUADRO_REDE': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_quadro_rede', '')),
-'FOTO_ATERRAMENTO_CARCACAS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aterramento_carcacas', '')),
-'FOTO_INSPECAO_LOCAL': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_inspecao_local', '')),
-'FOTO_FACHADA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_fachada', '')),
-'FOTO_IDENTIFICACAO_DISJUNTORES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_identificacao_disjuntores', '')),
-'FOTO_ETIQUETAS_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_etiquetas_circuitos', '')),
-'FOTO_TENSAO_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_tensao_circuitos', '')),
-'FOTO_CORRENTE_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_corrente_circuitos', '')),
-'FOTO_EPI': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_epi', '')),
-'FOTO_APLICATIVO': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aplicativo', '')),
-'FOTO_SISTEMA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_sistema', '')),
-# Quadros e Circuitos
-'TIPO_QUADRO': comiss.get('tipo_quadro', ''),
-'QTD_CIRCUITOS': comiss.get('qtd_circuitos', ''),
-'LOCAL_QUADRO': comiss.get('local_quadro', ''),
-'ALTURA_QUADRO': comiss.get('altura_quadro', ''),
-'DISTANCIA_PONTOS': comiss.get('distancia_pontos', ''),
-'SISTEMA_ATERRADO': comiss.get('sistema_aterrado', ''),
-'DUPLO_ISOLAMENTO': comiss.get('duplo_isolamento', ''),
-'SEGUIR_DIAGRAMA': comiss.get('seguir_diagrama', ''),
-'CIRCUITOS_VERIFICADOS': comiss.get('circuitos_verificados', ''),
-# Monitoramento e Segurança
-'APLICATIVO_MONITORAMENTO': comiss.get('aplicativo_monitoramento', ''),
-'LOGIN_MONITORAMENTO': comiss.get('login_monitoramento', ''),
-'SENHA_MONITORAMENTO': comiss.get('senha_monitoramento', ''),
-'NF_ENVIADA': comiss.get('nf_enviada', ''),
-'PROTECOES_TESTADAS': comiss.get('protecoes_testadas', ''),
-'USARAM_EPI': comiss.get('usaram_epi', ''),
-'INSPECAO_REALIZADA': comiss.get('inspecao_realizada', ''),
-'PONTOS_ATENCAO': comiss.get('pontos_atencao', ''),
+            'FOTO_ESTRUTURA_ANTES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_estrutura_antes', '')),
+            'FOTO_ATERRAMENTO_SISTEMA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aterramento_sistema', '')),
+            'FOTO_QUADROS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_quadros', '')),
+            'FOTO_CONEXOES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_conexoes', '')),
+            'FOTO_QUADRO_REDE': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_quadro_rede', '')),
+            'FOTO_ATERRAMENTO_CARCACAS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aterramento_carcacas', '')),
+            'FOTO_INSPECAO_LOCAL': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_inspecao_local', '')),
+            'FOTO_FACHADA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_fachada', '')),
+            'FOTO_IDENTIFICACAO_DISJUNTORES': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_identificacao_disjuntores', '')),
+            'FOTO_ETIQUETAS_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_etiquetas_circuitos', '')),
+            'FOTO_TENSAO_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_tensao_circuitos', '')),
+            'FOTO_CORRENTE_CIRCUITOS': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_corrente_circuitos', '')),
+            'FOTO_EPI': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_epi', '')),
+            'FOTO_APLICATIVO': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_aplicativo', '')),
+            'FOTO_SISTEMA': imagem_drive_para_base64(dados_homologacao.get('fotos', {}).get('foto_sistema', '')),
+            'TIPO_QUADRO': comiss.get('tipo_quadro', ''),
+            'QTD_CIRCUITOS': comiss.get('qtd_circuitos', ''),
+            'LOCAL_QUADRO': comiss.get('local_quadro', ''),
+            'ALTURA_QUADRO': comiss.get('altura_quadro', ''),
+            'DISTANCIA_PONTOS': comiss.get('distancia_pontos', ''),
+            'SISTEMA_ATERRADO': comiss.get('sistema_aterrado', ''),
+            'DUPLO_ISOLAMENTO': comiss.get('duplo_isolamento', ''),
+            'SEGUIR_DIAGRAMA': comiss.get('seguir_diagrama', ''),
+            'CIRCUITOS_VERIFICADOS': comiss.get('circuitos_verificados', ''),
+            'APLICATIVO_MONITORAMENTO': comiss.get('aplicativo_monitoramento', ''),
+            'LOGIN_MONITORAMENTO': comiss.get('login_monitoramento', ''),
+            'SENHA_MONITORAMENTO': comiss.get('senha_monitoramento', ''),
+            'NF_ENVIADA': comiss.get('nf_enviada', ''),
+            'PROTECOES_TESTADAS': comiss.get('protecoes_testadas', ''),
+            'USARAM_EPI': comiss.get('usaram_epi', ''),
+            'INSPECAO_REALIZADA': comiss.get('inspecao_realizada', ''),
+            'PONTOS_ATENCAO': comiss.get('pontos_atencao', ''),
         }
 
-                # ===== LOG DAS FOTOS NO CONTEXTO =====
-        print("📸 FOTO_ESTRUTURA_ANTES (primeiros 100):", context.get('FOTO_ESTRUTURA_ANTES', '')[:100])
-        print("📸 FOTO_ATERRAMENTO_SISTEMA (primeiros 100):", context.get('FOTO_ATERRAMENTO_SISTEMA', '')[:100])
-
-        # ===== GERA O PDF =====
         html_rendered = render_template('relatorio_comissionamento.html', **context)
         pdf_bytes = HTML(string=html_rendered).write_pdf()
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
-        # ===== SALVA NO DRIVE =====
         nome_cliente = cliente.get('nome', 'cliente').replace(' ', '_')
         nome_arquivo = f"Relatorio_Comissionamento_{nome_cliente}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
 
@@ -2550,50 +2500,40 @@ def gerar_relatorio_comissionamento():
 
         url_pdf = result.get('url')
 
-        # ===== ATUALIZA A PLANILHA COM LINK, HASH E PROTOCOLO =====
         try:
             cliente_atual = buscar_cliente_por_id(cliente_id)
             if cliente_atual:
-        # Atualiza dados_homologacao
                 h = cliente_atual.get('dados_homologacao', {})
                 h['laudo_comiss_url'] = url_pdf
                 h['hash_documento'] = hash_documento
                 h['protocolo'] = protocolo
 
-        # Também salva em dados_visita (compatibilidade com validação existente)
                 v = cliente_atual.get('dados_visita', {})
                 v['hash_documento'] = hash_documento
 
                 payload_update = {
-            "acao": "adminAtualizarCliente",
-            "idCliente": str(cliente_id),
-            "campos": {
-                "dados_homologacao": h,
-                "dados_visita": v
-            },
-            "senhaAdmin": "SoLiVi@64253798@"
-        }
-                resp_update = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=60)  # ← AUMENTEI PARA 60
-                if resp_update.status_code == 200:
-                    print(f"✅ Hash e protocolo salvos para cliente {cliente_id}")
-                else:
-                    print(f"❌ Erro ao salvar hash/protocolo: {resp_update.status_code}")
+                    "acao": "adminAtualizarCliente",
+                    "idCliente": str(cliente_id),
+                    "campos": {
+                        "dados_homologacao": h,
+                        "dados_visita": v
+                    },
+                    "senhaAdmin": ADMIN_PASSWORD
+                }
+                resp_update = requests.post(URL_AREA_CLIENTE, json=payload_update, timeout=60)
         except Exception as e:
-            print(f"⚠️ Erro ao atualizar planilha: {e}")
+            pass
 
-        # ===== RESPONDE COM CORS =====
         resp = jsonify({'success': True, 'url': url_pdf, 'message': 'Relatório gerado com sucesso!'})
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 200
 
     except Exception as e:
-        print(f"❌ Erro em /gerar_relatorio_comissionamento: {e}")
         import traceback
         traceback.print_exc()
         resp = jsonify({'success': False, 'error': str(e)})
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp, 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
