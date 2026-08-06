@@ -2476,11 +2476,44 @@ body.admin-logged .hero-admin {
     let filtroEtapaAtual = 'todos';
 
     // ============================================================
+    // FUNÇÃO AUXILIAR PARA OBTER HEADERS COM TOKEN
+    // ============================================================
+    function getAdminHeaders() {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        // Em vez de lançar erro, retorna um objeto vazio e redireciona para login
+        document.getElementById('loginAdmin').classList.add('ativo');
+        document.getElementById('dashboardAdmin').classList.remove('ativo');
+        return {};
+    }
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+// ============================================================
+// FUNÇÃO PARA REQUISIÇÕES COM TIMEOUT
+// ============================================================
+async function fetchWithTimeout(url, options = {}, timeout = 15000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('A requisição demorou muito e foi cancelada.');
+        }
+        throw error;
+    }
+}
+    // ============================================================
     // FUNÇÃO PARA GARANTIR VALORES NOS CHECKBOXES (FALLBACK MELHORADO)
     // ============================================================
     function garantirValoresCheckboxes() {
   const checkboxes = document.querySelectorAll('.adeq-check');
-  console.log('🔧 Garantindo valores para', checkboxes.length, 'checkboxes');
   
   // Mapeamento usando palavras-chave (todas sem acentos)
   const mapaPalavraValor = {
@@ -2494,7 +2527,6 @@ body.admin-logged .hero-admin {
   checkboxes.forEach(cb => {
     // Se já tiver valor, não sobrescreve
     if (cb.value && cb.value !== '') {
-      console.log(`   -> ${cb.value} (já definido) ${cb.checked ? '✅' : '❌'}`);
       return;
     }
 
@@ -2502,7 +2534,6 @@ body.admin-logged .hero-admin {
     if (label) {
       // Normaliza: remove acentos, converte para minúsculas
       const texto = label.textContent.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      console.log(`   🔍 Texto normalizado: "${texto}"`);
       
       let valorEncontrado = null;
       for (const [palavra, valor] of Object.entries(mapaPalavraValor)) {
@@ -2514,12 +2545,9 @@ body.admin-logged .hero-admin {
       
       if (valorEncontrado) {
         cb.value = valorEncontrado;
-        console.log(`   ✅ Atribuído value="${valorEncontrado}"`);
       } else {
-        console.warn(`   ⚠️ Nenhum valor mapeado para: "${texto}"`);
       }
     } else {
-      console.warn('   ⚠️ Checkbox sem label próximo');
     }
   });
 }
@@ -2733,44 +2761,53 @@ function confirmarArquivar() {
     }
 
     // ============================================================
-    // AUTENTICAÇÃO
+    // AUTENTICAÇÃO (NOVA VERSÃO COM JWT)
     // ============================================================
-    function adminLogin() {
-    const senha = document.getElementById('senhaAdmin').value.trim();
-    const erro = document.getElementById('loginErroAdmin');
-    const btn = document.getElementById('btnEntrarAdmin');
-    const textoOriginal = btn.textContent;
+    async function adminLogin() {
+        
+        const senha = document.getElementById('senhaAdmin').value.trim();
+        const erro = document.getElementById('loginErroAdmin');
+        const btn = document.getElementById('btnEntrarAdmin');
+        const textoOriginal = btn.textContent;
+        erro.style.display = 'none';
 
-    erro.style.display = 'none';
+        if (!senha) {
+            erro.textContent = 'Digite a senha mestra.';
+            erro.style.display = 'block';
+            return;
+        }
 
-    if (!senha) {
-        erro.textContent = 'Digite a senha mestra.';
-        erro.style.display = 'block';
-        return;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner spinner--pequeno"></span> Entrando...`;
+
+        try {
+            const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ senha })
+            });
+            const resultado = await resp.json();
+
+            if (resultado.success) {
+                localStorage.setItem('adminToken', resultado.token);
+                document.getElementById('loginAdmin').classList.remove('ativo');
+                document.getElementById('dashboardAdmin').classList.add('ativo');
+                await carregarClientes();
+            } else {
+                erro.textContent = resultado.error || 'Senha inválida.';
+                erro.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+            }
+        } catch (err) {
+            erro.textContent = 'Erro de conexão: ' + err.message;
+            erro.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        }
     }
 
-    // ===== FEEDBACK VISUAL =====
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.innerHTML = `<span class="spinner spinner--pequeno" style="display:inline-block; margin-right:8px;"></span> Entrando...`;
-    btn.style.cursor = 'not-allowed';
-
-    // Guarda a senha para usar na requisição
-    adminToken = senha;
-
-    // Chama a função de carregar clientes
-    carregarClientes().finally(() => {
-        // Restaura o botão (caso não seja restaurado pelo carregarClientes)
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.innerHTML = textoOriginal;
-        btn.style.cursor = 'pointer';
-    });
-}
-
     function logoutAdmin() {
-      console.log('🔓 Logout: admin-logged removida');
-console.log('Body classes:', document.body.className);
       adminToken = null;
       localStorage.removeItem('adminToken');
       document.getElementById('loginAdmin').classList.add('ativo');
@@ -2845,157 +2882,155 @@ function atualizarContadores() {
     }
 }
     // ============================================================
-    // CARREGAR CLIENTES
+    // CARREGAR CLIENTES (COM TOKEN)
     // ============================================================
     async function carregarClientes() {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        document.getElementById('loginAdmin').classList.add('ativo');
+        document.getElementById('dashboardAdmin').classList.remove('ativo');
+        return;
+    }
+
     const loading = document.getElementById('loadingTabela');
     const tabela = document.getElementById('tabelaClientesAdmin');
+    if (!loading || !tabela) {
+        return;
+    }
+
     loading.style.display = 'block';
     tabela.style.display = 'none';
 
     try {
-        const resp = await fetch(URL_API, {
-            method: 'POST',
-            body: JSON.stringify({ acao: 'adminListarClientes', senhaAdmin: adminToken })
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/admin/clientes', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
         });
-        const resultado = await resp.json();
+        const texto = await resp.text();
+
+        let resultado;
+        try {
+            resultado = JSON.parse(texto);
+        } catch (e) {
+            alert('Erro: resposta não é JSON válido.');
+            return;
+        }
+
+
+        if (resp.status === 401) {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginAdmin').classList.add('ativo');
+            document.getElementById('dashboardAdmin').classList.remove('ativo');
+            alert('Sessão expirada. Faça login novamente.');
+            return;
+        }
 
         if (resultado.success) {
-            document.body.classList.add('admin-logged');
-            clientes = resultado.clientes || [];
-            document.getElementById('loginAdmin').classList.remove('ativo');
-            document.getElementById('dashboardAdmin').classList.add('ativo');
-            localStorage.setItem('adminToken', adminToken);
-            atualizarContadores();
-            renderizarTabela();
-        } else {
-            const erro = document.getElementById('loginErroAdmin');
-            erro.textContent = resultado.error || 'Senha inválida. Tente novamente.';
-            erro.style.display = 'block';
-            adminToken = null;
-            document.getElementById('senhaAdmin').value = '';
-            document.getElementById('senhaAdmin').focus();
-        }
+    document.body.classList.add('admin-logged');
+    clientes = resultado.clientes || [];
+    document.getElementById('loginAdmin').classList.remove('ativo');
+    document.getElementById('dashboardAdmin').classList.add('ativo');
+    atualizarContadores();
+    renderizarTabela();
+} else {
+    alert(resultado.error || 'Erro ao carregar clientes.');
+}
     } catch (err) {
-        // ===== COLOQUE AQUI =====
-        const erro = document.getElementById('loginErroAdmin');
-        erro.textContent = 'Erro de conexão: ' + err.message;
-        erro.style.display = 'block';
-        adminToken = null;
-        // Restaura o botão (caso o finally do adminLogin não seja chamado)
-        const btn = document.getElementById('btnEntrarAdmin');
-        if (btn) {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.textContent = 'Entrar';
-            btn.style.cursor = 'pointer';
-        }
-        // ===== FIM DA ADIÇÃO =====
+        alert('Erro de conexão: ' + err.message);
     } finally {
-        loading.style.display = 'none';
-        tabela.style.display = 'table';
+        if (loading) loading.style.display = 'none';
+        if (tabela) tabela.style.display = 'table';
     }
 }
 
     async function salvarRelatorioUrl(clienteId, url) {
       try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/atualizar_relatorio_url', {
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/atualizar_relatorio_url', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAdminHeaders(),
           body: JSON.stringify({
             cliente_id: clienteId,
-            relatorio_url: url,
-            senhaAdmin: adminToken
+            relatorio_url: url
           })
         });
         const resultado = await resp.json();
         if (resultado.success) {
-          console.log('URL do relatório salva com sucesso!');
           return true;
         } else {
-          console.error('Erro ao salvar URL:', resultado.error);
           return false;
         }
       } catch (err) {
-        console.error('Erro de conexão:', err);
         return false;
       }
     }
     async function avancarParaPosVenda() {
-    // ===== REFERÊNCIA AO BOTÃO CLICADO (via event.target) =====
-    const btnAvancar = event.target;
+    // ===== REFERÊNCIA AO BOTÃO CLICADO =====
+    const btnAvancar = event?.target;
     if (!btnAvancar) {
         alert('Erro: botão "Avançar para Pós-venda" não encontrado.');
         return;
     }
 
-    // ===== BUSCA O OUTRO BOTÃO POR ID (com fallback) =====
-    let btnGerar = document.getElementById('btnGerarRelatorioComissao');
-    
-    // Se não encontrar pelo ID, tenta encontrar pelo seletor de classe/onclick
-    if (!btnGerar) {
-        console.warn('⚠️ Botão "Gerar Relatório" não encontrado pelo ID. Tentando buscar por seletor alternativo...');
-        btnGerar = document.querySelector('button[onclick*="gerarRelatorioComissionamento"]');
-    }
-
-    // Se ainda não encontrar, tenta buscar pelo texto (fallback extremo)
-    if (!btnGerar) {
-        const botoes = document.querySelectorAll('button');
-        for (let btn of botoes) {
-            if (btn.textContent.includes('Gerar Relatório')) {
-                btnGerar = btn;
-                break;
-            }
-        }
-    }
-
-    if (btnGerar) {
-        console.log('✅ Botão "Gerar Relatório" encontrado:', btnGerar);
-    } else {
-        console.warn('⚠️ Botão "Gerar Relatório" não encontrado. Continuando apenas com o bloqueio do botão atual.');
-    }
-
     if (!clienteEditando) {
-        exibirModalComAcao(
-            '⚠️ Nenhum cliente',
-            'Abra um cliente antes de avançar para Pós-venda.',
-            '⚠️',
-            '#b91c1c',
-            null
-        );
+        exibirModalComAcao('⚠️ Nenhum cliente', 'Abra um cliente antes de avançar.', '⚠️', '#b91c1c', null);
         return;
     }
 
+    // ===== DEFINE AS VARIÁVEIS AQUI =====
+    const clienteId = clienteEditando.id;   // ← DEFINIDO AQUI
     const h = clienteEditando.dados_homologacao || {};
     const comiss = h.comissionamento || {};
 
     // ===== VERIFICA AS CONDIÇÕES =====
     const erros = [];
-
-    if (h.resultado !== 'Aprovado') {
-        erros.push('A vistoria deve estar "Aprovado".');
-    }
-    if (comiss.status !== 'Concluído') {
-        erros.push('O comissionamento deve estar "Concluído".');
-    }
-    if (!h.laudo_comiss_url || h.laudo_comiss_url.trim() === '') {
-        erros.push('O relatório de comissionamento deve ser gerado.');
-    }
-    if (!h.data_liberacao || h.data_liberacao.trim() === '') {
-        erros.push('A data de liberação deve ser preenchida.');
-    }
+    if (h.resultado !== 'Aprovado') erros.push('A vistoria deve estar "Aprovado".');
+    if (comiss.status !== 'Concluído') erros.push('O comissionamento deve estar "Concluído".');
+    if (!h.laudo_comiss_url || h.laudo_comiss_url.trim() === '') erros.push('O relatório de comissionamento deve ser gerado.');
+    if (!h.data_liberacao || h.data_liberacao.trim() === '') erros.push('A data de liberação deve ser preenchida.');
 
     if (erros.length > 0) {
-        const mensagem = erros.map(e => `• ${e}`).join('\n');
-        exibirModalComAcao(
-            '⚠️ Pendências para avançar',
-            mensagem,
-            '⚠️',
-            '#b91c1c',
-            null
-        );
+        exibirModalComAcao('⚠️ Pendências', erros.map(e => `• ${e}`).join('\n'), '⚠️', '#b91c1c', null);
         return;
     }
+
+    // ===== BLOQUEIA O BOTÃO =====
+    const textoOriginal = btnAvancar.textContent;
+    btnAvancar.disabled = true;
+    btnAvancar.textContent = '⏳ Avançando...';
+
+    try {
+        // ===== USA O clienteId DEFINIDO ACIMA =====
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/admin/proxy', {
+            method: 'POST',
+            headers: getAdminHeaders(),
+            body: JSON.stringify({
+                acao: 'adminAtualizarCliente',
+                payload: {
+                    idCliente: clienteId,   // ← AGORA ESTÁ DEFINIDO
+                    campos: { etapa_atual: 'posvenda' }   // ← SÓ ISSO, SEM url
+                }
+            })
+        });
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            exibirModalComAcao('✅ Avançado!', 'Cliente movido para Pós-venda com sucesso.', '', '#0b2f5c', function() {
+                fecharModalEdicao();
+                carregarClientes();
+            });
+        } else {
+            exibirModalComAcao('❌ Erro', resultado.error || 'Erro desconhecido.', '❌', '#b91c1c', null);
+        }
+    } catch (err) {
+        exibirModalComAcao('❌ Erro de conexão', err.message, '❌', '#b91c1c', null);
+    } finally {
+        btnAvancar.disabled = false;
+        btnAvancar.textContent = textoOriginal;
+    }
+
 
     // ===== FUNÇÃO AUXILIAR PARA BLOQUEAR BOTÃO =====
     function bloquearBotao(botao, texto) {
@@ -3023,15 +3058,21 @@ function atualizarContadores() {
     bloquearBotao(btnGerar, null); // mantém o texto original do gerar
 
     try {
-        const resp = await fetch(URL_API, {
-            method: 'POST',
-            body: JSON.stringify({
-                acao: 'adminAtualizarCliente',
-                idCliente: clienteEditando.id,
-                campos: { etapa_atual: 'posvenda' },
-                senhaAdmin: adminToken
-            })
-        });
+        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/admin/proxy', {
+    method: 'POST',
+    headers: getAdminHeaders(),
+    body: JSON.stringify({
+        acao: 'adminAtualizarCliente',
+        payload: {
+            idCliente: clienteId,
+            campos: {
+                dados_visita: {
+                    relatorio_url: url
+                }
+            }
+        }
+    })
+});
         const resultado = await resp.json();
 
         if (resultado.success) {
@@ -3072,45 +3113,82 @@ function atualizarContadores() {
     // RENDERIZAR TABELA
     // ============================================================
     function renderizarTabela(filtroTexto = '') {
-      const tbody = document.getElementById('tbodyClientes');
-      const filtroLower = filtroTexto.toLowerCase();
-      let filtrados = clientes;
-      if (filtroEtapaAtual !== 'todos') {
+    const tbody = document.getElementById('tbodyClientes');
+    const filtroLower = filtroTexto.toLowerCase();
+    let filtrados = clientes;
+    if (filtroEtapaAtual !== 'todos') {
         filtrados = filtrados.filter(c => c.etapa === filtroEtapaAtual);
-      }
-      if (filtroLower) {
-    filtrados = filtrados.filter(c => {
-        const nome = (c.nome || '').toString().toLowerCase();
-        const email = (c.email || '').toString().toLowerCase();
-        return nome.includes(filtroLower) || email.includes(filtroLower);
-    });
-}
-      const mapaEtapa = {
-    preproposta: { label: 'Pré-proposta', classe: 'status-preproposta' },
-    visita: { label: 'Visita Técnica', classe: 'status-visita' },
-    documentos: { label: 'Documentos', classe: 'status-documentos' },
-    instalacao: { label: 'Instalação', classe: 'status-instalacao' },
-    homologacao: { label: 'Homologação', classe: 'status-homologacao' },
-    posvenda: { label: 'Pós-Venda', classe: 'status-posvenda' },
-    arquivado: { label: 'Arquivado', classe: 'status-arquivado' },
-};
-      tbody.innerHTML = '';
-      if (filtrados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem; color:#7a8a9a;">Nenhum cliente encontrado.</td></tr>`;
-        return;
-      }
-      filtrados.forEach(c => {
-        const etapa = mapaEtapa[c.etapa] || { label: c.etapa, classe: '' };
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-    <td><span class="nome-cliente" onclick="editarCliente(${c.id})">${c.nome}</span></td>
-    <td>${c.telefone || '-'}</td>
-    <td><span class="status-etapa ${etapa.classe}">${etapa.label}</span></td>
-    <td>${c.atualizacao || '-'}</td>
-`;
-        tbody.appendChild(tr);
-      });
     }
+    if (filtroLower) {
+        filtrados = filtrados.filter(c => {
+            const nome = (c.nome || '').toString().toLowerCase();
+            const email = (c.email || '').toString().toLowerCase();
+            return nome.includes(filtroLower) || email.includes(filtroLower);
+        });
+    }
+    const mapaEtapa = {
+        preproposta: { label: 'Pré-proposta', classe: 'status-preproposta' },
+        visita: { label: 'Visita Técnica', classe: 'status-visita' },
+        documentos: { label: 'Documentos', classe: 'status-documentos' },
+        instalacao: { label: 'Instalação', classe: 'status-instalacao' },
+        homologacao: { label: 'Homologação', classe: 'status-homologacao' },
+        posvenda: { label: 'Pós-Venda', classe: 'status-posvenda' },
+        arquivado: { label: 'Arquivado', classe: 'status-arquivado' },
+    };
+
+    // Cria um DocumentFragment para montar as linhas sem tocar no DOM
+    const fragment = document.createDocumentFragment();
+
+    if (filtrados.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.style.textAlign = 'center';
+        td.style.padding = '2rem';
+        td.style.color = '#7a8a9a';
+        td.textContent = 'Nenhum cliente encontrado.';
+        tr.appendChild(td);
+        fragment.appendChild(tr);
+    } else {
+        filtrados.forEach(c => {
+            const etapa = mapaEtapa[c.etapa] || { label: c.etapa, classe: '' };
+            const tr = document.createElement('tr');
+
+            // Coluna 1: Nome (com link para editar)
+            const tdNome = document.createElement('td');
+            const spanNome = document.createElement('span');
+            spanNome.className = 'nome-cliente';
+            spanNome.textContent = c.nome;
+            spanNome.onclick = function() { editarCliente(c.id); };
+            tdNome.appendChild(spanNome);
+            tr.appendChild(tdNome);
+
+            // Coluna 2: Telefone
+            const tdTelefone = document.createElement('td');
+            tdTelefone.textContent = c.telefone || '-';
+            tr.appendChild(tdTelefone);
+
+            // Coluna 3: Etapa (com badge)
+            const tdEtapa = document.createElement('td');
+            const spanEtapa = document.createElement('span');
+            spanEtapa.className = `status-etapa ${etapa.classe}`;
+            spanEtapa.textContent = etapa.label;
+            tdEtapa.appendChild(spanEtapa);
+            tr.appendChild(tdEtapa);
+
+            // Coluna 4: Atualização
+            const tdAtualizacao = document.createElement('td');
+            tdAtualizacao.textContent = c.atualizacao || '-';
+            tr.appendChild(tdAtualizacao);
+
+            fragment.appendChild(tr);
+        });
+    }
+
+    // Limpa o tbody e anexa o fragment de uma só vez
+    tbody.innerHTML = '';
+    tbody.appendChild(fragment);
+}
 
     function filtrarTabela() {
       renderizarTabela(document.getElementById('buscaInput').value);
@@ -3142,7 +3220,7 @@ function atualizarContadores() {
     });
 
     // ============================================================
-    // EDITAR CLIENTE (com loading)
+    // EDITAR CLIENTE (COM TOKEN)
     // ============================================================
     async function editarCliente(id) {
       const modal = document.getElementById('modalEdicao');
@@ -3154,11 +3232,20 @@ function atualizarContadores() {
       document.body.style.overflow = 'hidden';
 
       try {
-        const resp = await fetch(URL_API, {
-          method: 'POST',
-          body: JSON.stringify({ acao: 'adminObterCliente', idCliente: id, senhaAdmin: adminToken })
+        const resp = await fetchWithTimeout(`https://SoliviaEnergia.pythonanywhere.com/api/admin/cliente/${id}`, {
+            method: 'GET',
+            headers: getAdminHeaders()
         });
         const resultado = await resp.json();
+
+        if (resp.status === 401) {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginAdmin').classList.add('ativo');
+            document.getElementById('dashboardAdmin').classList.remove('ativo');
+            alert('Sessão expirada. Faça login novamente.');
+            return;
+        }
+
         if (resultado.success) {
           clienteEditando = resultado.cliente;
           preencherModal(clienteEditando);
@@ -3201,7 +3288,7 @@ function atualizarContadores() {
     }
 
     // ============================================================
-    // FUNÇÕES DE UPLOAD DE DOCUMENTOS (ADMIN)
+    // FUNÇÕES DE UPLOAD DE DOCUMENTOS (ADMIN) – COM TOKEN
     // ============================================================
     function selecionarEEnviar(tipo) {
       const fileInput = document.getElementById(`doc_${tipo}_file`);
@@ -3234,19 +3321,20 @@ if (erroEl) erroEl.style.display = 'none';
       formData.append('arquivo', file);
 
       try {
-        const response = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
-          method: 'POST',
-          body: formData
-        });
+        const token = localStorage.getItem('adminToken');
+        const response = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
+    method: 'POST',
+    headers: getAdminHeaders(),
+    body: formData
+});
         const result = await response.json();
 
         if (result.success) {
-  document.getElementById(`doc_${tipo}_url`).value = result.url;
-  atualizarBotaoAbrir(tipo);
-  // O botão "Abrir" já fica azul automaticamente
-} else {
-  alert('❌ Erro no upload: ' + (result.error || ''));
-}
+          document.getElementById(`doc_${tipo}_url`).value = result.url;
+          atualizarBotaoAbrir(tipo);
+        } else {
+          alert('❌ Erro no upload: ' + (result.error || ''));
+        }
       } catch (err) {
         alert('❌ Erro de conexão: ' + err.message);
       } finally {
@@ -3271,9 +3359,7 @@ if (erroEl) erroEl.style.display = 'none';
     function preencherModal(cliente) {
       document.getElementById('modalTitulo').textContent = `${cliente.nome}`;
       document.getElementById('modalSubtitulo').textContent = cliente.endereco || 'Endereço não informado';
-      console.log('🔍 Dados do cliente em preencherModal:', cliente);
-console.log('🔍 Comissionamento:', cliente.dados_homologacao?.comissionamento);
-
+      
       // ===== PRÉ-PROPOSTA =====
 const pp = cliente.dados_preproposta || {};
 document.getElementById('preproposta_data').value = pp.data || '';
@@ -3529,7 +3615,6 @@ if (btnAvancar) {
         document.getElementById(`foto_${foto.id}_url`).value = url;
         atualizarBotaoAbrirFoto(foto.id);
       });
-console.log('comiss_check_estrutura =', document.getElementById('comiss_check_estrutura')?.value);
       // --- Pós-Venda (nova estrutura) ---
 const p = cliente.dados_posvenda || {};
 
@@ -3628,7 +3713,7 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
     }
 
     // ============================================================
-    // FUNÇÕES PARA FOTOS (COMISSIONAMENTO)
+    // FUNÇÕES PARA FOTOS (COMISSIONAMENTO) – COM TOKEN
     // ============================================================
     function selecionarFoto(id) {
       document.getElementById(`foto_${id}_file`).click();
@@ -3657,10 +3742,12 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
       formData.append('arquivo', file);
 
       try {
-        const response = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
-          method: 'POST',
-          body: formData
-        });
+        const token = localStorage.getItem('adminToken');
+        const response = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
+    method: 'POST',
+    headers: getAdminHeaders(),
+    body: formData
+});
         const result = await response.json();
 
         if (result.success) {
@@ -3738,7 +3825,7 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
     }
 
     // ============================================================
-    // SALVAR CLIENTE (COM VALIDAÇÃO DE DOCUMENTOS E CHECKLIST CONDICIONAL)
+    // SALVAR CLIENTE (COM TOKEN)
     // ============================================================
     async function salvarCliente() {
     if (!clienteEditando) return;
@@ -3854,9 +3941,7 @@ if (novaEtapa === 'instalacao') {
 
     if (podeAvancar) {
         novaEtapa = 'homologacao';
-        console.log('✅ Instalação concluída – avançando para Homologação');
     } else {
-        console.log('⚠️ Instalação não concluída – mantendo etapa:', novaEtapa);
     }
 }
 // ===== VALIDAÇÃO DA VISITA (SOMENTE SE CLIENTE ESTIVER NA ETAPA "visita") =====
@@ -4100,28 +4185,24 @@ const campos = {
     };
 
     try {
-    console.log('📦 Payload enviado:', JSON.stringify(campos, null, 2));
     
-    const resp = await fetch(URL_API, {
+    const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/admin/cliente', {
         method: 'POST',
+        headers: getAdminHeaders(),
         body: JSON.stringify({
-            acao: 'adminAtualizarCliente',
             idCliente: clienteEditando.id,
-            campos: campos,
-            senhaAdmin: adminToken
+            campos: campos
         })
     });
 
     // ===== LÊ A RESPOSTA COMO TEXTO PRIMEIRO =====
     const respostaBruta = await resp.text();
-    console.log('📄 Resposta bruta (primeiros 200 caracteres):', respostaBruta.substring(0, 200));
 
     // ===== TENTA CONVERTER PARA JSON =====
     let resultado;
     try {
         resultado = JSON.parse(respostaBruta);
     } catch (parseError) {
-        console.error('❌ Resposta não é JSON. Conteúdo completo:', respostaBruta);
         throw new Error('Resposta inválida do servidor. Verifique a URL do Apps Script e a publicação.');
     }
 
@@ -4146,7 +4227,6 @@ const campos = {
         );
     }
 } catch (err) {
-    console.error('❌ Erro em salvarCliente:', err);
     exibirModalComAcao(
         '❌ Erro de conexão',
         err.message,
@@ -4231,7 +4311,7 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
     }
 
     // ============================================================
-    // CRIAR CLIENTE
+    // CRIAR CLIENTE (COM TOKEN)
     // ============================================================
     function abrirModalCriar() {
       document.getElementById('modalCriar').classList.add('active');
@@ -4262,14 +4342,16 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
       btn.textContent = '⏳ Criando...';
 
       try {
-        const resp = await fetch(URL_API, {
-          method: 'POST',
-          body: JSON.stringify({
-            acao: 'adminCriarCliente',
-            dados: { nome, email, senha, telefone, endereco, cep },
-            senhaAdmin: adminToken
-          })
-        });
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/admin/proxy', {
+    method: 'POST',
+    headers: getAdminHeaders(),
+    body: JSON.stringify({
+        acao: 'adminCriarCliente',
+        payload: {
+            dados: { nome, email, senha, telefone, endereco, cep }
+        }
+    })
+});
         const resultado = await resp.json();
 
         if (resultado.success) {
@@ -4301,7 +4383,7 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
         btn.textContent = textoOriginal;
       }
     }
-
+ 
     // ============================================================
     // UTILITÁRIOS
     // ============================================================
@@ -4401,24 +4483,19 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
     // FUNÇÃO: MOSTRA/ESCONDE CAMPOS COM BASE NOS CHECKBOXES (COM DEPURAÇÃO)
     // ============================================================
     function vtToggleAdequacao() {
-      console.log('✅ vtToggleAdequacao foi chamada!');
       
       // Garante que os checkboxes tenham valores (fallback)
       garantirValoresCheckboxes();
       
       const checkboxes = document.querySelectorAll('.adeq-check');
-      console.log('🔍 Número de checkboxes encontrados:', checkboxes.length);
       
       const selecionadas = [];
       checkboxes.forEach(cb => {
         if (cb.checked) {
           selecionadas.push(cb.value);
-          console.log(`   ✅ Marcado: ${cb.value}`);
         } else {
-          console.log(`   ❌ Desmarcado: ${cb.value}`);
         }
       });
-      console.log('📋 Categorias selecionadas:', selecionadas);
   // === CONTROLE DA MENSAGEM DE AVISO ===
   const msg = document.getElementById('vtMsgAdequacao');
   if (msg) {
@@ -4437,7 +4514,6 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
         if (div) {
           const deveExibir = selecionadas.includes(categoria);
           div.style.display = deveExibir ? 'block' : 'none';
-          console.log(`🔘 ${divId} -> ${deveExibir ? 'EXIBIR' : 'OCULTAR'}`);
           if (!deveExibir) {
             const inputs = div.querySelectorAll('input, textarea, select');
             inputs.forEach(input => {
@@ -4447,7 +4523,6 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
             });
           }
         } else {
-          console.warn(`⚠️ Div com ID "${divId}" não encontrada.`);
         }
       }
     }
@@ -4456,18 +4531,14 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
     // FUNÇÃO: RESETAR CHECKBOXES AO MUDAR O TIPO DE RELATÓRIO
     // ============================================================
     function vtResetarAdequacoes() {
-      console.log('🔄 vtResetarAdequacoes foi chamada!');
       // Garante que os checkboxes tenham valores
       garantirValoresCheckboxes();
       const checkboxes = document.querySelectorAll('.adeq-check');
-      console.log('🔍 Número de checkboxes para resetar:', checkboxes.length);
       checkboxes.forEach(cb => {
         if (cb.value === 'homologacao' || cb.value === 'geracao') {
           cb.checked = true;
-          console.log(`   ✅ Marcado (padrão): ${cb.value}`);
         } else {
           cb.checked = false;
-          console.log(`   ❌ Desmarcado: ${cb.value}`);
         }
       });
       vtToggleAdequacao();
@@ -4475,7 +4546,6 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
 
     function vtAlterarTipo() {
       const tipo = document.getElementById('vtTipoRelatorio').value;
-      console.log('📌 vtAlterarTipo chamada, tipo:', tipo);
       
       const semAdeq = document.getElementById('vtCamposSemAdequacao');
       const comAdeq = document.getElementById('vtCamposComAdequacao');
@@ -4491,79 +4561,79 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
     }
 
     async function abrirModalRelatorioVT(clienteId) {
-      limparCamposRelatorio();
+    limparCamposRelatorio();
 
-      const engenheiro = document.getElementById('visita_engenheiro').value.trim();
-      const dataAgendada = document.getElementById('visita_data_agendada').value.trim();
-      const dataRealizacao = document.getElementById('visita_data_realizacao').value.trim();
-      const resultado = document.getElementById('visita_resultado').value;
+    const engenheiro = document.getElementById('visita_engenheiro').value.trim();
+    const dataAgendada = document.getElementById('visita_data_agendada').value.trim();
+    const dataRealizacao = document.getElementById('visita_data_realizacao').value.trim();
+    const resultado = document.getElementById('visita_resultado').value;
 
-      const camposFaltando = [];
-      if (!engenheiro) camposFaltando.push('Técnico responsável');
-      if (!dataAgendada) camposFaltando.push('Data agendada');
-      if (!dataRealizacao) camposFaltando.push('Data realização');
-      if (!resultado) camposFaltando.push('Resultado final');
+    const camposFaltando = [];
+    if (!engenheiro) camposFaltando.push('Técnico responsável');
+    if (!dataAgendada) camposFaltando.push('Data agendada');
+    if (!dataRealizacao) camposFaltando.push('Data realização');
+    if (!resultado) camposFaltando.push('Resultado final');
 
-      if (camposFaltando.length > 0) {
+    if (camposFaltando.length > 0) {
         const mensagem = `Para abrir o relatório, preencha: ${camposFaltando.join(', ')}.`;
         abrirModalCriarCliente('Campos obrigatórios', mensagem, '⚠️', '#b91c1c');
         return;
-      }
+    }
 
-      document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
 
-      const modal = document.getElementById('modalRelatorioVT');
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
+    const modal = document.getElementById('modalRelatorioVT');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 
-      document.getElementById('vtTipoRelatorio').value = '';
-      vtAlterarTipo();
-      // Força a exibição inicial
-      vtResetarAdequacoes();
-      document.getElementById('vtStatus').textContent = '';
+    document.getElementById('vtTipoRelatorio').value = '';
+    vtAlterarTipo();
+    vtResetarAdequacoes();
+    document.getElementById('vtStatus').textContent = '';
 
-      try {
-        const resp = await fetch(URL_API, {
-          method: 'POST',
-          body: JSON.stringify({ acao: 'adminObterCliente', idCliente: clienteId, senhaAdmin: adminToken })
+    try {
+        const resp = await fetch(`https://SoliviaEnergia.pythonanywhere.com/api/admin/cliente/${clienteId}`, {
+            method: 'GET',
+            headers: getAdminHeaders()
         });
         const resultado = await resp.json();
+
         if (resultado.success) {
-          const c = resultado.cliente;
-          document.getElementById('vtClienteNome').textContent = c.nome || '—';
-          document.getElementById('vtClienteEmail').textContent = c.email || '—';
-          document.getElementById('vtClienteEndereco').textContent = c.endereco || '—';
-          document.getElementById('vtClienteCep').textContent = c.cep || '—';
-          modal.dataset.clienteId = clienteId;
-          modal.dataset.clienteNome = c.nome || '';
-          modal.dataset.clienteEmail = c.email || '';
-          modal.dataset.clienteEndereco = c.endereco || '';
-          modal.dataset.clienteCep = c.cep || '';
-          modal.dataset.clienteCpf = c.cpf_cnpj || '';
-          modal.dataset.pastaId = c.pasta_id || null;
-          const dataAgendada = document.getElementById('visita_data_agendada');
-          if (dataAgendada.value) {
-            document.getElementById('vtDataVisita').value = dataAgendada.value;
-          }
-          sincronizarDataVisita();
+            const c = resultado.cliente;
+            document.getElementById('vtClienteNome').textContent = c.nome || '—';
+            document.getElementById('vtClienteEmail').textContent = c.email || '—';
+            document.getElementById('vtClienteEndereco').textContent = c.endereco || '—';
+            document.getElementById('vtClienteCep').textContent = c.cep || '—';
+            modal.dataset.clienteId = clienteId;
+            modal.dataset.clienteNome = c.nome || '';
+            modal.dataset.clienteEmail = c.email || '';
+            modal.dataset.clienteEndereco = c.endereco || '';
+            modal.dataset.clienteCep = c.cep || '';
+            modal.dataset.clienteCpf = c.cpf_cnpj || '';
+            modal.dataset.pastaId = c.pasta_id || null;
+            const dataAgendadaField = document.getElementById('visita_data_agendada');
+            if (dataAgendadaField && dataAgendadaField.value) {
+                document.getElementById('vtDataVisita').value = dataAgendadaField.value;
+            }
+            sincronizarDataVisita();
         } else {
-          alert('❌ Erro ao carregar dados do cliente: ' + (resultado.error || ''));
-          fecharModalRelatorioVT();
+            alert('❌ Erro ao carregar dados do cliente: ' + (resultado.error || ''));
+            fecharModalRelatorioVT();
         }
-      } catch (err) {
+    } catch (err) {
         alert('❌ Erro de conexão: ' + err.message);
         fecharModalRelatorioVT();
-      }
     }
+}
 
-    function fecharModalRelatorioVT() {
-      document.getElementById('modalRelatorioVT').classList.remove('active');
-      document.body.style.overflow = '';
-    }
+function fecharModalRelatorioVT() {
+    document.getElementById('modalRelatorioVT').classList.remove('active');
+    document.body.style.overflow = '';
+}
 
-    document.getElementById('modalRelatorioVT').addEventListener('click', function(e) {
-      if (e.target === this) fecharModalRelatorioVT();
-    });
+document.getElementById('modalRelatorioVT').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalRelatorioVT();
+});
 
     // ============================================================
     // PRÉ-VISUALIZAÇÃO DE IMAGENS
@@ -4604,7 +4674,7 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
     }
 
     // ============================================================
-    // GERAR RELATÓRIO VT (FLASK)
+    // GERAR RELATÓRIO VT (COM TOKEN)
     // ============================================================
     async function gerarRelatorioVT() {
   const modal = document.getElementById('modalRelatorioVT');
@@ -4725,12 +4795,6 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
   const observacoes = document.getElementById('vtObservacoesFT').value.trim();
 
   // ===== LOG DETALHADO DE CADA CAMPO =====
-  console.log('🔍 Fast Track - Campos individuais:');
-  console.log('  vtGeracaoOriginal:', geracaoOrig, '| tipo:', typeof geracaoOrig, '| comprimento:', geracaoOrig.length);
-  console.log('  vtGeracaoOtimizada:', geracaoOtim, '| tipo:', typeof geracaoOtim, '| comprimento:', geracaoOtim.length);
-  console.log('  vtQtdModulosFT:', qtdModulos, '| tipo:', typeof qtdModulos, '| comprimento:', qtdModulos.length);
-  console.log('  vtPotenciaInversorFT:', potInversor, '| tipo:', typeof potInversor, '| comprimento:', potInversor.length);
-  console.log('  vtLocalInversorFT:', localInversor, '| tipo:', typeof localInversor, '| comprimento:', localInversor.length);
 
   // ===== VALIDAÇÃO COM CHECAGEM EXPLÍCITA =====
   let camposVazios = [];
@@ -4741,14 +4805,12 @@ const geracaoOtim = document.getElementById('vtFTGeracaoOtimizada').value.trim()
   if (!localInversor || localInversor === '') camposVazios.push('Local do inversor');
 
   if (camposVazios.length > 0) {
-    console.log('❌ Campos vazios detectados:', camposVazios);
     alert('Preencha todos os campos obrigatórios do Fast Track. Campos faltando: ' + camposVazios.join(', '));
     btn.disabled = false;
     status.textContent = '';
     return;
   }
 
-  console.log('✅ Todos os campos do Fast Track estão preenchidos!');
 
   camposEspecificos = {
     geracao_original: geracaoOrig,
@@ -4803,7 +4865,6 @@ async function processarImagem(idInput, nomeCampo) {
         try {
             imagens[nomeCampo] = await comprimirImagem(input.files[0], 400, 400, 0.5);
         } catch (err) {
-            console.warn(`Erro ao processar ${nomeCampo}:`, err);
         }
     }
 }
@@ -4834,11 +4895,11 @@ async function processarImagem(idInput, nomeCampo) {
   };
 
   try {
-    const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_conformidade', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_conformidade', {
+    method: 'POST',
+    headers: getAdminHeaders(),
+    body: JSON.stringify(payload)
+});
     const resultado = await resp.json();
 
     if (resultado.success) {
@@ -4867,11 +4928,9 @@ async function processarImagem(idInput, nomeCampo) {
       }
 
       if (resultado.url) {
-        console.log('1. URL recebida:', resultado.url);
         const urlField = document.getElementById('visita_relatorio_url');
         if (urlField) {
           urlField.value = resultado.url;
-          console.log('2. Campo URL atualizado');
         }
         const btnAbrirRelatorio = document.getElementById('btnAbrirRelatorio');
         if (btnAbrirRelatorio) {
@@ -4882,19 +4941,15 @@ async function processarImagem(idInput, nomeCampo) {
           btnAbrirRelatorio.style.pointerEvents = 'auto';
           btnAbrirRelatorio.style.cursor = 'pointer';
           btnAbrirRelatorio.textContent = '📄 Abrir relatório';
-          console.log('3. Botão ativado (estilo azul)');
         }
         if (clienteEditando) {
           if (!clienteEditando.dados_visita) clienteEditando.dados_visita = {};
           clienteEditando.dados_visita.relatorio_url = resultado.url;
-          console.log('4. Objeto local atualizado');
         }
         const clienteId = modal.dataset.clienteId;
         if (clienteId) {
           await salvarRelatorioUrl(clienteId, resultado.url);
-          console.log('5. URL salva no servidor');
         }
-        console.log('6. Atualização concluída');
       }
 
       fecharModalRelatorioVT();
@@ -4914,7 +4969,7 @@ async function processarImagem(idInput, nomeCampo) {
 }
 
     // ============================================================
-    // GERAR PROPOSTA FINAL
+    // GERAR PROPOSTA FINAL (COM TOKEN)
     // ============================================================
     async function gerarPropostaFinal() {
     if (!clienteEditando) {
@@ -4949,11 +5004,11 @@ btn.style.opacity = '0.5';
 btn.textContent = '⏳ Gerando...';
 
     try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cliente_id: clienteEditando.id })
-        });
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/gerar_proposta_final', {
+    method: 'POST',
+    headers: getAdminHeaders(),
+    body: JSON.stringify({ cliente_id: clienteEditando.id })
+});
         const resultado = await resp.json();
 
         if (resultado.success) {
@@ -4992,7 +5047,7 @@ btn.textContent = '⏳ Gerando...';
 }
 
     // ============================================================
-    // GERAR CONTRATO CLIENTE
+    // GERAR CONTRATO CLIENTE (COM TOKEN)
     // ============================================================
     async function gerarContratoCliente() {
     if (!clienteEditando) {
@@ -5045,9 +5100,9 @@ btn.style.opacity = '0.5';
 btn.textContent = '⏳ Gerando...';
 
     try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminHeaders(),
             body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
         });
         const resultado = await resp.json();
@@ -5116,7 +5171,7 @@ async function verificarAssinatura() {
     try {
         const resp = await fetch('https://soliviaenergia.pythonanywhere.com/api/forcar_atualizacao_assinatura', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminHeaders(),
             body: JSON.stringify({ document_id: documentId })
         });
         const resultado = await resp.json();
@@ -5177,7 +5232,7 @@ function refazerContrato() {
     }
 }
     // ============================================================
-    // CONTRATO PRESTADOR
+    // CONTRATO PRESTADOR (COM TOKEN)
     // ============================================================
     function abrirModalContratoPrestador() {
       document.getElementById('modalContratoPrestador').classList.add('active');
@@ -5212,7 +5267,7 @@ function refazerContrato() {
   agencia: document.getElementById('prestador_agencia').value.trim(),
   conta: document.getElementById('prestador_conta').value.trim(),
   pix: document.getElementById('prestador_pix').value.trim(),
-  cliente_id: clienteEditando.id  // <--- ADICIONE ESTA LINHA
+  cliente_id: clienteEditando.id
 };
       if (!dados.nome || !dados.cpf) { alert('Preencha pelo menos Nome e CPF.'); return; }
       const btn = event.target;
@@ -5222,7 +5277,7 @@ function refazerContrato() {
       try {
         const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_contrato', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAdminHeaders(),
           body: JSON.stringify({ tipo: 'prestador', dados: dados })
         });
         const resultado = await resp.json();
@@ -5245,7 +5300,7 @@ function refazerContrato() {
     }
 
     // ============================================================
-    // COMISSIONAMENTO (ATUALIZADO PARA NOVOS IDs)
+    // COMISSIONAMENTO (COM TOKEN)
     // ============================================================
     async function gerarRelatorioComissionamento() {
     // ===== REFERÊNCIA AO BOTÃO CLICADO (via event.target) =====
@@ -5294,9 +5349,9 @@ function refazerContrato() {
     };
 
     try {
-        const resp = await fetch('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_comissionamento', {
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/gerar_relatorio_comissionamento', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminHeaders(),
             body: JSON.stringify(payload)
         });
 
@@ -5337,7 +5392,6 @@ function refazerContrato() {
             alert('❌ Erro ao gerar relatório: ' + (resultado.error || 'Erro desconhecido'));
         }
     } catch (err) {
-        console.error('❌ Erro em gerarRelatorioComissionamento:', err);
         alert('❌ Erro ao gerar relatório: ' + err.message);
     } finally {
         // ===== DESBLOQUEIA AMBOS =====
@@ -5347,7 +5401,7 @@ function refazerContrato() {
 }
 
     // ============================================================
-    // EXCLUSÃO DE CLIENTE
+    // EXCLUSÃO DE CLIENTE (COM TOKEN)
     // ============================================================
     let clienteExcluirId = null;
     function abrirModalExcluir() {
@@ -5355,7 +5409,6 @@ function refazerContrato() {
       clienteExcluirId = clienteEditando.id;
       const nomeEl = document.getElementById('nomeClienteExcluir');
       if (!nomeEl) {
-        console.error('❌ Elemento "nomeClienteExcluir" não encontrado!');
         alert('Erro interno: elemento de confirmação não encontrado.');
         return;
       }
@@ -5375,21 +5428,14 @@ function refazerContrato() {
         alert('Nenhum cliente selecionado para excluir.');
         return;
       }
-      if (!adminToken) {
-        alert('⚠️ Sessão expirada. Faça login novamente.');
-        return;
-      }
       const btn = document.getElementById('btnConfirmarExcluir');
       btn.disabled = true;
       btn.textContent = '⏳ Excluindo...';
       try {
-        const resp = await fetch(URL_API, {
-          method: 'POST',
-          body: JSON.stringify({
-            acao: 'adminExcluirCliente',
-            idCliente: clienteExcluirId,
-            senhaAdmin: adminToken
-          })
+        const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/admin/cliente', {
+          method: 'DELETE',
+          headers: getAdminHeaders(),
+          body: JSON.stringify({ idCliente: clienteExcluirId })
         });
         const resultado = await resp.json();
         if (resultado.success) {
@@ -5488,7 +5534,7 @@ function refazerContrato() {
       gerarCamposFotos();
       const tokenSalvo = localStorage.getItem('adminToken');
       if (tokenSalvo) {
-        adminToken = tokenSalvo;
+        // adminToken = tokenSalvo; // não é mais necessário usar adminToken
         carregarClientes();
       } else {
         document.getElementById('loginAdmin').classList.add('ativo');
