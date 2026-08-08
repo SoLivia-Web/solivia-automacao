@@ -1,9 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="no-js">
 <head>
+    <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-53DHR8PB');</script>
+<!-- End Google Tag Manager -->
+ <link rel="canonical" href="https://solivia.com.br/area-cliente">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Área do Cliente - SoLivia Engenharia</title>
+    <meta name="description" content="Acesse sua área exclusiva SoLivia Engenharia. Acompanhe seu projeto solar, baixe documentos e fale com nosso suporte.">
+    <link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
     <!-- ===== VERIFICAÇÃO DE TOKEN ===== -->
     <script>
@@ -11,9 +27,7 @@
             const token = localStorage.getItem('tokenCliente');
             if (token) {
                 document.documentElement.classList.add('is-logged-in');
-                console.log('🔑 Token encontrado. Estado: LOGADO');
             } else {
-                console.log('🔓 Nenhum token. Estado: PÚBLICO');
             }
         })();
     </script>
@@ -134,8 +148,8 @@
             flex: 0 1 auto;
         }
         .header-minimal .header__left .avatar {
-            width: 32px;
-            height: 32px;
+            width: 45px;
+            height: 45px;
             background: #ffc400;
             border-radius: 50%;
             display: flex;
@@ -145,7 +159,7 @@
             color: #0b2f5c;
             position: relative;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
             overflow: hidden;
                 margin-top: 0.4rem;   /* alinha com o logo */
         }
@@ -203,20 +217,26 @@
         .header-minimal .header__left .logout:hover {
             background: rgba(255,255,255,0.3);
         }
-        .header-minimal .header__right {
-            display: flex;
-            align-items: center;
-            margin-left: auto;
-            margin-right: 2.8rem;
-        }
-        .header-minimal .header__right img {
-            height: 42px;
-            background: white;
-            padding: 3px 10px;
-            border-radius: 4px;
-            display: block;
-                margin-top: 0.4rem;   /* ← desce apenas o logo */
-        }
+        /* Fixa o logo no canto direito, independente do nome */
+.header-minimal .header__container {
+    position: relative; /* necessário para o posicionamento absoluto */
+}
+
+.header-minimal .header__right {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 2.8rem;
+}
+
+.header-minimal .header__right img {
+    height: 42px;
+    background: white;
+    padding: 3px 10px;
+    border-radius: 4px;
+    display: block;
+    margin: 0;          /* remove margens antigas */
+}
 
         /* ===== MOBILE MENU ===== */
         .mobile-menu {
@@ -1324,6 +1344,16 @@
                 align-items: stretch;
             }
             
+            .header-minimal .header__right {
+    position: absolute;
+    right: -28px;   /* ← ajuste conforme necessário */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
             /* ===== MODAL PLANOS MOBILE - GRID EM LINHA ===== */
 .modal-planos {
     padding: 0.5rem !important;
@@ -1998,6 +2028,7 @@
     
 </head>
 <body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-53DHR8PB" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <!-- ==================== HEADER PÚBLICO ==================== -->
     <header class="header-publico view-public">
@@ -2303,6 +2334,24 @@
         const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbw75sx77HBdie37fqoBg60wWgbb5QxD9uN5-Ee3aemwy8jVP2lqDImO0Brx4iFzsVan/exec';
 
         // ============================================================
+// FUNÇÃO PARA REQUISIÇÕES COM TIMEOUT
+// ============================================================
+async function fetchWithTimeout(url, options = {}, timeout = 60000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('A requisição demorou muito e foi cancelada.');
+        }
+        throw error;
+    }
+}
+        // ============================================================
         // ESTADO GLOBAL
         // ============================================================
         const App = {
@@ -2425,7 +2474,7 @@ btnEntrar.appendChild(spinner);
 btnEntrar.appendChild(document.createTextNode(' Entrando...'));
 
             try {
-                const resp = await fetch(URL_SCRIPT, {
+                const resp = await fetchWithTimeout(URL_SCRIPT, {
                     method: 'POST',
                     body: JSON.stringify({ acao: 'login', email, senha })
                 });
@@ -2435,7 +2484,30 @@ btnEntrar.appendChild(document.createTextNode(' Entrando...'));
     AuthService.setToken(resultado.token);
     App.token = resultado.token;
     localStorage.setItem('senhaPadrao', resultado.senha_padrao ? 'true' : 'false'); // ← ADICIONE
-    location.reload();
+        // Mostra a área logada com spinner imediatamente
+    document.documentElement.classList.add('is-logged-in');
+    document.getElementById('subDashboard').textContent = 'Carregando seus dados...';
+    document.getElementById('cardsGrid').innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:3rem;">
+            <div style="width:40px; height:40px; border:4px solid #e2e8f0; border-top:4px solid #0b2f5c; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 1rem;"></div>
+            <p style="color:#64748b; font-weight:500;">Aguarde, estamos carregando seu projeto...</p>
+        </div>
+    `;
+    // ===== CARREGA OS DADOS SEM RECARREGAR A PÁGINA =====
+    const btnEntrar = document.querySelector('.login-card .btn-entrar');
+    btnEntrar.disabled = true;
+    btnEntrar.innerHTML = '<span class="spinner"></span> Carregando dados...';
+
+    try {
+        await carregarDadosCliente(resultado.token);
+        // O `render()` será chamado automaticamente dentro de `carregarDadosCliente`
+    } catch (err) {
+        console.error('Erro ao carregar dados após login:', err);
+        document.getElementById('loginErro').textContent = 'Erro ao carregar dados. Tente novamente.';
+        document.getElementById('loginErro').style.display = 'block';
+        btnEntrar.disabled = false;
+        btnEntrar.textContent = 'Entrar';
+    }
 } else {
                     loginErro.textContent = resultado.error || 'E-mail ou senha inválidos.';
                     loginErro.style.display = 'block';
@@ -2477,14 +2549,13 @@ async function trocarSenhaObrigatoria() {
 
     try {
         const resp = await fetch(URL_SCRIPT, {
-            method: 'POST',
-            body: JSON.stringify({
-                acao: 'adminAtualizarCliente',
-                idCliente: App.cliente.id,
-                campos: { senha: novaSenha },
-                senhaAdmin: 'SoLiVi@64253798@'
-            })
-        });
+    method: 'POST',
+    body: JSON.stringify({
+        acao: 'clienteAtualizarSenha',
+        token: App.token,
+        novaSenha: novaSenha
+    })
+});
         const resultado = await resp.json();
 
         if (resultado.success) {
@@ -2516,7 +2587,7 @@ async function trocarSenhaObrigatoria() {
         // ============================================================
         async function carregarDadosCliente(token) {
     try {
-        const resp = await fetch(URL_SCRIPT, {
+        const resp = await fetchWithTimeout(URL_SCRIPT, {
             method: 'POST',
             body: JSON.stringify({ acao: 'buscarDadosCliente', token })
         });
@@ -2527,36 +2598,13 @@ async function trocarSenhaObrigatoria() {
             // Mantém a informação de senha padrão
             const senhaPadraoSalva = localStorage.getItem('senhaPadrao');
 App.cliente.senha_padrao = senhaPadraoSalva === 'true';
-console.log('🔍 senha_padrao (do localStorage):', App.cliente.senha_padrao);
 if (App.senhaPadrao !== undefined) {
     App.cliente.senha_padrao = App.senhaPadrao;
 }
-            console.log('🔍 senha_padrao:', App.cliente.senha_padrao);
             App.autenticado = true;
             App.token = token;
 
-            // ===== BUSCA DADOS COMPLETOS (COM PRÉ-PROPOSTA E ARQUIVADO) =====
-            try {
-                const respCompleta = await fetch(URL_SCRIPT, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        acao: 'adminObterCliente',
-                        idCliente: App.cliente.id,
-                        senhaAdmin: 'SoLiVi@64253798@'
-                    })
-                });
-                const resultadoCompleto = await respCompleta.json();
-                if (resultadoCompleto.success) {
-                    // Mescla os dados completos no cliente
-                    App.cliente = {
-                        ...App.cliente,
-                        ...resultadoCompleto.cliente
-                    };
-                }
-            } catch (err) {
-                console.warn('Erro ao buscar dados completos:', err);
-            }
-
+    
             const mapaEtapa = { visita: 1, documentos: 2, instalacao: 3, homologacao: 4, posvenda: 5 };
             App.etapaAtual = mapaEtapa[App.cliente.etapa_atual] || 1;
             document.documentElement.classList.add('is-logged-in');
@@ -2690,7 +2738,7 @@ if (App.cliente && App.cliente.senha_padrao === true) {
 
             try {
                 const base64 = await fileParaBase64(file);
-                const resp = await fetch(URL_SCRIPT, {
+                const resp = await fetchWithTimeout(URL_SCRIPT, {
                     method: 'POST',
                     body: JSON.stringify({
                         acao: 'uploadFotoPerfil',
@@ -2755,7 +2803,16 @@ function exibirModalAviso(titulo, mensagem, cor = '#0b2f5c') {
     modal.style.display = 'flex';
     modal.classList.add('active');
 }
-
+function obterTiposDocumentos() {
+    const documentos = App.cliente ? App.cliente.documentos : {};
+    const todosTipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
+    const tiposVisiveis = todosTipos.filter(tipo => {
+        const doc = documentos[tipo];
+        if (doc && doc.visivel === false) return false;
+        return true;
+    });
+    return tiposVisiveis;
+}
 function fecharModalAviso() {
     const modal = document.getElementById('modalAvisoCustom');
     if (modal) {
@@ -2784,15 +2841,14 @@ function fecharModalAviso() {
                     id: 'visita',
                     titulo: 'Visita Técnica',
                     status: v.resultado ? 'Concluído' : (v.data_agendada ? 'Em andamento' : 'Pendente'),
-                    resumo: v.data_realizacao ? 'Visita realizada em ' + new Date(v.data_realizacao).toLocaleDateString('pt-BR') : (v.data_agendada ? 'Agendada para ' + new Date(v.data_agendada).toLocaleDateString('pt-BR') : 'Aguardando agendamento')
+                    resumo: v.data_realizacao ? 'Visita realizada em ' + formatDate(v.data_realizacao) : (v.data_agendada ? 'Agendada para ' + formatDate(v.data_agendada) : 'Aguardando agendamento')
                 },
                 {
     id: 'documentos',
     titulo: 'Documentos',
     status: (() => {
-        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
-        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
-        const contratoAssinado = d.contrato && (d.contrato.status === 'assinado' || d.contrato.url_assinado);
+        const tipos = obterTiposDocumentos(); // ← usa a função
+        const enviados = tipos.filter(t => d[t] && (d[t].status === 'enviado' || d[t].status === 'Recebido' || d[t].status === 'Validado')).length;        const contratoAssinado = d.contrato && (d.contrato.status === 'assinado' || d.contrato.url_assinado);
 
         if (contratoAssinado) {
             return 'Concluído';
@@ -2805,9 +2861,8 @@ function fecharModalAviso() {
         }
     })(),
     resumo: (() => {
-        const tipos = ['rg', 'cpf', 'comprovante', 'fatura', 'renda'];
-        const enviados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
-        const contratoAssinado = d.contrato && (d.contrato.status === 'assinado' || d.contrato.url_assinado);
+        const tipos = obterTiposDocumentos(); // ← usa a função
+        const enviados = tipos.filter(t => d[t] && (d[t].status === 'enviado' || d[t].status === 'Recebido' || d[t].status === 'Validado')).length;        const contratoAssinado = d.contrato && (d.contrato.status === 'assinado' || d.contrato.url_assinado);
         if (contratoAssinado) return 'Contrato assinado e documentos completos';
         if (enviados === tipos.length) return 'Documentos validados, aguardando assinatura';
         return `${enviados} de ${tipos.length} documentos enviados`;
@@ -2923,23 +2978,18 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
        function formatDate(value) {
     if (!value) return 'Não informado';
     
-    // Se já estiver no formato DD/MM/AAAA, converte para YYYY-MM-DD
-    if (value.includes('/')) {
-        const partes = value.split('/');
-        if (partes.length === 3) {
-            const dia = partes[0].padStart(2, '0');
-            const mes = partes[1].padStart(2, '0');
-            const ano = partes[2];
-            const data = new Date(`${ano}-${mes}-${dia}`);
-            if (!isNaN(data)) {
-                return data.toLocaleDateString('pt-BR');
-            }
-        }
+    // Se já estiver no formato DD/MM/AAAA ou DD/MM/AA, retorna diretamente
+    if (typeof value === 'string' && value.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        return value; // já está no formato correto
     }
     
+    // Tenta parsear como objeto Date
     const d = new Date(value);
-    if (isNaN(d.getTime())) return 'Não informado';
-    return d.toLocaleDateString('pt-BR');
+    if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('pt-BR');
+    }
+    
+    return 'Não informado';
 }
 
         function safeValue(value, fallback = 'Não informado') {
@@ -3016,59 +3066,83 @@ if (cliente.etapa_atual === 'arquivado' || idx > etapaAtual) {
     return `
         <div class="timeline-modern">
             ${items.map(item => {
-                if (item.clickable && item.url) {
-                    return `
-                        <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''} timeline-clickable" onclick="baixarRelatorio('${item.url}')">
-                            <div class="timeline-modern__dot"></div>
-                            <div class="timeline-modern__content">
-                                <strong style="color: #0b2f5c; text-decoration: underline;">${item.title}</strong>
-                                <span style="color: #0b2f5c; text-decoration: underline;">${item.description || 'Clique para baixar'}</span>
-                            </div>
-                        </div>
-                    `;
-                }
+    if (item.clickable && item.url) {
+        return `
+            <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''} timeline-clickable" onclick="baixarRelatorio('${item.url}')">
+                <div class="timeline-modern__dot"></div>
+                <div class="timeline-modern__content">
+                    <strong style="color: #0b2f5c; text-decoration: underline;">${item.title}</strong>
+                    <span style="color: #0b2f5c; text-decoration: underline;">${item.description || 'Clique para baixar'}</span>
+                </div>
+            </div>
+        `;
+    }
+    // Se tiver extra, exibe como um badge ou junto com a descrição
+    const extraHtml = item.extra ? ` <span style="font-size:0.8rem; font-weight:600; ${item.state === 'done' ? 'color:#16a34a' : item.state === 'warning' ? 'color:#f59e0b' : item.state === 'danger' ? 'color:#dc2626' : 'color:#64748b'}">(${item.extra})</span>` : '';
+    return `
+        <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''}">
+            <div class="timeline-modern__dot"></div>
+            <div class="timeline-modern__content">
+                <strong>${item.title}</strong>
+                <span>${item.description || 'Sem atualização'}${extraHtml}</span>
+            </div>
+        </div>
+    `;
+}).join('')}
+        </div>
+    `;
+}
+
+        function renderChecklist(items = {}) {
+    const entries = Object.entries(items || {});
+    if (!entries.length) {
+        return '<div class="empty-state-inline">Nenhum item registrado até o momento.</div>';
+    }
+
+    // Função auxiliar para formatar o texto
+    function formatarLabel(label) {
+        const labelLower = label.toLowerCase();
+        
+        // Casos especiais (mapeamento)
+        const especiais = {
+            'wi-fi': 'Wi-Fi',
+            'wifi': 'Wi-Fi',
+            'padrao': 'Padrão',
+            'padrão': 'Padrão'
+        };
+        
+        if (especiais[labelLower]) {
+            return especiais[labelLower];
+        }
+        
+        // Capitaliza a primeira letra e mantém o resto
+        return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    return `
+        <div class="check-grid-modern">
+            ${entries.map(([label, value]) => {
+                const state = String(value || '').toLowerCase();
+                const cls = state.includes('ok')
+                    ? 'success'
+                    : state.includes('aten')
+                    ? 'warning'
+                    : state.includes('reprov')
+                    ? 'danger'
+                    : 'neutral';
+
+                const labelFormatado = formatarLabel(label);
+
                 return `
-                    <div class="timeline-modern__item ${item.state ? `is-${item.state}` : ''}">
-                        <div class="timeline-modern__dot"></div>
-                        <div class="timeline-modern__content">
-                            <strong>${item.title}</strong>
-                            <span>${item.description || 'Sem atualização'}</span>
-                        </div>
+                    <div class="check-pill check-pill--${cls}">
+                        <span>${labelFormatado}</span>
+                        <strong>${value}</strong>
                     </div>
                 `;
             }).join('')}
         </div>
     `;
 }
-
-        function renderChecklist(items = {}) {
-            const entries = Object.entries(items || {});
-            if (!entries.length) {
-                return '<div class="empty-state-inline">Nenhum item registrado até o momento.</div>';
-            }
-
-            return `
-                <div class="check-grid-modern">
-                    ${entries.map(([label, value]) => {
-                        const state = String(value || '').toLowerCase();
-                        const cls = state.includes('ok')
-                            ? 'success'
-                            : state.includes('aten')
-                            ? 'warning'
-                            : state.includes('reprov')
-                            ? 'danger'
-                            : 'neutral';
-
-                        return `
-                            <div class="check-pill check-pill--${cls}">
-                                <span>${label}</span>
-                                <strong>${value}</strong>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
 
         function renderDocumentItem(tipoDoc, label, info) {
             const status = info.status || 'Pendente';
@@ -3112,47 +3186,50 @@ function mostrarModalTrocarSenha() {
         // FUNÇÃO: MOSTRAR DETALHES (NOVA VERSÃO)
         // ============================================================
         async function mostrarDetalhes(tipo) {
-            console.log('🖱️ Clicou em:', tipo);
 
-            const card = document.querySelector(`[data-tipo="${tipo}"]`);
-            if (card && card.classList.contains('bloqueado')) {
-                alert('⚠️ Esta etapa ainda não está disponível.');
-                return;
-            }
-          
-            const grid = document.getElementById('cardsGrid');
-            const area = document.getElementById('detalhesArea');
-            const conteudo = document.getElementById('detalhesConteudo');
-            const posVenda = document.getElementById('cardPosVenda');
-
-            if (grid) grid.classList.add('oculto');
-            if (posVenda) {
-                posVenda.classList.add('oculto');
-            }
-
- // ===== MOSTRA SPINNER DE CARREGAMENTO =====
-area.classList.add('ativo');
-conteudo.innerHTML = `
-    <div style="display:flex; justify-content:center; align-items:center; padding:3rem;">
-        <div style="text-align:center;">
-            <div style="width:40px; height:40px; border:4px solid #e2e8f0; border-top:4px solid #0b2f5c; border-radius:50%; animation: spin 1s linear infinite; margin:0 auto 1rem;"></div>
-            <p style="color:#64748b; font-weight:500;">Carregando dados...</p>
-        </div>
-    </div>
-`;
-area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-// ===== TIMEOUT DE SEGURANÇA =====
-const timeoutId = setTimeout(() => {
-    if (conteudo.innerHTML.includes('Carregando dados')) {
-        conteudo.innerHTML = `
-            <div style="text-align:center; padding:2rem;">
-                <p style="color:#b91c1c;">⏳ O carregamento está demorando mais que o esperado.</p>
-                <button onclick="mostrarDetalhes('${tipo}')" style="background:#ffc400; border:none; padding:0.5rem 1.5rem; border-radius:50px; font-weight:700; cursor:pointer;">Tentar novamente</button>
-            </div>
-        `;
+    const card = document.querySelector(`[data-tipo="${tipo}"]`);
+    if (card && card.classList.contains('bloqueado')) {
+        alert('⚠️ Esta etapa ainda não está disponível.');
+        return;
     }
-}, 15000); // 15 segundos
+
+    const grid = document.getElementById('cardsGrid');
+    const area = document.getElementById('detalhesArea');
+    const conteudo = document.getElementById('detalhesConteudo');
+    const posVenda = document.getElementById('cardPosVenda');
+
+    if (grid) grid.classList.add('oculto');
+    if (posVenda) posVenda.classList.add('oculto');
+
+    // ===== 1. MOSTRA O SPINNER IMEDIATAMENTE =====
+    area.classList.add('ativo');
+    conteudo.innerHTML = `
+        <div style="display:flex; justify-content:center; align-items:center; padding:3rem;">
+            <div style="text-align:center;">
+                <div style="width:40px; height:40px; border:4px solid #e2e8f0; border-top:4px solid #0b2f5c; border-radius:50%; animation: spin 1s linear infinite; margin:0 auto 1rem;"></div>
+                <p style="color:#64748b; font-weight:500;">Carregando dados...</p>
+            </div>
+        </div>
+    `;
+    area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // ===== 2. AGORA CARREGA OS DADOS (com um pequeno delay para garantir que o spinner seja renderizado) =====
+    await new Promise(resolve => setTimeout(resolve, 50)); // pequeno delay para o spinner aparecer
+    if (App.token) {
+        await carregarDadosCliente(App.token);
+    }
+
+    // ===== TIMEOUT DE SEGURANÇA (opcional) =====
+    const timeoutId = setTimeout(() => {
+        if (conteudo.innerHTML.includes('Carregando dados')) {
+            conteudo.innerHTML = `
+                <div style="text-align:center; padding:2rem;">
+                    <p style="color:#b91c1c;">⏳ O carregamento está demorando mais que o esperado.</p>
+                    <button onclick="mostrarDetalhes('${tipo}')" style="background:#ffc400; border:none; padding:0.5rem 1.5rem; border-radius:50px; font-weight:700; cursor:pointer;">Tentar novamente</button>
+                </div>
+            `;
+        }
+    }, 15000); // 15 segundos
 
 // ==========================================
 
@@ -3193,28 +3270,56 @@ clearTimeout(timeoutId);
 
     heroStatus = v.resultado || (v.data_agendada ? 'Em andamento' : 'Pendente');
     heroMeta = [
-        renderMetric('📅', 'Agendamento', formatDate(v.data_agendada), v.data_agendada ? 'Data prevista da visita' : 'Aguardando definição'),
-        renderMetric('🧑‍🔧', 'Responsável', safeValue(v.engenheiro), 'Técnico responsável'),
-        renderMetric('📍', 'Endereço', safeValue(cliente.endereco, 'Endereço não informado')),
-        renderMetric('✅', 'Resultado', renderBadge(v.resultado || 'Pendente'), v.resultado ? 'Status final da análise' : 'Ainda sem conclusão')
-    ].join('');
+    renderMetric('📅', 'Agendamento', formatDate(v.data_agendada), v.data_agendada ? 'Data prevista da visita' : 'Aguardando definição'),
+    renderMetric('🧑‍🔧', 'Responsável', safeValue(v.engenheiro), 'Técnico responsável'),
+    renderMetric('✅', 'Resultado', renderBadge(v.resultado || 'Pendente'), v.resultado ? 'Status final da análise' : 'Ainda sem conclusão')
+].join('');
 
     // ===== CONSTRÓI A TIMELINE COM PRÉ-PROPOSTA =====
-    const timelineItems = [];
-    if (pp.url && pp.url.trim() !== '') {
-        timelineItems.push({
-            title: '📄 Pré-proposta',
-            description: 'Clique para baixar o PDF',
-            state: 'done',
-            clickable: true,
-            url: pp.url.trim()
-        });
+    // ===== AVALIAÇÃO TÉCNICA BASEADA NO CHECKLIST =====
+const checklist = v.checklist || {};
+const valores = Object.values(checklist);
+const todosPreenchidos = valores.every(val => val && String(val).trim() !== '');
+const temOk = valores.some(val => String(val).toLowerCase().includes('ok'));
+const temAtencao = valores.some(val => String(val).toLowerCase().includes('atencao') || String(val).toLowerCase().includes('atenção'));
+const temReprov = valores.some(val => String(val).toLowerCase().includes('reprov') || String(val).toLowerCase().includes('reprovado'));
+
+let estadoTecnico = 'pending';
+let descTecnico = 'Pendente';
+let dataTecnica = 'Pendente';
+
+if (todosPreenchidos) {
+    if (temReprov) {
+        estadoTecnico = 'danger';
+        descTecnico = 'Reprovado';
+    } else if (temAtencao) {
+        estadoTecnico = 'warning';
+        descTecnico = 'Aprovado com ajustes';
+    } else if (temOk) {
+        estadoTecnico = 'done';
+        descTecnico = 'Aprovado';
     }
-    timelineItems.push(
-        { title: 'Visita agendada', description: v.data_agendada ? formatDate(v.data_agendada) : 'Aguardando agendamento', state: v.data_agendada ? 'done' : 'pending' },
-        { title: 'Visita realizada', description: v.data_realizacao ? formatDate(v.data_realizacao) : 'Ainda não realizada', state: v.data_realizacao ? 'done' : 'pending' },
-        { title: 'Aprovação', description: v.assinatura_data ? formatDate(v.assinatura_data) : 'Pendente', state: v.assinatura_data ? 'done' : 'pending' }
-    );
+    // Usa a data de aprovação técnica se existir; senão, usa a data de hoje
+    dataTecnica = v.data_aprovacao_tecnica ? formatDate(v.data_aprovacao_tecnica) : new Date().toLocaleDateString('pt-BR');
+}
+
+// ===== CONSTRÓI A TIMELINE =====
+const timelineItems = [];
+if (pp.url && pp.url.trim() !== '') {
+    timelineItems.push({
+        title: '📄 Pré-proposta',
+        description: 'Clique para baixar o PDF',
+        state: 'done',
+        clickable: true,
+        url: pp.url.trim()
+    });
+}
+timelineItems.push(
+    { title: 'Visita agendada', description: v.data_agendada ? formatDate(v.data_agendada) : 'Aguardando agendamento', state: v.data_agendada ? 'done' : 'pending' },
+    { title: 'Visita realizada', description: v.data_realizacao ? formatDate(v.data_realizacao) : 'Ainda não realizada', state: v.data_realizacao ? 'done' : 'pending' },
+    { title: 'Aprovação técnica', description: dataTecnica, state: estadoTecnico, extra: descTecnico }, // ← NOVO
+    { title: 'Aprovação do cliente', description: v.assinatura_data ? formatDate(v.assinatura_data) : 'Pendente', state: v.assinatura_data ? 'done' : 'pending' } // ← RENOMEADO
+);
 
     const timelineHtml = renderTimeline(timelineItems);
 
@@ -3242,48 +3347,119 @@ clearTimeout(timeoutId);
                         renda: 'Comprovante de renda'
                     };
 
-                    const enviados = tipos.filter(t => d[t] && String(d[t].status || '').toLowerCase() === 'validado').length;
-                    const progresso = Math.round((enviados / tipos.length) * 100);
+                    const enviados = tipos.filter(t => d[t] && (d[t].status === 'enviado' || d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
+const validados = tipos.filter(t => d[t] && (d[t].status === 'Recebido' || d[t].status === 'Validado')).length;
+const progresso = Math.round((validados / tipos.length) * 100);
 
                     // ===== STATUS DO HERO (CONSIDERANDO CONTRATO) =====
 const contratoAssinado = contrato && contrato.status === 'assinado';
 
 if (contratoAssinado) {
     heroStatus = 'Concluído';
-} else if (enviados === tipos.length) {
+} else if (validados === tipos.length) {
     heroStatus = 'Aguardando assinatura';
-} else if (enviados > 0) {
+} else if (validados > 0) {
     heroStatus = 'Em andamento';
 } else {
     heroStatus = 'Pendente';
 }
-                    heroMeta = [
-                        renderMetric('📦', 'Documentos enviados', `${enviados} de ${tipos.length}`, 'Progresso do envio'),
-                        renderMetric('📈', 'Conclusão', `${progresso}%`, 'Percentual concluído'),
-                        renderMetric('✍️', 'Contrato', contrato.status ? renderBadge(contrato.status) : 'Aguardando contrato', 'Situação contratual'),
-                        renderMetric('🔐', 'Validação', enviados === tipos.length ? 'Documentação completa' : 'Envios pendentes', 'Status da pasta documental')
-                    ].join('');
+                    // ===== KPIs DINÂMICOS DOS DOCUMENTOS =====
+let heroMeta = [];
+
+// Verifica se todos os documentos foram validados
+const todosValidados = validados === tipos.length;
+// Verifica se o contrato está assinado (já definido acima como contratoAssinado)
+// Usamos a variável `contratoAssinado` que já existe no seu código
+
+// Se tudo está completo (documentos validados + contrato assinado)
+if (todosValidados && contratoAssinado) {
+    heroMeta.push(renderMetric('✅', 'Concluído', 'Todos os documentos e contrato assinados', contrato.data_assinatura ? `Assinado em ${formatDate(contrato.data_assinatura)}` : ''));
+} else {
+    // 1. Documentos enviados (enquanto houver pendências)
+    if (enviados < tipos.length) {
+        heroMeta.push(renderMetric('📦', 'Documentos enviados', `${enviados} de ${tipos.length}`, 'Progresso do envio'));
+    } else {
+        // Se todos foram enviados, mostra "Todos enviados" de forma resumida
+        heroMeta.push(renderMetric('📦', 'Documentos', 'Todos enviados', 'Aguardando validação'));
+    }
+
+    // 2. Contrato (se ainda não estiver assinado)
+    if (!contratoAssinado) {
+        const statusContrato = contrato.status ? renderBadge(contrato.status) : 'Aguardando contrato';
+        heroMeta.push(renderMetric('✍️', 'Contrato', statusContrato, contrato.link_assinatura ? 'Clique no botão para assinar' : ''));
+    }
+
+    // 3. Validação (mostra o status da validação)
+    if (!todosValidados) {
+        heroMeta.push(renderMetric('🔐', 'Validação', 'Pendente', `${validados} de ${tipos.length} validados`));
+    } else {
+        heroMeta.push(renderMetric('🔐', 'Validação', 'Documentação completa', 'Aguardando assinatura do contrato'));
+    }
+}
+
+heroMeta = heroMeta.join('');
 
                     const docsHtml = tipos.map(tipoDoc =>
                         renderDocumentItem(tipoDoc, labels[tipoDoc], d[tipoDoc] || {})
                     ).join('');
 
-                    const contractHtml = (contrato.url || contrato.link_assinatura || contrato.status)
-                        ? `
-                            <div class="contract-highlight">
-                                <div>
-                                    <span class="contract-highlight__label">Contrato do projeto</span>
-                                    <h4>Central de contrato e assinatura</h4>
-                                    <p>Aqui ficam reunidos o PDF, o link de assinatura e o status atualizado do contrato.</p>
-                                </div>
-                                <div class="contract-highlight__actions">
-                                    ${contrato.url ? `<button onclick="baixarPDF('${contrato.url}')" style="background: rgba(255,255,255,0.15); color: #ffffff; border: none; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 700; cursor: pointer; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">📄 Baixar PDF</button>` : ''}
-                                    ${contrato.link_assinatura ? `<a href="${contrato.link_assinatura}" target="_blank" class="botao-acao">✍️ Assinar contrato</a>` : ''}
-                                    ${contrato.status ? renderBadge(contrato.status) : ''}
-                                </div>
-                            </div>
-                        `
-                        : '<div class="empty-state-inline">Contrato ainda não disponibilizado.</div>';
+                    // ===== CONTRATO COM PRIORIDADE PARA ASSINADO =====
+let contractHtml = '';
+
+// Verifica se o contrato já foi assinado (tem url_assinado)
+if (contrato.url_assinado) {
+    // Contrato assinado disponível
+    contractHtml = `
+        <div class="contract-highlight" style="background: linear-gradient(135deg, #0a6b3b 0%, #0b8a4a 100%);">
+            <div>
+                <span class="contract-highlight__label" style="color: rgba(255,255,255,0.8);">✅ Contrato assinado</span>
+                <h4 style="color: #fff;">Seu contrato foi assinado com sucesso!</h4>
+                <p style="color: rgba(255,255,255,0.85);">O documento final está disponível para download abaixo.</p>
+            </div>
+            <div class="contract-highlight__actions">
+                <button onclick="baixarPDF('${contrato.url_assinado}')" style="background: white; color: #0a6b3b; border: none; padding: 0.6rem 1.8rem; border-radius: 50px; font-weight: 700; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                    📄 Baixar contrato assinado
+                </button>
+                ${contrato.status ? `<span class="ui-badge ui-badge--success">Assinado em ${contrato.data_assinatura ? formatDate(contrato.data_assinatura) : ''}</span>` : ''}
+            </div>
+        </div>
+    `;
+} else if (contrato.link_assinatura) {
+    // Contrato enviado para assinatura (aguardando)
+    contractHtml = `
+        <div class="contract-highlight">
+            <div>
+                <span class="contract-highlight__label">📜 Contrato para assinatura</span>
+                <h4>Clique no botão para assinar seu contrato</h4>
+                <p>Após a assinatura, o documento final será disponibilizado automaticamente aqui.</p>
+            </div>
+            <div class="contract-highlight__actions">
+                <a href="${contrato.link_assinatura}" target="_blank" class="botao-acao" style="background: #ffc400; color: #0b2f5c; padding: 0.6rem 1.8rem; border-radius: 50px; font-weight: 700; text-decoration: none; display: inline-block;">
+                    ✍️ Assinar contrato
+                </a>
+                ${contrato.status ? renderBadge(contrato.status) : ''}
+                ${contrato.url ? `<button onclick="baixarPDF('${contrato.url}')" style="background: rgba(255,255,255,0.15); color: #ffffff; border: none; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 700; cursor: pointer; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">📄 Baixar minuta</button>` : ''}
+            </div>
+        </div>
+    `;
+} else if (contrato.url) {
+    // Contrato gerado, mas não enviado para assinatura (fallback)
+    contractHtml = `
+        <div class="contract-highlight">
+            <div>
+                <span class="contract-highlight__label">📄 Contrato gerado</span>
+                <h4>Seu contrato está disponível</h4>
+                <p>O documento será enviado para assinatura em breve.</p>
+            </div>
+            <div class="contract-highlight__actions">
+                <button onclick="baixarPDF('${contrato.url}')" style="background: rgba(255,255,255,0.15); color: #ffffff; border: none; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 700; cursor: pointer; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">📄 Baixar PDF</button>
+                ${contrato.status ? renderBadge(contrato.status) : ''}
+            </div>
+        </div>
+    `;
+} else {
+    contractHtml = '<div class="empty-state-inline">Contrato ainda não disponibilizado.</div>';
+} 
 
                     sections = [
                         renderSection(
@@ -3292,9 +3468,9 @@ if (contratoAssinado) {
                             `
                                 <div class="progress-card-modern">
                                     <div class="progress-card-modern__top">
-                                        <strong>${enviados} de ${tipos.length} documentos validados</strong>
-                                        <span>${progresso}% concluído</span>
-                                    </div>
+    <strong>${validados} de ${tipos.length} documentos validados</strong>
+    <span>${progresso}% concluído</span>
+</div>
                                     <div class="progress-bar-modern"><span style="width:${progresso}%"></span></div>
                                 </div>
                                 <div class="doc-grid-modern">${docsHtml}</div>
@@ -3425,12 +3601,38 @@ heroMeta = [
 
                 case 'homologacao': {
                     heroStatus = h.resultado || (h.protocolo ? 'Em andamento' : 'Pendente');
-                    heroMeta = [
-                        renderMetric('🏢', 'Concessionária', safeValue(h.concessionaria), h.protocolo ? `Protocolo ${h.protocolo}` : 'Sem protocolo ainda'),
-                        renderMetric('📤', 'Envio', formatDate(h.data_envio), 'Data de submissão'),
-                        renderMetric('🧪', 'Vistoria', formatDate(h.data_vistoria), safeValue(h.medidor, 'Medidor não instalado')),
-                        renderMetric('⚡', 'Liberação', h.data_liberacao ? formatDate(h.data_liberacao) : renderBadge(heroStatus), 'Situação da homologação')
-                    ].join('');
+                    // ===== KPIs DINÂMICOS DA HOMOLOGAÇÃO =====
+let heroMeta = [];
+
+// 1. Concessionária (sempre presente)
+heroMeta.push(renderMetric('🏢', 'Concessionária', safeValue(h.concessionaria), h.protocolo ? `Protocolo ${h.protocolo}` : 'Sem protocolo ainda'));
+
+// 2. Próximo passo principal (Envio → Vistoria → Liberação)
+if (h.data_liberacao) {
+    heroMeta.push(renderMetric('⚡', 'Liberação', formatDate(h.data_liberacao), 'Sistema liberado!'));
+} else if (h.data_vistoria) {
+    heroMeta.push(renderMetric('🧪', 'Vistoria', formatDate(h.data_vistoria), safeValue(h.medidor, 'Medidor não instalado')));
+} else if (h.data_envio) {
+    heroMeta.push(renderMetric('📤', 'Envio', formatDate(h.data_envio), 'Data de submissão'));
+} else {
+    heroMeta.push(renderMetric('📤', 'Envio', 'Aguardando', 'Ainda não enviado'));
+}
+
+// 3. Status geral
+heroMeta.push(renderMetric('📊', 'Status', renderBadge(heroStatus), 'Situação da homologação'));
+
+// 4. Previsão do próximo passo (opcional – pode remover se quiser)
+if (h.data_liberacao) {
+    heroMeta.push(renderMetric('✅', 'Conclusão', 'Homologado com sucesso', formatDate(h.data_liberacao)));
+} else if (h.data_vistoria) {
+    heroMeta.push(renderMetric('⏳', 'Próximo passo', 'Aguardando liberação', 'Após vistoria'));
+} else if (h.data_envio) {
+    heroMeta.push(renderMetric('⏳', 'Próximo passo', 'Aguardando vistoria', 'Acompanhe a concessionária'));
+} else {
+    heroMeta.push(renderMetric('⏳', 'Próximo passo', 'Aguardando envio', 'Documentação em análise'));
+}
+
+heroMeta = heroMeta.join('');
 
                     const ensaios = [
                         ['Tensão em circuito aberto (Voc)', c.ensaio_voc, c.ensaio_voc_resultado],
@@ -3495,7 +3697,7 @@ heroMeta = [
                                         ${renderInfoRow('Responsável', safeValue(c.responsavel))}
                                         ${renderInfoRow('Plataforma', safeValue(c.plataforma))}
                                         ${renderInfoRow('Login do inversor', safeValue(c.login))}
-                                        ${renderInfoRow('Senha do inversor', c.senha ? '••••••••' : 'Não informada')}
+                                        ${renderInfoRow('Senha do inversor', safeValue(c.senha, 'Não informada'))}
                                     </div>
                                     <div class="subsection-title-modern">Dados do sistema</div>
                                     <div class="info-grid-modern compacta">
@@ -3614,7 +3816,7 @@ renderSection(
                     <div class="detail-hero-modern__top">
                         <div>
                             <div class="detail-hero-modern__eyebrow">${config[tipo]?.icon || '📁'} Etapa do projeto</div>
-                            <h2>${config[tipo]?.title || 'Detalhes'}</h2>
+                            <h2>${config[tipo]?.title || 'Detalhes'}${tipo === 'visita' && cliente.endereco ? ` <span style="font-size: 0.7em; color: rgba(255,255,255,0.7); font-weight: 400;">(${cliente.endereco})</span>` : ''}</h2>
                             <p>${config[tipo]?.intro || 'Informações detalhadas da etapa.'}</p>
                         </div>
                         <div class="detail-hero-modern__status">${renderBadge(heroStatus)}</div>
@@ -3838,7 +4040,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     try {
         const base64 = await fileParaBase64(file);
-        const resp = await fetch(URL_SCRIPT, {
+        const resp = await fetchWithTimeout(URL_SCRIPT, {
             method: 'POST',
             body: JSON.stringify({
                 acao: 'uploadDocumento',
@@ -4102,7 +4304,7 @@ document.addEventListener('keydown', function(e) {
     btn.textContent = '⏳ Enviando...';
 
     try {
-        const resp = await fetch(URL_SCRIPT, {
+        const resp = await fetchWithTimeout(URL_SCRIPT, {
             method: 'POST',
             body: JSON.stringify({
                 acao: 'solicitarRedefinicaoSenha',
@@ -4153,7 +4355,7 @@ document.addEventListener('keydown', function(e) {
     btn.textContent = '⏳ Enviando...';
 
     try {
-        const resp = await fetch(URL_SCRIPT, {
+        const resp = await fetchWithTimeout(URL_SCRIPT, {
             method: 'POST',
             body: JSON.stringify({
                 acao: 'solicitarAcesso',
