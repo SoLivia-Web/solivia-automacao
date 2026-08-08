@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+<link rel="canonical" href="https://solivia.com.br/admin">
+<meta name="description" content="Painel administrativo SoLivia Engenharia – gestão de clientes e projetos solares.">
   <title>Painel Administrativo – SoLivia</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -562,11 +566,16 @@ body.admin-logged .header-admin .header-right {
       margin: 0 auto 1rem;
     }
     .spinner--pequeno {
-      width: 24px;
-      height: 24px;
-      border-width: 3px;
-      margin: 0;
-    }
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 3px solid rgba(11,47,92,0.2);
+    border-top: 3px solid #0b2f5c;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -2494,7 +2503,7 @@ body.admin-logged .hero-admin {
 // ============================================================
 // FUNÇÃO PARA REQUISIÇÕES COM TIMEOUT
 // ============================================================
-async function fetchWithTimeout(url, options = {}, timeout = 15000) {
+async function fetchWithTimeout(url, options = {}, timeout = 90000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     try {
@@ -2508,7 +2517,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
         }
         throw error;
     }
-}
+} 
     // ============================================================
     // FUNÇÃO PARA GARANTIR VALORES NOS CHECKBOXES (FALLBACK MELHORADO)
     // ============================================================
@@ -2786,7 +2795,11 @@ function confirmarArquivar() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ senha })
             });
-            const resultado = await resp.json();
+            const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
             if (resultado.success) {
                 localStorage.setItem('adminToken', resultado.token);
@@ -2945,7 +2958,18 @@ function atualizarContadores() {
         if (tabela) tabela.style.display = 'table';
     }
 }
-
+// ============================================================
+// FUNÇÃO AUXILIAR PARA PARSEAR RESPOSTAS JSON COM SEGURANÇA
+// ============================================================
+async function parseResponse(resp) {
+    const text = await resp.text();
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        console.warn('⚠️ Resposta não é JSON:', text.slice(0, 200));
+        return null;
+    }
+}
     async function salvarRelatorioUrl(clienteId, url) {
       try {
         const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/atualizar_relatorio_url', {
@@ -2956,7 +2980,11 @@ function atualizarContadores() {
             relatorio_url: url
           })
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
         if (resultado.success) {
           return true;
         } else {
@@ -3014,7 +3042,11 @@ function atualizarContadores() {
                 }
             })
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             exibirModalComAcao('✅ Avançado!', 'Cliente movido para Pós-venda com sucesso.', '', '#0b2f5c', function() {
@@ -3073,7 +3105,11 @@ function atualizarContadores() {
         }
     })
 });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             exibirModalComAcao(
@@ -3236,7 +3272,11 @@ function atualizarContadores() {
             method: 'GET',
             headers: getAdminHeaders()
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resp.status === 401) {
             localStorage.removeItem('adminToken');
@@ -3322,9 +3362,11 @@ if (erroEl) erroEl.style.display = 'none';
 
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
+const response = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
     method: 'POST',
-    headers: getAdminHeaders(),
+    headers: {
+        'Authorization': 'Bearer ' + token
+    },
     body: formData
 });
         const result = await response.json();
@@ -3743,9 +3785,12 @@ document.getElementById('arquivado_obs').value = arq.obs || '';
 
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
+const response = await fetch('https://SoliviaEnergia.pythonanywhere.com/api/upload_documento_admin', {
     method: 'POST',
-    headers: getAdminHeaders(),
+    headers: {
+        'Authorization': 'Bearer ' + token
+        // NÃO DEFINA Content-Type
+    },
     body: formData
 });
         const result = await response.json();
@@ -4352,7 +4397,11 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
         }
     })
 });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
           abrirModalCriarCliente(
@@ -4596,7 +4645,11 @@ function comprimirImagem(file, maxWidth = 800, maxHeight = 800, qualidade = 0.7)
             method: 'GET',
             headers: getAdminHeaders()
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             const c = resultado.cliente;
@@ -4900,7 +4953,11 @@ async function processarImagem(idInput, nomeCampo) {
     headers: getAdminHeaders(),
     body: JSON.stringify(payload)
 });
-    const resultado = await resp.json();
+    const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
     if (resultado.success) {
       status.textContent = '✅ Relatório gerado!';
@@ -5009,7 +5066,11 @@ btn.textContent = '⏳ Gerando...';
     headers: getAdminHeaders(),
     body: JSON.stringify({ cliente_id: clienteEditando.id })
 });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             const modalSucesso = document.getElementById('modalSucesso');
@@ -5105,7 +5166,11 @@ btn.textContent = '⏳ Gerando...';
             headers: getAdminHeaders(),
             body: JSON.stringify({ tipo: 'cliente', cliente_id: clienteEditando.id })
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             // Guarda dados do contrato no cliente
@@ -5174,7 +5239,11 @@ async function verificarAssinatura() {
             headers: getAdminHeaders(),
             body: JSON.stringify({ document_id: documentId })
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             exibirModalComAcao(
@@ -5280,7 +5349,11 @@ function refazerContrato() {
           headers: getAdminHeaders(),
           body: JSON.stringify({ tipo: 'prestador', dados: dados })
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
         if (resultado.success) {
           status.textContent = '✅ Contrato gerado!';
           alert('✅ Contrato gerado com sucesso!');
@@ -5359,7 +5432,11 @@ function refazerContrato() {
             throw new Error(`Erro HTTP: ${resp.status} - ${resp.statusText}`);
         }
 
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
 
         if (resultado.success) {
             // ===== MODAL PERSONALIZADO =====
@@ -5431,13 +5508,19 @@ function refazerContrato() {
       const btn = document.getElementById('btnConfirmarExcluir');
       btn.disabled = true;
       btn.textContent = '⏳ Excluindo...';
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
       try {
         const resp = await fetchWithTimeout('https://SoliviaEnergia.pythonanywhere.com/api/admin/cliente', {
           method: 'DELETE',
           headers: getAdminHeaders(),
           body: JSON.stringify({ idCliente: clienteExcluirId })
         });
-        const resultado = await resp.json();
+        const resultado = await parseResponse(resp);
+if (!resultado) {
+    alert('Erro ao processar resposta do servidor.');
+    return;
+}
         if (resultado.success) {
           abrirModalCriarCliente(
             'Cliente excluído com sucesso!',
@@ -5466,6 +5549,8 @@ function refazerContrato() {
       } finally {
         btn.disabled = false;
         btn.textContent = '⚠️ Sim, excluir';
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
       }
     }
 
@@ -5721,9 +5806,17 @@ function calcularResultadoVisita() {
 // ===== AÇÕES DO ARQUIVADO =====
 function reativarCliente() {
     if (!clienteEditando) return;
-    if (!confirm('Deseja reativar este cliente? Ele voltará para a etapa de Pré-proposta.')) return;
-    clienteEditando.etapa_atual = 'preproposta';
-    salvarCliente();
+    
+    exibirModalComAcao(
+        'Reativar cliente',
+        'Deseja reativar este cliente? Ele voltará para a etapa de Pré-proposta.',
+        '',
+        '#0b2f5c',
+        function() {
+            clienteEditando.etapa_atual = 'preproposta';
+            salvarCliente();
+        }
+    );
 }
 // ===== MÁSCARA PARA VALOR ESTIMADO =====
 function mascaraValor(input) {
